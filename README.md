@@ -98,23 +98,24 @@ Just say what you want — [the full prompt list](demos/start-here.md):
 
 ---
 
-## Does it actually help? Measured.
+## Does it actually help?
 
-**[BENCHMARK.md](BENCHMARK.md)** — 74 agent sessions, bars registered before any of them ran.
+**[BENCHMARK.md](BENCHMARK.md)** — 82 agent runs, thresholds committed before any of them started.
 
-Sixteen PowerWorld questions, answered twice by the same model: once with this kit, once with
-nothing.
+Sixteen PowerWorld questions, answered by the same model with the kit and without it:
 
-| | with the kit | no kit |
-|---|---:|---:|
-| correct | **16 / 16** | 4 / 16 |
-| wrong | 0 | **6** |
+![Accuracy with and without the kit](assets/accuracy-16.svg)
 
-The control arm never once said *"I don't know."* It reported confidence on all 16 while
-scoring 4, and every one of its six wrong answers was the kind PowerWorld accepts silently.
+The model without the kit never said "I don't know." It claimed confidence on all 16 and got
+4 right, and its wrong answers were the kind PowerWorld accepts without complaining.
 
-**The kit also failed one of its eight gates**, and that is in there too — what broke, why,
-the fix, and the re-measurement showing the fix worked.
+Giving a model web search instead of the kit fixed **one** of the 8 hardest questions, and
+took 8.6 minutes and 8.5 million tokens to do it. The kit got 8 of 8 in 4.6 minutes. Most of
+what it knows was found by running PowerWorld and watching it fail quietly, which is not
+something you can search for.
+
+**The kit also failed one of its eight checks**, and that is in there too: what broke, why,
+the fix, and the re-run showing the fix worked.
 
 ---
 

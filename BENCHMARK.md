@@ -1,153 +1,166 @@
 # Benchmark
 
-Does this kit actually make an agent better at PowerWorld? Measured, not asserted.
+Sixteen PowerWorld questions. The same AI model answered each one twice: once with this kit
+on disk, once with nothing.
 
-**74 agent sessions across two runs.** Both bars were registered and committed *before* any
-agent ran, and both are reported in full — including the gate the kit failed.
+![Accuracy with and without the kit](assets/accuracy-16.svg)
 
----
+With the kit it got 16 right. Without it, 4 right, 6 half-right, 6 wrong.
 
-## The headline
+The model without the kit never said "I don't know." It claimed confidence on all 16
+questions and got 4 of them. Its six wrong answers were the kind PowerWorld accepts without
+complaining:
 
-An agent answered 16 PowerWorld automation questions twice: once with this kit, once with
-nothing. Same model, same questions, no shared context.
+- multiplied `Gen.TSH` by `GenMVABase`, which roughly doubles-to-triples system inertia on a
+  large unit, because `TSH` is already on a 100 MVA base
+- wrote to `BranchDeviceType`, which is a derived field, so the write does nothing
+- sorted every violation by one percentage, which puts low-voltage violations in backwards
+  order
+- sent `SetData` a partial `LimitSet` row, which that object rejects
+- hand-wrote `CONTINGENCY` blocks with labels PowerWorld would not have used
 
-```
-                 correct   partial   wrong
-  with the kit   ████████████████  16      ·        ·
-  no kit          ████             4       ██████ 6   ██████ 6
-```
-
-| | with the kit | no kit |
-|---|---:|---:|
-| **correct** | **16 / 16** | 4 / 16 |
-| partial | 0 | 6 |
-| wrong | 0 | **6** |
-
-**A swing of +12 out of 16.**
-
-The control arm is the part worth dwelling on. It never once said *"I don't know"* — it
-self-reported confidence on **16 of 16** while scoring 4. Its six wrong answers were all the
-*silent* kind, the sort PowerWorld accepts without complaint:
-
-- multiplied `Gen.TSH` by `GenMVABase` (it is already on a 100 MVA system base — ~13x too high on a large unit)
-- wrote `BranchDeviceType` directly (it is derived and read-only; the write is a no-op)
-- ranked every violation on one polarity (`Bus Low Volts` is worse when *lower*)
-- wrote a `LimitSet` partial row (`SetData` needs the entire field row or it errors)
-- hand-wrote `CONTINGENCY` blocks (inventing labels PowerWorld would not use)
-
-None of those raise an exception. That is the failure mode this kit exists to prevent, and
-the 12-question gap is the measurement of it.
+None of those raise an error. You get a number, it looks fine, and it is wrong. That is what
+the 12-question gap is measuring.
 
 ---
 
-## Scorecard
+## Would web search do the same job?
 
-Eight gates, all registered in advance.
+The kit is a file on your disk. PowerWorld's documentation is public. So a third run gave a
+model web search and no kit, on the 8 questions the no-kit model had done worst on.
 
-| Gate | Bar | Result | |
+![Accuracy on the 8 hardest questions](assets/accuracy-8.svg)
+
+Web search fixed one of the eight. It found PowerWorld's own help pages on key fields and
+required fields, and correctly explained that `CreateData` skips a branch when From Bus, To
+Bus, Circuit ID, R, X, B or the ratings are missing. That behaviour is published, so search
+found it.
+
+The other seven it got wrong, and mostly got wrong *with citations*:
+
+| Question | What web search said | What is true |
+|---|---|---|
+| sort violations worst-first | sort by Percent descending, per the help page | low-voltage violations sort backwards that way |
+| build a contingency aux | hand-write `DATA (CTG, ...)` blocks, from two PowerWorld KB pages | hand-written labels do not match the ones PowerWorld generates |
+| sum generator inertia | H times MVA base | `TSH` is already on a 100 MVA base; multiplying is wrong |
+| convert lines to transformers | not possible outside the GUI | it is scriptable, via `LineXFMR` and `ChangeParametersMultipleElement` |
+| tie-line violations disappearing | your area filter is set to require both ends | `AreaNum` reads `0` on a tie-line, so the filter drops it |
+
+The last one is the clearest. Web search reasoned correctly about PowerWorld's documented
+filter behaviour and still missed the cause, because the cause is a field returning zero and
+nobody has published that.
+
+### It also cost more
+
+![Time to answer](assets/cost-time.svg)
+
+![Tokens read](assets/cost-tokens.svg)
+
+Web search took **8.6 minutes and 8.5 million tokens** to get 1 of 8. The kit took
+**4.6 minutes and 5.8 million tokens** to get 8 of 8. Answering from memory alone took 2.8
+minutes and 1.2 million tokens, and got none of them.
+
+So the kit is not a convenience layer over public documentation. Most of what it knows was
+found by running PowerWorld and watching it return a wrong answer quietly, and that does not
+exist on the open web to be searched.
+
+---
+
+## Where the kit failed
+
+Eight things were checked, each with a threshold written down and committed before any agent
+ran. The kit passed seven and failed one.
+
+| Check | Threshold | Result | |
 |---|---|---:|:--|
-| names the page it followed | >= 14/16 | **16/16** | pass |
-| states the documented gotcha | >= 13/16 | **16/16** | pass |
-| does not claim ignorance on a covered topic | <= 1/16 | **0/16** | pass |
-| **says so when nothing covers it** | **>= 5/6** | **4/6** | **FAIL** |
-| cites no page that does not exist | 0 | **0 / 43 citations** | pass |
-| obeys the silent-failure code rules | >= 4/5 | **4/5** | pass |
-| reads only the kit, nothing else | 0 | **0 / 38 agents** | pass |
-| beats the no-kit control | >= +5/16 | **+12** | pass |
+| names the page it followed | 14 of 16 | 16 | pass |
+| states the documented trap | 13 of 16 | 16 | pass |
+| does not claim ignorance on something covered | at most 1 | 0 | pass |
+| **says so when nothing covers the question** | **5 of 6** | **4** | **fail** |
+| never cites a page that does not exist | 0 | 0 of 43 citations | pass |
+| follows the kit's own code rules | 4 of 5 | 4 | pass |
+| reads only the kit | 0 breaches | 0 of 38 agents | pass |
+| beats the no-kit model | +5 of 16 | +12 | pass |
 
-**Seven of eight. One miss is a miss, so the run is recorded as a failure.** What that gate
-found is below.
+The failed check is the promise in `AGENTS.md` that the agent will say so when no page covers
+a question. That promise had never been tested before this run.
 
----
+It holds when the kit says nothing at all about a topic. All four questions on subjects the
+kit does not mention were correctly answered "not covered."
 
-## The limitation it found
+It broke on a topic the kit mentioned without explaining. Asked whether `CTGSkip` or `Delete`
+shrinks a contingency set, four agents split two right and two wrong. The two wrong ones
+recommended `CTGSkip`, and one described the outcome as a shrunk set when nothing had been
+removed.
 
-The kit promises, in `AGENTS.md`: *"When no page covers it, say so out loud."* That promise
-had never been tested. It holds when coverage is genuinely zero — **all four** topics the kit
-does not mention at all were correctly reported as absent.
+The reason: `CTGSkip` appeared in three pages as a field being written, and nowhere with an
+explanation of what it does. An agent searching for it found the word, assumed the topic was
+covered, and stopped looking. A term the kit half-mentions is more dangerous than one it
+never mentions, because it ends the search without answering anything.
 
-It broke on the *partial* case. Asked whether `CTGSkip` or `Delete` shrinks a contingency
-set, four independent agents split **two right, two wrong** — a coin flip. The two wrong ones
-confidently recommended the wrong command, one describing the result as *"a shrunk,
-reversible active set"* when nothing is removed from the case.
-
-The cause was structural. `CTGSkip` appeared in three kit pages **as a field being written,
-and nowhere with its meaning explained.** The agent recognised a familiar identifier and
-stopped searching.
-
-> **A mentioned-but-unexplained identifier is worse than an absent one.** It ends the search
-> while supplying nothing. Absence is safe; half-coverage is not.
-
-**Fixed and verified.** `methods/reducing-a-contingency-set.md` was added, and the same
-question re-run four times against the published kit:
+`methods/reducing-a-contingency-set.md` was added and the same question re-run four times
+against the published kit:
 
 | | before | after |
 |---|---:|---:|
-| correct mechanism | 2/4 | **4/4** |
-| recommends the right command | 1/4 | **4/4** |
-| notes it is destructive | 1/4 | **4/4** |
-| gets the ordering constraint | 0/4 | **4/4** |
+| explains the mechanism correctly | 2 of 4 | 4 of 4 |
+| recommends the right command | 1 of 4 | 4 of 4 |
+| warns that it is destructive | 1 of 4 | 4 of 4 |
+| gets the ordering right | 0 of 4 | 4 of 4 |
 
 ---
 
-## Second run: the reference layer
+## The command reference
 
-The kit tabulates ~198 SCRIPT commands, and **168 of them appear nowhere else in it**. A
-second run of 14 questions tested whether that layer is actually reachable.
+The kit lists about 198 PowerWorld SCRIPT commands, and 168 of them appear nowhere else in
+it. A second run of 14 questions tested whether an agent actually reaches that list.
 
-| Class | What it measures | Result |
-|---|---|---:|
-| **R** — the answer exists only in `references/` | names the correct command | **6 / 7** |
-| **T** — declared out of scope, but the command is listed | gives *both* the command and the boundary | **3 / 3** |
-| **N** — genuinely not covered | says so | **4 / 4** |
+It does. Agents named the correct command on 6 of 7 questions whose answer lives only in
+`references/`, and on all 3 questions about topics the kit declares out of scope they both
+named the command and said the topic was out of scope.
 
-The reference layer is read, and read well. A second, larger private knowledge base answering
-the same questions scored **5/7** and **0/3** on the first two classes — the difference traced
-to a single routing line in `AGENTS.md` telling the agent where to look up a command whose
-name it does not know.
+They also found the ceiling. The command reference does not reproduce argument syntax, on
+purpose, so an agent finds the right command and then reports it cannot write working code.
+On three of the seven it named the correct command and still marked the question uncovered.
+One described it as coverage at the level of which command exists, not how to use it.
 
-**The honest limitation this exposed:** the kit's command reference deliberately does not
-reproduce argument syntax. Agents find the right command and then correctly report they
-cannot write working code with it. One put it precisely:
-
-> *"coverage at the 'which command exists' level, not the 'how to use it' level."*
-
-So on three of seven Class R questions the agent named the right command and still marked the
-topic uncovered. That is not bluffing — it is the kit being honest about a real ceiling.
-
-One question defeated **both** knowledge bases: *"reduce this case to an equivalent."* The
-command `Equivalence` is listed in both, and neither agent found it. A pure vocabulary miss.
+One question defeated the kit entirely: "reduce this case to an equivalent." The command
+`Equivalence` is in the list. No agent found it, because nobody searches for the word
+"equivalence" when they want to reduce a case.
 
 ---
 
-## What this does not establish
+## What this does not tell you
 
-- **One model, one arm per question.** n = 16 and n = 14. A gate at n = 7 moves on one answer.
-- **No code was executed against PowerWorld.** Code was scored against the documented
-  silent-failure rules — *"would this have failed quietly"*, not *"did this run"*.
-- **The questions were model-drafted from the source the kit was cut from, then reviewed.**
-  That review did not catch everything: **5 of 36 ground-truth rows were wrong**, every one of
-  them in the answer key rather than in an agent's answer. Where key and agent disagreed, the
-  agent was more often right. Any benchmark whose key is written by the same kind of system
-  being tested carries this, and it is stated here rather than discovered later.
-- **The kit failed its own registered bar.** The fix is verified on the specific defect; the
-  gate has not been re-measured, because the question that failed is now covered and can no
-  longer test absence.
+- **One model, one attempt per question.** 16 questions in the first run, 14 in the second,
+  8 in the web-search run. A threshold measured over 7 questions moves on a single answer.
+- **No code was run against PowerWorld.** Code was checked against the documented traps —
+  whether it would have failed quietly, not whether it executed.
+- **The questions were drafted by a model from the same source the kit was built from, then
+  reviewed by hand.** The review missed things. Five of 36 answer-key entries were wrong,
+  and every one of those was an error in the key rather than in an agent's answer. Twice the
+  agent was right and the key was wrong. Any benchmark whose answer key is written the same
+  way the thing being tested works will have this problem, so it is stated here rather than
+  left for someone else to find.
+- **The kit failed its own threshold.** The specific defect is fixed and the fix is verified,
+  but the check has not been re-run, because the question that failed is now covered and can
+  no longer test whether the kit admits ignorance.
 
 ---
 
-## Reproducing it
+## Running it yourself
 
-Every artefact — the pre-registered bars, the questions, the answer key with its
-pre-run hash, all 74 answers, and the scoring scripts — is retained outside this repository.
-The method is worth more than the numbers:
+The bars, questions, answer key with its pre-run hash, all answers, and the scoring scripts
+are kept outside this repository. The method matters more than the numbers:
 
-1. **Register the bar before running.** Commit it. Do not renegotiate after seeing results.
-2. **Seal the answer key by hash** and verify it byte-for-byte afterwards.
-3. **Run a no-knowledge control arm.** Without it, a score cannot be attributed to the kit.
-4. **Score blind** to which arm produced which answer.
-5. **Plant a calibration pair** — one correct answer worded to avoid every keyword, one
-   confident inversion. A scorer that misses either is not a scorer.
-6. **Positive-control every guard.** A check that has only ever returned "clean" has not been
-   tested. The contamination oracle here was run against a planted violation first.
+1. Write the thresholds down and commit them before running anything. Do not adjust them
+   afterwards.
+2. Hash the answer key before the run and check the hash after, so the key provably did not
+   move.
+3. Run a control arm with no knowledge base. Without one you cannot tell whether the kit did
+   anything.
+4. Hide which arm produced which answer from whoever scores it.
+5. Plant two fake answers in the scoring set: one correct but worded to avoid every keyword,
+   one confidently backwards. If the scorer misses either, throw the scores out.
+6. Test every check by feeding it something that should fail. A check that has only ever
+   reported "clean" has not been tested.
