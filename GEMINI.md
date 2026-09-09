@@ -175,17 +175,47 @@ just a wrong answer or a write that did nothing.
 3. **Prefer `esapp` over the standalone `esa` package.** Same SimAuto underneath, better
    documented. Do not mix them.
 
-4. **Use `pw.esa.RunScriptCommand('SaveCase(...)')`, never the COM `SaveCase`.** The COM one
-   silently does nothing.
+4. **Call the named esapp method, not a hand-written script string.**
 
-5. **A DC solve always reports zero mismatch.** It cannot tell you a generation schedule
+   ```python
+   pw.esa.TimeStepDoRun()                          # correct
+   pw.esa.RunScriptCommand("TimeStepDoRun;")       # wrong
+   ```
+
+   esapp 0.2.1 wraps **310 SCRIPT commands** as typed methods across 20 SAW mixins —
+   roughly 300 of the ~345 catalogued actions. Both forms reach the same COM call, so the
+   win is not runtime validation: it is a Python-side signature check, correct argument
+   building (bracket lists, quoting, filter and solver enums), and above all **one place
+   the maintainer can patch when PowerWorld changes a command's syntax.** A hand-written
+   string is a call site nobody can reach. The dangerous case is not a command that
+   disappears — that raises — but one whose parameter order or meaning changes, so the
+   string "succeeds" and does the wrong thing.
+
+   Use `RunScriptCommand` only where no wrapper exists — about 41 actions, mostly
+   oneline/GUI (`OpenOneline`, `ExportOneline`), dialogs, and a few writers. Check the
+   command against the esapp reference before concluding one is missing, and leave a
+   comment saying why whenever you do fall back to a string.
+
+5. **`SaveCase` is the exception, and it is not one of the 310.** esapp routes it through
+   COM, not the script builder, and `pw.esa.SaveCase(...)` is a **silent no-op** — returns
+   success, writes no file. Use the script form, exactly two parameters, and assert the
+   file exists:
+
+   ```python
+   pw.esa.RunScriptCommand(f'SaveCase("{out}", PWB);')
+   assert os.path.exists(out), "SaveCase reported success but wrote nothing"
+   ```
+
+   `OpenCase` and `CloseCase` are likewise absent from the SCRIPT index.
+
+6. **A DC solve always reports zero mismatch.** It cannot tell you a generation schedule
    is short — the slack bus absorbs the shortfall. Check the schedule against total load
    directly, never the post-solve mismatch.
 
-6. **Use absolute paths.** Relative paths resolve against PowerWorld's working
+7. **Use absolute paths.** Relative paths resolve against PowerWorld's working
    directory, not your script's.
 
-7. **Clear contingency results before solving.** They persist stale inside the `.pwb`,
+8. **Clear contingency results before solving.** They persist stale inside the `.pwb`,
    so a fresh-looking read can be from a previous run.
 
 ## When something goes wrong

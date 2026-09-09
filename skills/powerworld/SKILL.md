@@ -68,13 +68,23 @@ produces a wrong answer.
    write is a no-op that reports success.
 2. **`pw[Obj, field] = values` is positional over the whole table.** Assigning to a filtered
    subset writes nothing.
-3. **Use `pw.esa.RunScriptCommand('SaveCase(...)')`.** The COM `SaveCase` silently no-ops.
-4. **A DC solve always reports zero mismatch.** Check the generation schedule against load
+3. **Call the named esapp method, not a hand-written script string.**
+   `pw.esa.TimeStepDoRun()`, never `pw.esa.RunScriptCommand("TimeStepDoRun;")` — esapp 0.2.1
+   wraps 310 SCRIPT commands. You get a typed signature and correct argument building, but
+   the real reason is that a hand-written string is a call site nobody can patch when
+   PowerWorld changes that command's syntax. Reach for `RunScriptCommand` only where no
+   wrapper exists (~41 actions, mostly oneline/GUI and dialogs), and leave a comment saying
+   why.
+4. **`SaveCase` is the exception.** It is a COM method, not one of the 310, and
+   `pw.esa.SaveCase(...)` is a silent no-op — returns success, writes nothing. Use the script
+   form and assert the file exists:
+   `pw.esa.RunScriptCommand(f'SaveCase("{out}", PWB);')` (exactly two parameters).
+5. **A DC solve always reports zero mismatch.** Check the generation schedule against load
    directly; the slack bus hides a shortfall.
-5. **Clear contingency results before solving.** They persist stale inside the `.pwb`.
-6. **Absolute paths only.** Relative paths resolve against PowerWorld's working directory,
+6. **Clear contingency results before solving.** They persist stale inside the `.pwb`.
+7. **Absolute paths only.** Relative paths resolve against PowerWorld's working directory,
    not yours.
-7. **Write `esapp`, not the standalone `esa`.** Same SimAuto underneath, better documented;
+8. **Write `esapp`, not the standalone `esa`.** Same SimAuto underneath, better documented;
    do not mix the two in one script.
 
 **Assert the effect, never the absence of an error.** PowerWorld accepts malformed requests,

@@ -179,17 +179,47 @@ just a wrong answer or a write that did nothing.
 3. **Prefer `esapp` over the standalone `esa` package.** Same SimAuto underneath, better
    documented. Do not mix them.
 
-4. **Use `pw.esa.RunScriptCommand('SaveCase(...)')`, never the COM `SaveCase`.** The COM one
-   silently does nothing.
+4. **Call the named esapp method, not a hand-written script string.**
 
-5. **A DC solve always reports zero mismatch.** It cannot tell you a generation schedule
+   ```python
+   pw.esa.TimeStepDoRun()                          # correct
+   pw.esa.RunScriptCommand("TimeStepDoRun;")       # wrong
+   ```
+
+   esapp 0.2.1 wraps **310 SCRIPT commands** as typed methods across 20 SAW mixins —
+   roughly 300 of the ~345 catalogued actions. Both forms reach the same COM call, so the
+   win is not runtime validation: it is a Python-side signature check, correct argument
+   building (bracket lists, quoting, filter and solver enums), and above all **one place
+   the maintainer can patch when PowerWorld changes a command's syntax.** A hand-written
+   string is a call site nobody can reach. The dangerous case is not a command that
+   disappears — that raises — but one whose parameter order or meaning changes, so the
+   string "succeeds" and does the wrong thing.
+
+   Use `RunScriptCommand` only where no wrapper exists — about 41 actions, mostly
+   oneline/GUI (`OpenOneline`, `ExportOneline`), dialogs, and a few writers. Check the
+   command against the esapp reference before concluding one is missing, and leave a
+   comment saying why whenever you do fall back to a string.
+
+5. **`SaveCase` is the exception, and it is not one of the 310.** esapp routes it through
+   COM, not the script builder, and `pw.esa.SaveCase(...)` is a **silent no-op** — returns
+   success, writes no file. Use the script form, exactly two parameters, and assert the
+   file exists:
+
+   ```python
+   pw.esa.RunScriptCommand(f'SaveCase("{out}", PWB);')
+   assert os.path.exists(out), "SaveCase reported success but wrote nothing"
+   ```
+
+   `OpenCase` and `CloseCase` are likewise absent from the SCRIPT index.
+
+6. **A DC solve always reports zero mismatch.** It cannot tell you a generation schedule
    is short — the slack bus absorbs the shortfall. Check the schedule against total load
    directly, never the post-solve mismatch.
 
-6. **Use absolute paths.** Relative paths resolve against PowerWorld's working
+7. **Use absolute paths.** Relative paths resolve against PowerWorld's working
    directory, not your script's.
 
-7. **Clear contingency results before solving.** They persist stale inside the `.pwb`,
+8. **Clear contingency results before solving.** They persist stale inside the `.pwb`,
    so a fresh-looking read can be from a previous run.
 
 ## When something goes wrong
@@ -7653,7 +7683,7 @@ Code-reconstruction reference for the time step simulation project — the `_sim
 
 ## Content
 
-> **Library note — prefer `esapp` over `esa`.** This repo imports the standalone `esa` (Easy SimAuto) package. For new or regenerated code, prefer **`esapp` (ESA++)**: it wraps the **same** PowerWorld SimAuto server, so every `RunScriptCommand` / `TimeStep*` script command is identical via `pw.esa.RunScriptCommand(...)`, and esapp is far better documented in-package — an agent reasons about it more reliably. Swap esa's data helpers (`GetParametersMultipleElement`, `change_parameters_multiple_element_df`, `get_key_field_list`) for esapp's bracket interface (`pw[Type, fields]`, `pw[Type] = df`, `Type.keys()`). See [esapp-overview](../methods/esapp-overview.md). (Library choice only — unrelated to the TimeStep-vs-Transient-Stability distinction.)
+> **Library note — prefer `esapp` over `esa`.** This repo imports the standalone `esa` (Easy SimAuto) package. For new or regenerated code, prefer **`esapp` (ESA++)**: it wraps the **same** PowerWorld SimAuto server, and esapp exposes each of those SCRIPT commands as a typed named method (`pw.esa.TimeStepDoRun()`), which is what you should call — see esapp script command wrappers — an agent reasons about it more reliably. Swap esa's data helpers (`GetParametersMultipleElement`, `change_parameters_multiple_element_df`, `get_key_field_list`) for esapp's bracket interface (`pw[Type, fields]`, `pw[Type] = df`, `Type.keys()`). See [esapp-overview](../methods/esapp-overview.md). (Library choice only — unrelated to the TimeStep-vs-Transient-Stability distinction.)
 
 Code-reconstruction knowledge for time step simulation. Given a plain prompt
 ("run the renewable sim on the Synth2k case"), an agent reads this page and
@@ -7672,9 +7702,10 @@ engine is shared; only the `main.py` orchestration differs.
 
 - **`from esapp import PowerWorld`** — esapp (ESA++) wraps the same PowerWorld SimAuto
   server as the older standalone `esa` package, and is the one to write. `pw.esa` is
-  esapp's own raw SimAuto handle, so every `RunScriptCommand` / `TimeStep*` call below is
-  identical; only the data helpers differ (bracket interface instead of esa's
-  `GetParametersMultipleElement` / `change_parameters_multiple_element_df`).
+  esapp's own raw SimAuto handle, and each SCRIPT command below is exposed as a typed named
+  method (`pw.esa.TimeStepDoRun()`) — call those, not a hand-written script string. Only the
+  data helpers differ beyond that: the bracket interface replaces esa's
+  `GetParametersMultipleElement` / `change_parameters_multiple_element_df`.
 - The import is **lazy** — done *inside* `_simulation_worker`, not at module top —
   so importing `function.py` never requires PowerWorld to be installed. Keep it lazy
   if you regenerate this.
@@ -7764,28 +7795,30 @@ def _simulation_worker(case_path, pww_list, result_csv):
         gen = pw[Gen, gen_param]
 
         # (d) load weather file(s): first = Load, rest = Append
-        pw.esa.RunScriptCommand(f'TimeStepLoadPWW("{pww_list[0]}","Weather Only");')
+        pw.esa.TimeStepLoadPWW(pww_list[0], "Weather Only")
         for pww in pww_list[1:]:
-            pw.esa.RunScriptCommand(f'TimeStepAppendPWW("{pww}","Weather Only");')
+            pw.esa.TimeStepAppendPWW(pww, "Weather Only")
 
         # (e) EDIT mode: mark renewables Selected = YES, push back
-        pw.esa.RunScriptCommand('EnterMode(EDIT);')
+        pw.esa.EnterMode("EDIT")
         gen.loc[gen['GenFuelType'].str.contains('WND|SUN', na=False), 'Selected'] = 'YES'
         pw[Gen] = gen
-        pw.esa.RunScriptCommand('EnterMode(RUN);')
+        pw.esa.EnterMode("RUN")
 
         # (f) declare which fields to save — MUST be wrapped (see callout below)
-        pw.esa.RunScriptCommand("TIMESTEPSaveSelectedModifyStart;")
+        pw.esa.TIMESTEPSaveSelectedModifyStart()
         gen.loc[gen['Selected'] == 'YES', 'TimeDomainSelected'] = 'YES'
         pw[Gen] = gen
-        pw.esa.RunScriptCommand(
-            'TimeStepSaveFieldsSet(GEN, [BGGenMWFuelTypeGeneric:10, BGGenMWFuelTypeGeneric:12], SELECTED);'
+        pw.esa.TimeStepSaveFieldsSet(
+            "GEN",
+            ["BGGenMWFuelTypeGeneric:10", "BGGenMWFuelTypeGeneric:12"],
+            "SELECTED",
         )
-        pw.esa.RunScriptCommand("TIMESTEPSaveSelectedModifyFinish;")
+        pw.esa.TIMESTEPSaveSelectedModifyFinish()
 
         # (g) run + export
-        pw.esa.RunScriptCommand('TimeStepDoRun();')
-        pw.esa.RunScriptCommand(f'TimeStepSaveResultsByTypeCSV(gen,"{result_csv}");')
+        pw.esa.TimeStepDoRun()
+        pw.esa.TimeStepSaveResultsByTypeCSV("gen", result_csv)
         pw.esa.CloseCase()
         return gen
     finally:
@@ -7803,19 +7836,19 @@ Step-by-step, every SimAuto call / SAW method in execution order:
 2. `pw = PowerWorld(tmp_case)` — open the case.
 3. `gen_param = list(Gen.keys()) + _GEN_PARAM`
 4. `gen = pw[Gen, gen_param]` — DataFrame of all gens.
-5. `pw.esa.RunScriptCommand('TimeStepLoadPWW("<pww0>","Weather Only");')` — load first weather file.
-6. for each remaining pww: `pw.esa.RunScriptCommand('TimeStepAppendPWW("<pww>","Weather Only");')` — append.
-7. `pw.esa.RunScriptCommand('EnterMode(EDIT);')`
+5. `pw.esa.TimeStepLoadPWW(pww0, "Weather Only")` — load first weather file.
+6. for each remaining pww: `pw.esa.TimeStepAppendPWW(pww, "Weather Only")` — append.
+7. `pw.esa.EnterMode("EDIT")`
 8. set `gen['Selected'] = 'YES'` where `GenFuelType` contains `WND|SUN`.
 9. `pw[Gen] = gen` — push selection into the case.
-10. `pw.esa.RunScriptCommand('EnterMode(RUN);')`
-11. **`pw.esa.RunScriptCommand("TIMESTEPSaveSelectedModifyStart;")`** ← opens the save-field edit transaction.
+10. `pw.esa.EnterMode("RUN")`
+11. **`pw.esa.TIMESTEPSaveSelectedModifyStart()`** ← opens the save-field edit transaction.
 12. set `gen['TimeDomainSelected'] = 'YES'` where `Selected == 'YES'`.
 13. `pw[Gen] = gen` — push `TimeDomainSelected`.
-14. `pw.esa.RunScriptCommand('TimeStepSaveFieldsSet(GEN, [BGGenMWFuelTypeGeneric:10, BGGenMWFuelTypeGeneric:12], SELECTED);')` — choose the two MW-by-fuel-type fields to save for selected gens.
-15. **`pw.esa.RunScriptCommand("TIMESTEPSaveSelectedModifyFinish;")`** ← closes the transaction.
-16. `pw.esa.RunScriptCommand('TimeStepDoRun();')` — run the time-step simulation.
-17. `pw.esa.RunScriptCommand(f'TimeStepSaveResultsByTypeCSV(gen,"{result_csv}");')` — export gen results to CSV.
+14. `pw.esa.TimeStepSaveFieldsSet("GEN", ["BGGenMWFuelTypeGeneric:10", "BGGenMWFuelTypeGeneric:12"], "SELECTED")` — choose the two MW-by-fuel-type fields to save for selected gens.
+15. **`pw.esa.TIMESTEPSaveSelectedModifyFinish()`** ← closes the transaction.
+16. `pw.esa.TimeStepDoRun()` — run the time-step simulation.
+17. `pw.esa.TimeStepSaveResultsByTypeCSV("gen", result_csv)` — export gen results to CSV.
 18. `pw.esa.CloseCase()`.
 19. `finally:` delete `tmp_case`.
 
