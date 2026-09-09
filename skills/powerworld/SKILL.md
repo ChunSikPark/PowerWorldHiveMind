@@ -1,6 +1,6 @@
 ---
 name: powerworld
-description: Use when working with PowerWorld Simulator, .pwb case files, SimAuto, or the esapp Python package - opening or modifying cases, solving power flow, adding buses/lines/generators, applying a dispatch, contingency analysis and violation reports, saving cases, and PowerWorld SCRIPT/aux actions. Also covers PowerWorld's built-in weather features: PWW weather files, TimeStep simulation for hourly renewable generator output, and fetching the .pww files those need via the TeamOverbyeWeather client.
+description: "Use when working with PowerWorld Simulator, .pwb case files, SimAuto, or the esapp Python package - opening or modifying cases, solving power flow, adding buses/lines/generators, applying a dispatch, contingency analysis and violation reports, saving cases, and PowerWorld SCRIPT/aux actions. Also covers PowerWorld's built-in weather features: PWW weather files, TimeStep simulation for hourly renewable generator output, and fetching the .pww files those need via the TeamOverbyeWeather client."
 ---
 
 # PowerWorld expert
