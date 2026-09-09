@@ -331,63 +331,32 @@ Both returned frames carry the 8 header rows on top.
 
 ---
 
-## 5. `parallel/main.py` — the parallel variant (differences only)
+## 5. `parallel/main.py` — the parallel variant
 
-Engine (`parallel/function.py`) is identical; only orchestration changes.
+Same engine (`parallel/function.py`); only orchestration differs. What can produce a wrong
+or failed run:
 
-- **`ProcessPoolExecutor`** (`concurrent.futures`). Each PWW is simulated in its own
-  child process driving its **own PowerWorld/SimAuto instance** against its **own
-  private temp copy** of the case (the temp-copy in `_simulation_worker` is what makes
-  this safe). Workers are **top-level functions** (`_run_one_sim`, `_run_one_group`) so
-  they're picklable on Windows; they import `function` *inside* the child so the parent
-  never loads PowerWorld.
-- **`--workers/-w N`** (default 4): caps concurrent PowerWorld instances. Keep ≤ what
-  the PowerWorld license + RAM allow. `effective_workers = min(workers, num_tasks)`.
-- **`--year` takes `nargs="+`** here (multiple years), vs a single int in series.
-  Omitting `--year` with `--pww-dir` → `_discover_years` runs **every** year found.
-- **`_collect_year_quarters`**: for each requested year, collects `Q1..Q4` and reports
-  `complete` / `partial` (missing quarters listed) / `none`. **Incomplete years are
-  skipped**; only years with all 4 quarters become groups.
-- **Two parallel granularities**:
-  - **by-file (default)**: flatten groups into one task per PWW; each quarter runs in a
-    separate worker concurrently (`_run_one_sim`). Parent then **assembles** each group
-    sequentially — reads the per-quarter raw CSVs in sorted (quarter) order, concats,
-    `process_results`, writes solar/wind, deletes temps. `gen_by_group` keeps the last
-    gen per group; a group with any failed sim skips assembly.
-  - **`--by-year`**: one whole year per worker (`_run_one_group`) — the worker runs all
-    4 quarters sequentially, concats, splits, and writes the CSVs itself, returning
-    `(key, ok, msg)` so big DataFrames never cross the process boundary.
-- **Resume-safe**: before launching, groups whose solar+wind CSVs both exist are moved
-  to `skipped`; only `pending` is run.
-- Output naming (`_out_paths`) is the same `Historical_{year}` vs stem logic as series.
-
----
+- **Cap `--workers` at what the PowerWorld licence and RAM allow.** Each worker drives its
+  own SimAuto instance against its own temp copy of the case — the temp-copy in
+  `_simulation_worker` is what makes concurrency safe.
+- **Workers must stay top-level and import the engine inside the child.** Windows spawn
+  needs them picklable, and the parent must never load PowerWorld.
+- **Incomplete years are skipped silently** — only years with all four quarters become
+  groups, and a group with any failed sim skips assembly.
+- **Resume-safe:** a group whose solar *and* wind CSVs both exist is skipped, so a rerun
+  after a partial failure does not redo finished work.
 
 ## 6. `time_utils.py` — time math ("settled, don't change")
 
-CLAUDE.md flags this module as verified against real runs — **do not change without a
-clear reason.** Signatures + behavior:
+Verified against real runs; **do not change without a clear reason.** Two facts that change
+an answer:
 
-- `EXCEL_EPOCH = np.datetime64('1899-12-30')`; `CST_OFFSET_DAYS = 6.0/24.0` (CST = UTC-6).
-- **`excel_serial_to_datetime(serial_values)`** → `datetime64[ns]` (tz-naive).
-  Subtracts the 6h CST offset, splits into integer days + fractional nanoseconds, adds
-  to the Excel epoch. Vectorized NumPy.
-- **`_find_dst_sunday(year, month, start_day)`** → the first Sunday on/after `start_day`
-  in that month, via numpy day-of-week arithmetic (epoch Thursday = 0).
-- **`build_dst_mask(times)`** → bool array, True during US DST: **second Sunday in
-  March 02:00 → first Sunday in November 02:00**, computed per unique year in the input.
-- **`convert_to_utc(df)`** → copy of `df` with column 0 replaced by ISO-8601 UTC
-  strings. Pipeline: `pd.to_numeric(col0)` → `excel_serial_to_datetime` →
-  subtract 1h where `build_dst_mask` is True (CST→CDT correction) → round to nearest
-  hour (`+1800s` then truncate to `datetime64[h]`) → `np.datetime_as_string(..., unit='s', timezone='UTC')`. This is what `process_results` calls.
-- **`interpolate_to_hourly(df)`** → fills 3-hour forecast gaps to hourly. Detects gaps
-  (`diff > 3601s`); if none, returns `df` unchanged. Otherwise reindexes onto an hourly
-  `date_range`, linearly interpolates the generator columns, and rewrites column 0 back
-  to Excel-serial. **Note:** present in `time_utils.py` but NOT called by `function.py`
-  / `process_results` in the current path — available for forecast pre-processing.
-
----
-
+- **The CST→UTC conversion applies a DST correction, not a fixed offset.** Column 0 is
+  Excel-serial in CST (UTC-6), and one hour comes off inside US DST (second Sunday in March
+  02:00 → first Sunday in November 02:00) before rounding to the hour. Treating the column
+  as a flat UTC-6 offset shifts every summer timestamp by an hour.
+- **`interpolate_to_hourly` exists but is NOT called** in the current run path. It fills
+  3-hour forecast gaps; assuming it ran is how a gapped forecast series gets read as hourly.
 ## 7. Gotchas checklist (regenerate-safe)
 
 - ✅ `from esapp import PowerWorld` — **esapp, not the standalone `esa`**. Same SimAuto
