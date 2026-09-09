@@ -1,0 +1,8 @@
+{
+  "name": "powerworld-hivemind",
+  "description": "PowerWorld Simulator automation and power-system weather analysis knowledge: esapp, SimAuto, PWW weather data, timestep simulation, IEEE 738 dynamic line ratings, and contingency analysis.",
+  "version": "0.1.0",
+  "author": { "name": "Team Overbye, Texas A&M University" },
+  "license": "CC-BY-4.0",
+  "keywords": ["powerworld", "simauto", "esapp", "power-systems", "weather", "ieee-738", "dlr"]
+}

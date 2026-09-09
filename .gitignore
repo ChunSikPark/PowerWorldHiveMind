@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# hivemind phase 2: moves with the project, never pushed
+.claude/
+.venv/

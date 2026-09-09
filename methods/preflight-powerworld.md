@@ -1,0 +1,163 @@
+---
+type: method
+domain: tooling
+aliases: [preflight, preflight-powerworld, powerworld-check, simauto-check, license-check]
+tags: [powerworld, simauto, esapp, setup, troubleshooting, preflight]
+---
+
+# Method: Preflight — is PowerWorld actually usable here?
+
+## Abstract
+
+Run this before writing any analysis code. It takes about five seconds and answers the
+only question that matters at the start of a session: can this machine drive PowerWorld
+from Python at all? Five checks, each with the exact error you get when it fails and
+what that error actually means. Skipping this is why an agent writes two hundred lines
+of a study and then discovers on the last line that SimAuto was never licensed.
+
+## Connections
+
+- **Up:** [Home](../index.md)
+- **Across:** [esapp-overview](esapp-overview.md) · [powerworld-simauto](../concepts/powerworld-simauto.md) · [esapp](../concepts/esapp.md)
+- **Next:** [esapp-overview](esapp-overview.md) once every check passes
+
+## Content
+
+> **Agents: run this first.** Do not write analysis code before the preflight passes.
+> A failure here is not a bug in your code — it is a fact about the machine, and no
+> amount of rewriting the analysis will fix it. Report which check failed and stop.
+
+### The preflight script
+
+Paste this and run it. It prints a line per check and stops at the first failure.
+
+```python
+"""PowerWorld preflight. Run before writing any analysis code."""
+
+import sys
+from pathlib import Path
+
+CASE = r"C:\path\to\your_case.pwb"   # <- change this
+
+
+def preflight(case_path: str) -> bool:
+    # 1. Platform. SimAuto is a Windows COM server; there is no Linux or macOS path.
+    if not sys.platform.startswith("win"):
+        print(f"FAIL 1/5  platform is {sys.platform!r}, SimAuto requires Windows")
+        return False
+    print("ok   1/5  platform is Windows")
+
+    # 2. pywin32, the COM bridge esapp calls through.
+    try:
+        import win32com.client  # noqa: F401
+    except ImportError:
+        print("FAIL 2/5  pywin32 missing -> pip install pywin32")
+        return False
+    print("ok   2/5  pywin32 importable")
+
+    # 3. esapp itself.
+    try:
+        from esapp import PowerWorld  # noqa: F401
+    except ImportError:
+        print("FAIL 3/5  esapp missing -> pip install esapp")
+        return False
+    print("ok   3/5  esapp importable")
+
+    # 4. The SimAuto COM server. This is where an unlicensed add-on shows up.
+    #    Also record the build date, so the version is on file before any analysis.
+    try:
+        import win32com.client
+        from datetime import date, timedelta
+
+        sa = win32com.client.Dispatch("pwrworld.SimulatorAuto")
+        try:
+            # RequestBuildDate is a Delphi serial date: days since 1899-12-30
+            build = date(1899, 12, 30) + timedelta(days=int(sa.RequestBuildDate))
+            version = f", build {build.isoformat()}"
+        except Exception:  # noqa: BLE001 - version is useful, not required
+            version = ", build unknown"
+    except Exception as exc:  # noqa: BLE001 - the message is the diagnosis
+        print(f"FAIL 4/5  cannot start SimAuto: {exc}")
+        print("          see the failure table: this is usually 'not installed'")
+        print("          or 'installed but the SimAuto add-on is not licensed'")
+        return False
+    print(f"ok   4/5  SimAuto COM server responds{version}")
+
+    # 5. The case itself opens and solves.
+    if not Path(case_path).is_file():
+        print(f"FAIL 5/5  case not found: {case_path}")
+        return False
+    try:
+        from esapp import PowerWorld
+
+        pw = PowerWorld(case_path)
+        info = pw.summary()
+    except Exception as exc:  # noqa: BLE001
+        print(f"FAIL 5/5  case will not open: {exc}")
+        return False
+    print(f"ok   5/5  case opens: {info['n_bus']} buses, {info['n_gen']} generators")
+    return True
+
+
+if __name__ == "__main__":
+    ok = preflight(CASE)
+    print("\nPREFLIGHT PASSED" if ok else "\nPREFLIGHT FAILED - fix the above before continuing")
+    raise SystemExit(0 if ok else 1)
+```
+
+### What each failure actually means
+
+| Error you see | What is wrong | Fix |
+|---|---|---|
+| `platform is 'linux'` / `'darwin'` | SimAuto is a Windows COM server. There is no port | Use Windows. The weather half of this kit still works — see [teamoverbyeweather-client](teamoverbyeweather-client.md) |
+| `ModuleNotFoundError: No module named 'win32com'` | pywin32 is not installed | `pip install pywin32` |
+| `ModuleNotFoundError: No module named 'esapp'` | esapp is not installed, or you are in the wrong interpreter | `pip install esapp`, and check `sys.executable` is the interpreter you think it is |
+| `com_error: (-2147221005, 'Invalid class string', ...)` | SimAuto is not registered. Usually PowerWorld Simulator is not installed at all | Install Simulator. If it *is* installed, run it once as administrator so it registers its COM server |
+| `com_error: (-2147221164, 'Class not registered', ...)` | Same as above, or a 32/64-bit mismatch between Python and Simulator | Match the bitness. A 32-bit Simulator will not serve a 64-bit Python |
+| A COM error mentioning **licence**, **not authorized**, or **add-on** | Simulator is installed and licensed, but the **SimAuto add-on is a separate licence** and yours does not include it | This cannot be fixed in code. Talk to whoever administers your PowerWorld licence |
+| SimAuto starts but a feature errors | Possibly a version difference | Check the build date against [version-requirements](../concepts/version-requirements.md) before assuming a page is wrong |
+| `PowerWorldPrerequisiteError` | **Not** a version or licence problem — the case lacks a prerequisite state | e.g. clearing TimeStep results that do not exist yet. Do the prerequisite step first |
+| `case not found` | Path typo, or a relative path resolving somewhere unexpected | Use an absolute path. Always |
+| Case opens but `n_bus` is 0 | The file opened but is not a valid case | Confirm the `.pwb` is not corrupt; try opening it in Simulator directly |
+
+### The licence check, specifically
+
+This is the check people forget, so it gets its own note.
+
+**PowerWorld Simulator and the SimAuto add-on are licensed separately.** A machine can
+have a fully valid, fully working Simulator installation and still be unable to run a
+single line of this kit, because automation is a different SKU. Simulator's own GUI will
+give you no hint of this — it works fine.
+
+The symptom is that check 4 fails while Simulator itself launches normally. If you can
+open your case by double-clicking it but `Dispatch("pwrworld.SimulatorAuto")` raises,
+that is the licence, not your code.
+
+### Record the version before you analyse anything
+
+Check 4 prints the Simulator build date. Put it in your report. Field availability and
+script-action behaviour both shift between releases, and they shift silently, so when a
+result later looks wrong the build date is the first thing worth checking.
+
+`RequestBuildDate` is a Delphi serial date (days since 1899-12-30), not a version number.
+For the full version string and what this kit was verified against, see
+[version-requirements](../concepts/version-requirements.md).
+
+### Quick version
+
+If you only want the one-line answer:
+
+```python
+import win32com.client
+win32com.client.Dispatch("pwrworld.SimulatorAuto")   # raises if PowerWorld automation is unavailable
+```
+
+If that line runs without raising, everything downstream in this kit is available to
+you. If it raises, nothing is, and no rewrite of the analysis will change that.
+
+### What preflight does not tell you
+
+It confirms you can *drive* PowerWorld. It says nothing about whether the case is
+suitable for the study you have in mind — whether it solves, whether it has the
+generators or weather models you need, whether its limits are configured. Those are
+questions for the analysis itself, starting at [esapp-overview](esapp-overview.md).
