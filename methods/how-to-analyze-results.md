@@ -52,10 +52,14 @@ in order, come from these generator fields:
 | `Longitude` | `Longitude` |
 
 Below the header rows, each data row is one UTC hour and each cell is that
-generator's MW for that hour.
+generator's MW for that hour. The conversion has already happened by this point —
+this file is post-conversion, so parse the column as UTC and do **not** shift it
+again. The CST figure under *Timestamps* below describes PowerWorld's raw export,
+not this CSV.
 
 ## How the values get there
-- **Timestamps:** PowerWorld exports Excel-serial timestamps in CST.
+- **Timestamps:** PowerWorld's **raw** export uses Excel-serial timestamps in CST
+  (this is the input to the pipeline, not the CSV described above).
   `time_utils.convert_to_utc` shifts CST→UTC, subtracts an hour during US DST
   (second Sunday in March → first Sunday in November), rounds to the nearest hour,
   and writes ISO-8601 UTC strings. (`time_utils.py` is verified against real runs —
