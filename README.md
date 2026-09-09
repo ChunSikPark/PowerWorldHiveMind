@@ -98,6 +98,26 @@ Just say what you want — [the full prompt list](demos/start-here.md):
 
 ---
 
+## Does it actually help? Measured.
+
+**[BENCHMARK.md](BENCHMARK.md)** — 74 agent sessions, bars registered before any of them ran.
+
+Sixteen PowerWorld questions, answered twice by the same model: once with this kit, once with
+nothing.
+
+| | with the kit | no kit |
+|---|---:|---:|
+| correct | **16 / 16** | 4 / 16 |
+| wrong | 0 | **6** |
+
+The control arm never once said *"I don't know."* It reported confidence on all 16 while
+scoring 4, and every one of its six wrong answers was the kind PowerWorld accepts silently.
+
+**The kit also failed one of its eight gates**, and that is in there too — what broke, why,
+the fix, and the re-measurement showing the fix worked.
+
+---
+
 ## Never used this kind of thing before? Start here.
 
 This section assumes you have never installed Python and have never used an AI coding
