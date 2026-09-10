@@ -89,8 +89,6 @@ repository deliberately does not publish argument syntax — the *Auxiliary File
 manual is PowerWorld's copyright — so on several of these it names the right command and
 still cannot give you a signature to call it with.
 
-**If your question is "what is this command called", open the manual.**
-
 ---
 
 ## 3. What it costs
