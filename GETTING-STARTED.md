@@ -107,9 +107,23 @@ it lives — there is no folder to pick, no ZIP to unzip, and nothing to keep tr
 
 **Then start a new session** so the plugin loads. Every session after this one has it.
 
-**If `/plugin` is not recognized**, your Claude app is an older version — reinstall from
-[claude.com/download](https://claude.com/download). If the first line fails mentioning
-`git`, Git is not installed; see the table in Step 1.
+**Type each line unbroken.** If the line wraps in the box that is fine, but do not press
+Enter in the middle of it. A stray line break leaves a bare `/` on its own line, and Claude
+answers "`/plugin` isn't available in this environment", which sounds like a missing feature
+and is not one.
+
+**If `/plugin` really is unavailable**, do the same thing from a terminal — it works even
+where the slash command does not:
+
+```
+claude plugin marketplace add ChunSikPark/PowerWorldHiveMind
+claude plugin install powerworld-hivemind@powerworld-hivemind
+```
+
+Then reopen Claude. Check it took with `claude plugin list`, which should show
+`powerworld-hivemind`.
+
+**If the first line fails mentioning `git`**, Git is not installed; see the table in Step 1.
 
 ---
 
@@ -361,10 +375,11 @@ for a file starting with `Claude` and ending in `.exe`, and double-click it. Or 
 install and you are looking at the desktop, where Claude puts no icon: open Start, type
 `Claude`, right-click the result and choose **Pin to taskbar**.
 
-**`/plugin` or `/powerworld-setup` is not recognized.** For `/plugin`, your Claude app is
-an older version — reinstall from [claude.com/download](https://claude.com/download). For
-`/powerworld-setup`, the plugin installed but the session has not reloaded: start a new
-session and try again.
+**`/plugin` or `/powerworld-setup` is not recognized.** For `/plugin`, first check the
+command is on one line with no break in it — that is the usual cause. Otherwise use the
+terminal commands in Step 4, or reinstall Claude from
+[claude.com/download](https://claude.com/download). For `/powerworld-setup`, the plugin
+installed but the session has not reloaded: start a new session and try again.
 
 **The agent does not seem to know about PowerWorld.** On the plugin route, start a new
 session — plugins load at session start. On the manual route, it is pointed at the wrong
