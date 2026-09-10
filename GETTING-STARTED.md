@@ -98,9 +98,18 @@ In the box where you type, paste this and press Enter. It is a sentence, not a c
 Install the PowerWorld knowledge base: git clone https://github.com/ChunSikPark/PowerWorldHiveMind ~/.claude/skills/powerworld-hivemind
 ```
 
-Claude downloads it into a folder it already watches. **Restart Claude** and it is loaded.
-That is the whole installation: no folder to pick, no ZIP to unzip, nothing to remember
-where you put.
+Claude downloads it into a folder it already watches. That is the whole installation: no
+folder to pick, no ZIP to unzip, nothing to remember where you put.
+
+**Now load it — and "restart Claude" is not enough on its own.** Closing and reopening the
+app usually reopens the *same* conversation, and a reopened conversation keeps whatever it
+started with, so the new knowledge stays invisible. Do one of these instead:
+
+- **Type `/reload-plugins`** in the conversation you are in. Quickest, and it works in the
+  desktop app.
+- **Start a new conversation.** Not the one that was already open.
+
+You only do this once. Every conversation after it has the knowledge already.
 
 To update it later, ask Claude to `git pull` in that folder. To remove it, delete the
 folder.
@@ -170,8 +179,8 @@ and check the file exists afterwards.
 and it is what any assistant says when it has not read these pages. If you get it, the
 knowledge did not load. Two usual causes:
 
-- **You did not restart after installing.** It loads when a session starts. Close Claude,
-  open it again, ask again.
+- **The conversation predates the install.** Reopening the app is not enough if it reopens
+  the same conversation. Type `/reload-plugins`, or start a new conversation.
 - **It did not land in the right folder.** Ask Claude: *"Does the folder
   `~/.claude/skills/powerworld-hivemind` exist, and does it contain AGENTS.md?"* If not,
   redo Step 4.

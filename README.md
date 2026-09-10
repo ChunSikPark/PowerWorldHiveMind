@@ -60,7 +60,9 @@ ask it:
 Install the PowerWorld knowledge base: git clone https://github.com/ChunSikPark/PowerWorldHiveMind ~/.claude/skills/powerworld-hivemind
 ```
 
-Restart Claude and it is loaded. Anything under `~/.claude/skills/` that carries a
+Then type `/reload-plugins`, or start a new conversation — reopening the app usually
+reopens the same conversation, which keeps the plugin set it started with. Anything under
+`~/.claude/skills/` that carries a
 `.claude-plugin/plugin.json` is picked up automatically, so there is no marketplace to add,
 no `/plugin` command, and no terminal. Works in the desktop app and the CLI alike. To
 update it later, ask Claude to `git pull` in that folder; to remove it, delete the folder.
