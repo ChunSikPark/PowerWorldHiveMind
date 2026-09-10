@@ -51,89 +51,24 @@ Hand it a case file and ask a question in plain English:
 
 ---
 
-## See it work
-
-Worked runs on a real 37-bus case — **real output, including the failures**:
-
-| Demo | What it shows |
-|---|---|
-| [**Comparing planning cases**](demos/comparing-planning-cases.md) | **Multi-case.** Diff a 2016 vs 2024 case: 691 new branches, 199 new generators, then a contingency set for only the new devices — and the trap that makes the naive answer 87% wrong |
-| [**Violation remediation**](demos/violation-remediation.md) | **The full study.** Diagnose 12 N-1 violations down to one cause, test five reinforcements, rank them — and find that two make things worse |
-| [Adding a device](demos/adding-a-device.md) | Three attempts that reported success and created nothing, then the fix. The silent-failure problem in full |
-| [Power flow & sensitivities](demos/power-flow-and-sensitivities.md) | AC, DC, LODF, PTDF — with the `1e8` sentinel and an error whose obvious fix fails the same way |
-| [Contingency & aux](demos/contingency-and-aux.md) | N-1 from scratch, then auto-generating a filter + contingency `.aux` |
-| [Weather to megawatts](demos/timestep-and-pfw.md) | PFW models, TimeStep, and why "zero output" is usually a setup bug |
-| [Handling errors](methods/handling-errors.md) | How the agent recovers on its own, and the three cases where it should stop and ask you |
-
-Just say what you want — [the full prompt list](demos/start-here.md):
-
-> *"Which branches are most heavily loaded?"*
-> *"Add a line between bus 27 and bus 31 and tell me if it helps N-1."*
-> *"Run N-1 on everything."*
-> *"Build me a contingency file for the five most loaded lines."*
-> *"Run N-1, work out what's wrong, and tell me what to build to fix it."*
-> *"Compare my 2016 and 2024 cases and tell me what the plan builds."*
-
----
-
-## Does it actually help?
-
-**[BENCHMARK.md](BENCHMARK.md)** — the same AI model answered the same 23 PowerWorld questions
-two ways: with PowerWorldHiveMind on disk, and as a capable assistant told nothing about
-PowerWorld but free to search the open web. Every answer was then marked right or wrong by a
-grader that did not know which setup wrote it.
-
-![Where PowerWorldHiveMind helps and where it does not](assets/headline.svg)
-
-**On the things PowerWorld gets wrong quietly, it is not close.** 16 questions where
-Simulator accepts your call, reports success and returns something wrong: HiveMind solved
-**15**. A fresh assistant with the whole open web solved 4. The web can tell you what a
-command does. It cannot tell you which commands lie about having done it.
-
-**On looking up a command name, open PowerWorld's manual instead.** HiveMind managed
-4 of 7 there and spent more searches doing it than the web did. This
-repository deliberately does not publish argument syntax, so it will sometimes name the right
-command and still not give you a signature to call it with.
-
-Overall: **19 of 23 against 6 of 23**. The page lists every question, both verdicts, what
-each setup spent, and how an earlier version of this benchmark was scored wrong.
-
----
-
-## Never used this kind of thing before?
-
-**[GETTING-STARTED.md](GETTING-STARTED.md)** walks through it from zero, with screenshots
-of what you should see at each step. It assumes you have never installed Python and have
-never used an AI coding assistant. Budget about twenty minutes.
-
----
-
-## About PowerWorld itself
-
-The PowerWorld half of this kit needs three things, and the third one catches people
-out:
-
-| Requirement | Notes |
-|---|---|
-| **Windows** | PowerWorld automation uses a Windows-only interface. No Mac or Linux version exists |
-| **PowerWorld Simulator, installed and licensed** | This kit drives Simulator; it does not replace it |
-| **The SimAuto add-on, licensed** | **Licensed separately from Simulator.** Your Simulator can work perfectly while automation is unavailable, and the program gives you no hint |
-
-Without a PowerWorld licence, most of this kit is not usable — it is about operating
-Simulator. The exception is fetching and inspecting weather data, which is pure Python:
-see [methods/teamoverbyeweather-client.md](methods/teamoverbyeweather-client.md). But
-*applying* that weather requires PowerWorld, since TimeStep runs inside Simulator.
-
----
-
 ## Install
 
-**Claude Code — two lines, nothing to keep track of:**
+**Claude Code — two lines.** Enter them **one at a time**; pasting both at once fails, and
+so does letting a line break in the middle.
 
 ```
 /plugin marketplace add ChunSikPark/PowerWorldHiveMind
+```
+
+Then:
+
+```
 /plugin install powerworld-hivemind
 ```
+
+**If Claude answers `/plugin isn't available in this environment`**, you are in the desktop
+app, where `/plugin` is a terminal-only command. Nothing is broken. Use the plugin browser
+instead: click the **+** next to the prompt box, choose **Plugins**, then **Add plugin**.
 
 Start a new session so the plugin loads, then run `/powerworld-setup`. That installs the
 Python packages and checks whether this machine can drive PowerWorld at all, including the
@@ -206,6 +141,79 @@ so the next person does not have to work it out twice.
 subdirectory. The kit is plain markdown — nothing to build, nothing to run.
 
 ---
+
+## See it work
+
+Worked runs on a real 37-bus case — **real output, including the failures**:
+
+| Demo | What it shows |
+|---|---|
+| [**Comparing planning cases**](demos/comparing-planning-cases.md) | **Multi-case.** Diff a 2016 vs 2024 case: 691 new branches, 199 new generators, then a contingency set for only the new devices — and the trap that makes the naive answer 87% wrong |
+| [**Violation remediation**](demos/violation-remediation.md) | **The full study.** Diagnose 12 N-1 violations down to one cause, test five reinforcements, rank them — and find that two make things worse |
+| [Adding a device](demos/adding-a-device.md) | Three attempts that reported success and created nothing, then the fix. The silent-failure problem in full |
+| [Power flow & sensitivities](demos/power-flow-and-sensitivities.md) | AC, DC, LODF, PTDF — with the `1e8` sentinel and an error whose obvious fix fails the same way |
+| [Contingency & aux](demos/contingency-and-aux.md) | N-1 from scratch, then auto-generating a filter + contingency `.aux` |
+| [Weather to megawatts](demos/timestep-and-pfw.md) | PFW models, TimeStep, and why "zero output" is usually a setup bug |
+| [Handling errors](methods/handling-errors.md) | How the agent recovers on its own, and the three cases where it should stop and ask you |
+
+Just say what you want — [the full prompt list](demos/start-here.md):
+
+> *"Which branches are most heavily loaded?"*
+> *"Add a line between bus 27 and bus 31 and tell me if it helps N-1."*
+> *"Run N-1 on everything."*
+> *"Build me a contingency file for the five most loaded lines."*
+> *"Run N-1, work out what's wrong, and tell me what to build to fix it."*
+> *"Compare my 2016 and 2024 cases and tell me what the plan builds."*
+
+---
+
+## Does it actually help?
+
+**[BENCHMARK.md](BENCHMARK.md)** — the same AI model answered the same 23 PowerWorld questions
+two ways: with PowerWorldHiveMind on disk, and as a capable assistant told nothing about
+PowerWorld but free to search the open web. Every answer was then marked right or wrong by a
+grader that did not know which setup wrote it.
+
+![Where PowerWorldHiveMind helps and where it does not](assets/headline.svg)
+
+**On the things PowerWorld gets wrong quietly, it is not close.** 16 questions where
+Simulator accepts your call, reports success and returns something wrong: HiveMind solved
+**15**. A fresh assistant with the whole open web solved 4. The web can tell you what a
+command does. It cannot tell you which commands lie about having done it.
+
+**On looking up a command name, open PowerWorld's manual instead.** HiveMind managed
+4 of 7 there and spent more searches doing it than the web did. This
+repository deliberately does not publish argument syntax, so it will sometimes name the right
+command and still not give you a signature to call it with.
+
+Overall: **19 of 23 against 6 of 23**. The page lists every question, both verdicts, what
+each setup spent, and how an earlier version of this benchmark was scored wrong.
+
+---
+
+## Never used this kind of thing before?
+
+**[GETTING-STARTED.md](GETTING-STARTED.md)** walks through it from zero, with screenshots
+of what you should see at each step. It assumes you have never installed Python and have
+never used an AI coding assistant. Budget about twenty minutes.
+
+---
+
+## About PowerWorld itself
+
+The PowerWorld half of this kit needs three things, and the third one catches people
+out:
+
+| Requirement | Notes |
+|---|---|
+| **Windows** | PowerWorld automation uses a Windows-only interface. No Mac or Linux version exists |
+| **PowerWorld Simulator, installed and licensed** | This kit drives Simulator; it does not replace it |
+| **The SimAuto add-on, licensed** | **Licensed separately from Simulator.** Your Simulator can work perfectly while automation is unavailable, and the program gives you no hint |
+
+Without a PowerWorld licence, most of this kit is not usable — it is about operating
+Simulator. The exception is fetching and inspecting weather data, which is pure Python:
+see [methods/teamoverbyeweather-client.md](methods/teamoverbyeweather-client.md). But
+*applying* that weather requires PowerWorld, since TimeStep runs inside Simulator.
 
 ## Using it with ChatGPT or the Claude website
 
