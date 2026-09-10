@@ -101,8 +101,9 @@ Just say what you want — [the full prompt list](demos/start-here.md):
 ## Does it actually help?
 
 **[BENCHMARK.md](BENCHMARK.md)** — the same AI model answered the same PowerWorld questions
-four ways: with PowerWorldHiveMind, with no documentation at all, with a web search engine,
-and with a large private wiki. 130 runs, thresholds committed before any of them started.
+three ways: with PowerWorldHiveMind on disk; as a fresh assistant taught nothing about
+PowerWorld first; and as that same fresh assistant free to search the open web. 108 runs,
+thresholds committed before any of them started.
 
 ![Where HiveMind wins and where it doesn't](assets/headline.svg)
 
