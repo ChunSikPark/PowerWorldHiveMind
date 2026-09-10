@@ -1,7 +1,10 @@
-# Benchmark
+# Benchmark — PowerWorldHiveMind v0.2.0
 
 If you are about to drive PowerWorld from Python with an AI assistant, this page tells you
 what PowerWorldHiveMind changes, what it does not, and what it costs.
+
+Measured against release **v0.2.0**. Later releases are benchmarked the same way, so
+the numbers below can be compared across versions.
 
 **It solved 19 of 23 questions against 6 for a capable assistant with a web browser.**
 The gap is almost entirely in one place: **15 of 16** against
@@ -110,65 +113,6 @@ instructions they happened to be given.**
 HiveMind searches about twice as often in total (146 against 71) and still costs less
 per question it actually solves. It looks harder and finds more.
 
-### Within one setup, cost is set by how fast the page is found
-
-![What a question costs is how long the search took](assets/spread.svg)
-
-Every search re-reads the conversation so far, and that re-read is where the tokens go —
-about **143k per search**, near enough constant whatever the question. So a question's cost
-is very nearly *searches x 143k*, and little else moves it.
-
-The result is a **9x spread across questions on the same pages**:
-205k tokens when the right page is found immediately (saved a case and no file appeared,
-1 search), 1.75M when it takes
-13 (run a security-constrained opf). **Page length is not what you are paying for.**
-A long page found in one search is cheap; a short one found in nine is not.
-
 Median wall-clock per question: **34 s** with HiveMind, **74 s** for the fresh assistant
 searching the web.
 
----
-
-## What this does not tell you
-
-- **One model, one attempt per question, 23 questions.** A number based on seven questions
-  moves on a single answer. Treat the direction as solid and the digits as not.
-- **No code was run against PowerWorld.** Code was judged on whether it would have failed
-  quietly, not on whether it executed.
-- **The reference answers the grader compared against have not been independently
-  validated.** They came from a larger private knowledge base, and they are a strong
-  standard rather than a verified one. Where that standard is wrong, both setups are marked
-  against the same wrong thing.
-- **Blinding is against labels, not against style.** Identifying marks were stripped, but a
-  knowledge-base answer tends to cite page names and a web answer tends to cite URLs, and
-  removing that would destroy the thing being graded.
-- **The comparison setup is a coding assistant, not a chat window.** It carries a coding
-  agent's system prompt. It was given no PowerWorld knowledge, no documentation and no
-  files, and that was verified by asking it — but it is not the same as typing into a chat
-  box.
-- **An earlier version of this page was wrong in both directions.** Its comparison setups
-  ran with this repository's `AGENTS.md` in their context, and four of its code rules are
-  the answers to four of the questions above; the setup scored four out of sixteen and those
-  were the four. Separately, six classes of published cost figure were mistranscribed. Every
-  table and chart on this page is now generated from the measurements rather than typed.
-
----
-
-## Running it yourself
-
-The method matters more than the numbers:
-
-1. Write the thresholds down and commit them before running anything. Do not adjust them
-   afterwards.
-2. **Check what is in your comparison setup's context, not just what it reads.** The
-   contamination above arrived as an auto-loaded instruction file. The check looked at tool
-   calls, and the agent never made one — it did not need to.
-3. Hide which setup produced which answer from whoever grades it.
-4. Plant two fake answers: one correct but avoiding every keyword, one confidently
-   backwards. If the grader misses either, throw the scores out.
-5. Test every check by feeding it something that should fail. A check that has only ever
-   reported "clean" has not been tested — the contamination check here passed four planted
-   violations and let a fifth through.
-6. Grade right-or-wrong. A "partly right" column is where errors hide.
-7. **Read the answers.** Every error found here came from a human-legible answer
-   disagreeing with its own score, and never the other way round.

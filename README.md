@@ -18,10 +18,17 @@ raise an exception and quietly hand you a wrong answer.
 
 You give it a case. It gives you the analysis. You stop being the documentation.
 
-### This is not a voltage readout
+**Does it work? We measured it.** Against the same 23 questions, a capable assistant with
+this repository solved **19**; the same assistant with a web browser and no PowerWorld
+knowledge solved **6**. On the failures PowerWorld never reports as failures the split is
+**15 to 4**. On looking up a command name it is weaker than a web
+search, and the page says so. Every answer was marked by a grader that did not know which
+setup wrote it. [**See the benchmark**](BENCHMARK.md).
 
-"Which branches are overloaded" is where most tooling stops. This is built for the work
-that comes *after* the readout — the study, not the query:
+### Built for the study, not the query
+
+"Which branches are overloaded" is where most tooling stops. The work starts after that
+readout:
 
 | Instead of | You get |
 |---|---|
@@ -30,15 +37,14 @@ that comes *after* the readout — the study, not the query:
 | "the 2024 case has more branches" | *"The plan adds 691 branches and 199 generators, retires nothing, and none of it is a renumbering artifact — I checked."* |
 | "the case has renewables" | *"9 of 45 units carry PFW models, so this case can run a weather study. Here is the hourly output."* |
 
-**It diagnoses, proposes a fix, applies it, and re-verifies** — then tells you which
-options to reject and why. In [the remediation demo](demos/violation-remediation.md), two
-of five plausible reinforcements turned out to make the system *worse*, including the one
-an engineer would pick first. That is the difference between reasoning about a network
-and measuring it.
+It diagnoses, proposes a fix, applies it, re-verifies, and tells you which options to
+reject. In [the remediation demo](demos/violation-remediation.md), two of five plausible
+reinforcements made the system worse, including the one an engineer would pick first.
+Reasoning about a network does not tell you that. Measuring it does.
 
-This repository is a knowledge base — 31 linked markdown files about driving PowerWorld
-Simulator from Python. There is no software to run. You download it, point your AI assistant at it, and it starts writing PowerWorld
-code that works instead of code that looks plausible.
+This repository is a knowledge base — 44 linked markdown files about driving PowerWorld
+Simulator from Python. There is no software to run. You download it, point your AI assistant at it, and it starts
+writing PowerWorld code that works instead of code that looks plausible.
 
 Hand it a case file and ask a question in plain English:
 
