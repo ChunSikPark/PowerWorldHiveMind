@@ -22,9 +22,9 @@ constraint is local reactive adequacy, not MW redistribution.
 
 ## Connections
 
-- **Up:** Cross cutting MOC
-- **Used in:** reactive power planning — evaluated 2026-08-10 (`ctg/lodf_vs_ctg.ipynb`),
-  **measured and rejected** for the removal-stage screen; see the verdict below.
+- **Up:** [Home](../index.md)
+- **Measured in:** a reactive planning study, 2026-08-10, in a LODF-versus-contingency
+  comparison — **measured and rejected** for the removal-stage screen; see the verdict below.
 - **💡 Could apply to (idea transfer):**
   real power planning — its 70-iteration DCPF conductor-resizing loop is a *pure MW*
   problem, which is exactly LODF's home ground: N-1 flows for every candidate resize with no
@@ -113,7 +113,7 @@ distributes it, giving a **220 MW max discrepancy**. LODF needs only base flows 
 so reading the base flows removes the question. A DC solve is still shunt-blind, so the
 property that makes this usable for siting work survives.
 
-### Measured verdict (Synth8k, `ctg/lodf_vs_ctg.ipynb`, 2026-08-10)
+### Measured verdict (Synth8k, 2026-08-10)
 
 **1 — LODF *is* DC contingency analysis, exactly.**
 
@@ -160,7 +160,7 @@ Good enough to **rank**; not good enough to read a post-contingency loading numb
 
 ### UPDATE 2026-08-25 — the "does not compose" limitation is SOLVED in the literature
 
-2026 08 18 population b corridor collapse dropped LODF partly because *"single-row LODF does
+An earlier corridor-collapse study dropped LODF partly because *"single-row LODF does
 not compose across simultaneous outages, and 209 corridors go out together."* **That is true for
 chaining rank-1 updates one at a time — and that is not the only way to do it.**
 

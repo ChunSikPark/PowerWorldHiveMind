@@ -25,8 +25,8 @@ against the 0.2.1 source on 2026-09-08.
 
 - **Up:** [esapp](esapp.md) · esapp package · [Home](../index.md)
 - **Across:** [powerworld-simauto](powerworld-simauto.md) · aux script catalog (raw SCRIPT name index) ·
-  [esapp-overview](../methods/esapp-overview.md) · artifact level validation (the "it reported success and wrote
-  nothing" family this belongs to)
+  [esapp-overview](../methods/esapp-overview.md) · the "it reported success and wrote
+  nothing" family this belongs to
 - **Exceptions to this rule:** [save-powerworld-case](../methods/save-powerworld-case.md) (COM `SaveCase` is a silent
   no-op; the *script* `SaveCase` is the one that writes)
 - **Obsoleted by 0.2.1, needs re-check:** [converting-lines-to-transformers](../methods/converting-lines-to-transformers.md)
@@ -144,7 +144,7 @@ Two consequences:
   stderr and writes nothing useful. Run write-heavy code under
   `python -W error::UserWarning` so a typo fails loudly. This joins the same silent-no-op
   family as dropping an object's key fields ([applying-a-dispatch-to-a-case](../methods/applying-a-dispatch-to-a-case.md)) and as
-  the COM `SaveCase` above — see artifact level validation.
+  the COM `SaveCase` above: the call reports success and the effect never happens.
 - **The `XF*` bypass in [converting-lines-to-transformers](../methods/converting-lines-to-transformers.md) is expected to be
   unnecessary on 0.2.1.** That page routes around esapp's "wrong static whitelist" via
   `pw.esa.ChangeParametersMultipleElement` precisely because `pw[Branch] = df` raised.

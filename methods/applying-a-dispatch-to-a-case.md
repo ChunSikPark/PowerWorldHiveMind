@@ -25,10 +25,8 @@ filtered subset writes nothing, silently. Live-verified on Synth9k/Synth8k 2031,
   [adding-devices-esapp](adding-devices-esapp.md) (same key-field discipline, and the `CreateData` silent no-op) ·
   [converting-lines-to-transformers](converting-lines-to-transformers.md) (the other place esapp's static whitelist is wrong) ·
   [case-impedance-completeness](../concepts/case-impedance-completeness.md) (**check this before promising anyone AC** — the cases
-  these scenarios are built from are DC-only skeletons) · artifact level validation
+  these scenarios are built from are DC-only skeletons) · artifact-level validation
   (reopen the saved `.pwb` cold; a save that "succeeded" is not evidence)
-- **Deeper:** dispatch backend — `scripts/build_scenario_cases_9k.py` is the worked
-  implementation (`--case`, `--apply`, `--strict`)
 
 ## Content
 
@@ -130,8 +128,7 @@ Five scenarios × two fleets, same loads (143,590.9 MW peak, same 41,465.0 MW fi
 | Synth8k 2031 draft (pre-swap) | 65,313.9 MW | 3 of 5; **Sce2 short 4,283.0 MW, Sce4 short 31,248.5 MW** |
 
 The 8k shortfalls are genuine nameplate deficits — the whole conventional fleet runs flat out
-— consistent with the earlier 2026 07 14 real hour dispatch rebuild finding, larger here
-only because the datacenter block is held at full load while the rest scales down.
+— consistent with an earlier real-hour dispatch rebuild, larger here only because the datacenter block is held at full load while the rest scales down.
 
 **Both base cases are DC-only skeletons** (`LineR ≤ 1e-6` and `LineC == 0` on 97.5% / 100% of
 closed lines; median X/R **100,010** and **113,465**), so every scenario case built from them

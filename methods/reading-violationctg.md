@@ -40,8 +40,8 @@ read of `ViolationCTG` errors *"interface unknown"* on Synth2k **does not reprod
 - **Up:** [esapp](../concepts/esapp.md) · esapp package
 - **Across:** [new-device-contingency-aux](new-device-contingency-aux.md) (building the set you solve, and scoping
   monitoring to an area) · [powerworld-limitset-setdata](powerworld-limitset-setdata.md) · [parallel-contingency-solve](../concepts/parallel-contingency-solve.md) · [lodf](../concepts/lodf.md) ·
-  [powerworld-simauto](../concepts/powerworld-simauto.md) · reactive power planning · critical branch screening
-- **Deeper:** [esapp-package-backend](../references/esapp-package-backend.md) · reactive power planning backend
+  [powerworld-simauto](../concepts/powerworld-simauto.md) · critical-branch screening
+- **Deeper:** [esapp-package-backend](../references/esapp-package-backend.md)
 
 ## Content
 
@@ -85,8 +85,8 @@ to appear, with the note *"treat this as a vocabulary to fail loudly against, no
 exhaustive enum."* **That note was right, and ignoring it cost a wrong answer.** Synth2k
 rates every branch in MVA, so `Branch Amp` was never seen there; a real utility planning
 model rates part of its system in amps and PowerWorld emits **both strings from the same
-solve**, on disjoint sets of branches. See
-2026 08 22 branch amp thermal rows discarded — 2,972 real overloads on a planning model
+solve**, on disjoint sets of branches. In one measured run, 2,972 real overloads on a
+planning model
 (101.7%–240.7% of rating, all 297 contingencies) were classified `unknown` and dropped
 while the run reported 18 violations and looked clean.
 

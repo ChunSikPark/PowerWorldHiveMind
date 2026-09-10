@@ -22,7 +22,7 @@ max |ΔMW| = 0.0) — pure reclassification, R+jX untouched.
 
 - **Up:** [esapp](../concepts/esapp.md) · esapp package
 - **Across:** [adding-devices-esapp](adding-devices-esapp.md) · [save-powerworld-case](save-powerworld-case.md) · [powerworld-limitset-setdata](powerworld-limitset-setdata.md) · [esapp-overview](esapp-overview.md)
-- **Deeper:** reactive power planning backend · [esapp-package-backend](../references/esapp-package-backend.md)
+- **Deeper:** [esapp-package-backend](../references/esapp-package-backend.md)
 
 ## Content
 

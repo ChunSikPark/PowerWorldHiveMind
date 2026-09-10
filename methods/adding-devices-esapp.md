@@ -20,7 +20,7 @@ symbols below were live-verified against the installed package (not guessed).
 
 - **Up:** [esapp](../concepts/esapp.md) · esa pp llm
 - **Across:** [esapp-overview](esapp-overview.md) · [esapp-schema-reference](../references/esapp-schema-reference.md) · [powerworld-simauto](../concepts/powerworld-simauto.md)
-- **Deeper:** esa pp llm backend
+- **Deeper:** [esapp-package-backend](../references/esapp-package-backend.md)
 
 ## Content
 
@@ -221,8 +221,8 @@ violation counts and convergence; `Branch.LineMaxPercentContingency` gives the w
 
 The `esa_pp_llm` bench wraps all of this as **`run_contingency(pw, method="DC", ...)`** →
 `solve_contingency` (the `SetData`/`CTGSolveAll` above) + `get_contingency_results` (the result
-frames) + an optional summary. For AC, pass `method="AC"` (`DCApprox=NO`). Deeper:
-**esa pp llm backend** · **reactive power planning backend**. A manual snapshot→open→re-solve
+frames) + an optional summary. For AC, pass `method="AC"` (`DCApprox=NO`).
+A manual snapshot→open→re-solve
 loop is unnecessary — it just re-implements, worse, what `CTGSolveAll` already does.
 
 ### Recovering the devices a case already added (diff a modified vs base case)

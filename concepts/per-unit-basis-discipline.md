@@ -19,15 +19,14 @@ case-read normalized quantity with a synthesized or textbook one, and before tru
 "correct formula" recorded from a previous session.
 
 ## Connections
-- **Up:** Cross cutting MOC
+- **Up:** [Home](../index.md)
 - **Across:** [powerworld-inertia-and-cost-data](powerworld-inertia-and-cost-data.md) (the concrete `TSH` case) ·
-  llm coding discipline (sibling standing-default technique) · [esapp](esapp.md) ·
-  reactive power planning · load temp curve
-- **Used in:** dispatch — 2026 07 27 inertia basis regression,
-  2026 07 14 hrml dispatch corrections
-- **💡 Could apply to:** reactive power planning (syncon/SVC machine bases) ·
-  real power planning (per-unit r/x/b) · load temp curve (normalized load fraction —
-  per-zone vs whole-system denominator) · [gic](gic.md) · any study that sums or ranks a
+  [esapp](esapp.md)
+- **Found in:** a generator dispatch study — an inertia-basis regression, and a later round
+  of dispatch corrections with the same cause.
+- **💡 Applies to:** reactive planning (synchronous-condenser and SVC machine bases) ·
+  real-power planning (per-unit r/x/b) · normalized load fractions, where the per-zone and
+  whole-system denominators differ · [gic](gic.md) · any study that sums or ranks a
   normalized quantity across heterogeneous equipment
 
 ## Content
@@ -63,8 +62,7 @@ Both expressions are "inertia in seconds." Neither is wrong. They are not interc
 On the Synth8k case `GenMVABase` spans **2.2 – 1,444.4 MVA (median 170)**, so treating
 assumed H as if it were `TSH` produced failure shape **2**: fleet inertia read 240.5 GW·s
 instead of 470.3, nuclear 2.04 instead of 22.58, and the unit-commitment order in the
-dispatch algorithm was silently wrong. Full numbers in
-2026 07 27 inertia basis regression.
+dispatch algorithm was silently wrong.
 
 The physical statement underneath: **H alone is not an inertia quantity.** ERCOT defines
 `M_sys = Σ Hᵢ · MVAᵢ`. Seconds must be size-weighted before they mean anything at system

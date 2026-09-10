@@ -15,7 +15,7 @@ spawn workers here — it silently degrades to single-process serial), split the
 set into N chunks and run N independent `pwrworld.exe`/esapp instances as separate OS processes
 (Python `concurrent.futures.ProcessPoolExecutor`), each solving a plain serial `CTGSolveAll` on
 only its own chunk, then merge the per-bus voltage envelopes. Built for reactive power planning
-(`ctg/contingency_parallel.py`) to unblock the Synth8k N-1 sweep, which was timing out at 7200s
+to unblock a Synth8k N-1 sweep, which was timing out at 7200s
 (2 hrs) serial. Live-measured: **~6-7x faster on the 8k case** (18.4 min vs. the 2-hr timeout,
 13,470+ contingencies), but only **~1.7-1.8x on a smaller 2k case** (5,344 contingencies) — the
 speedup scales with per-contingency solve cost because each worker pays a fixed ~20-45 sec
@@ -24,8 +24,7 @@ speedup scales with per-contingency solve cost because each worker pays a fixed 
 ## Connections
 
 - **Up:** [Home](../index.md)
-- **Used in:** reactive power planning (`ctg/contingency_parallel.py`, see
-  reactive power planning backend)
+- **Used in:** a reactive planning study, as a parallel contingency-solve wrapper
 - **💡 Could apply to (idea transfer):** any PowerWorld study that leans on `CTGSolveAll` for a
   large N-k contingency set — dynamic line rating branch-outage screening, any N-k security
   study; more generally, any SimAuto/COM-driven batch analysis where PowerWorld's own distributed

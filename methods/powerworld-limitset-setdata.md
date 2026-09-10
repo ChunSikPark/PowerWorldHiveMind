@@ -21,7 +21,7 @@ by round-tripping the same case's `LimitSet` values through a CSV export/reimpor
 
 - **Up:** [esapp](../concepts/esapp.md) · esapp package
 - **Across:** [save-powerworld-case](save-powerworld-case.md) · [adding-devices-esapp](adding-devices-esapp.md) · [powerworld-simauto](../concepts/powerworld-simauto.md) · reactive power planning
-- **Deeper:** [esapp-package-backend](../references/esapp-package-backend.md) · reactive power planning backend
+- **Deeper:** [esapp-package-backend](../references/esapp-package-backend.md)
 
 ## Content
 
@@ -106,8 +106,7 @@ above (values edited to taste). Useful for a one-off manual test/round-trip chec
 current full row, patch only the target columns, write the full row back. `pw.esa.SetData(...)` and
 `pw.esa.ChangeParametersMultipleElement(...)` are both thin passthroughs to the raw SimAuto call (no
 key-field auto-resolution, no partial-write convenience) — so the same "supply everything" rule
-applies programmatically. Pattern (see `LIMITSET_FIELDS` + `set_ctg_voltage_limits()` in
-reactive power planning backend / `ctg/contingency_esapp.py`):
+applies programmatically. Pattern:
 
 ```python
 LIMITSET_FIELDS = ["LSNum", "LSName", "LSPULow", "LSPUHigh", ...]   # all ~48 fields, PowerWorld's own export order
@@ -127,11 +126,12 @@ through unchanged — the read-modify-write shape sidesteps hand-transcribing va
 
 ### Why this matters for N-1 work
 
-reactive power planning's pipeline checks contingency voltage violations in Python
-(`Bus.BusMin/MaxVoltageContingency` against a hardcoded `[0.90, 1.10]` band — see
-`ctg/contingency_esapp.py::n1_voltage_violations`). That Python-side check was never actually tied
+A reactive planning pipeline checked contingency voltage violations in Python
+(`Bus.BusMin/MaxVoltageContingency` against a hardcoded `[0.90, 1.10]` band). That
+Python-side check was never actually tied
 to PowerWorld's own `LimitSet.LSCtgPULow/LSCtgPUHigh` — the case's native limit monitoring could
-silently disagree with the band the Python code assumes. `set_ctg_voltage_limits()` closes that gap:
+silently disagree with the band the Python code assumes. Setting the contingency limits
+explicitly closes that gap:
 call it once after opening/building a case to force the case's own contingency band to match the
 band the rest of the pipeline checks against.
 

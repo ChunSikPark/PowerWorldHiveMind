@@ -20,9 +20,9 @@ moves, 147 load moves, criterion-10 clean on all four.
 
 ## Connections
 
-- Used in 2026 09 01 scenario envelope gsu binds to answer the migration's accepted risk O4.
-- Complements false retirement in case diffs — that page is about *reading* a diff across two
-  model vintages, this one is about *applying* one.
+- Used in a scenario-envelope study, to answer an accepted migration risk.
+- Complements reading a case diff — that is about *reading* a diff across two model
+  vintages, this one is about *applying* one.
 - Depends on the same key-field constraint as circuit-ID renaming: some fields can only be changed
   through an AUX text round-trip, never by a write.
 - 💡 **Could transfer to:** dispatch, real-power-planning, RPP — any study where one scenario got a

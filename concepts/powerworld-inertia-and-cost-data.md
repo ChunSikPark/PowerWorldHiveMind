@@ -10,7 +10,7 @@ tags: [powerworld, inertia, cost-curve, dynamics, gotcha]
 ## Abstract
 
 Four non-obvious PowerWorld/esapp case-data facts, all discovered the hard way while
-building dispatch's HRML algorithm and worth knowing before any project touches
+building a generator dispatch algorithm and worth knowing before any project touches
 generator inertia or cost data: (1) `Gen.TSH` is H on a **100 MVA system base**, not
 the generator's own `GenMVABase` — **and the "don't multiply by `GenMVABase`" rule that
 follows from it inverts the moment you synthesize H yourself instead of reading it**
@@ -25,13 +25,11 @@ generators by cost, needs zonal load data on a Synth2k case, or reconstructs
 per-generator detail from another project's category-level summary.
 
 ## Connections
-- **Up:** Cross cutting MOC
-- **Across:** [esapp](esapp.md) · [powerworld-simauto](powerworld-simauto.md) · dispatch (where this was found) · data inputs root ·
-  2026 07 14 hrml scenario validation (fuel-mapping trap below) ·
-  [per-unit-basis-discipline](per-unit-basis-discipline.md) (the transferable rule) ·
-  2026 07 27 inertia basis regression (where §1's wording failed in practice)
-- **Deeper:** none yet — see `.omc/plans/2026-07-14-inertia-basis-correction.md` in
-  the dispatch repo for the full numeric derivation and worked examples.
+- **Up:** [Home](../index.md)
+- **Across:** [esapp](esapp.md) · [powerworld-simauto](powerworld-simauto.md) ·
+  [per-unit-basis-discipline](per-unit-basis-discipline.md) (the transferable rule)
+- **Found in:** a generator dispatch study, where §1's original wording failed in practice
+  and the fuel-mapping trap below cost a rebuild.
 
 ## Content
 
@@ -76,12 +74,11 @@ unit.
 > ```
 >
 > Writing assumed H straight into a column named `TSH` silently asserts every generator is
-> 100 MVA. **This exact regression happened** on 2026-07-27 in dispatch, on a Synth8k
+> 100 MVA. **This exact regression happened** on 2026-07-27, on a Synth8k
 > case with *no* measured `TSH` — so all three notebook builders took the assumed-data path,
 > which this page's original wording did not cover. Fleet inertia came out 240.5 GW·s
 > instead of 470.3, nuclear 2.04 instead of 22.58; and because the error scales with machine
 > size it was **non-uniform**, so unit *commitment order* was wrong too, not just totals.
-> Full trace: 2026 07 27 inertia basis regression.
 >
 > Physically: **H alone is not an inertia quantity.** ERCOT defines system inertia as
 > `M_sys = Σ Hᵢ · MVAᵢ` — seconds must be weighted by machine size before they mean anything
@@ -152,14 +149,13 @@ goal is *intra-ERCOT* zonal granularity (e.g. matching a MIN-load case's zonal l
 shape); ISO region is the right key only when the analysis genuinely needs
 separation between ISO regions.
 
-### 4. A sibling project's fuel-category name doesn't always mean what it says
+### 4. Another project's fuel-category name doesn't always mean what it says
 
 Not a PowerWorld field-semantics gotcha but the same *don't-take-a-label-at-face-value*
-family: a sibling dispatch script's `"GAS_CT"` category actually maps to Synth8k's
+family: a companion dispatch script's `"GAS_CT"` category actually maps to Synth8k's
 `GenFuelType == "DFO (Distillate Fuel Oil)"`, not `"NG (Natural Gas)"` — confirmed by
 reading the source's own fuel-classification code, not inferred from the name.
-Conflating the two misassigns `TSH`/cost and mis-totals capacity. See
-2026 07 14 hrml scenario validation for the full trace. General lesson: when
+Conflating the two misassigns `TSH`/cost and mis-totals capacity. General lesson: when
 reconstructing per-generator detail from another project's per-category summary
 output, verify the category↔`GenFuelType` mapping against that project's actual
 classification code, never the category's plain-English name.

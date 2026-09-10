@@ -24,7 +24,6 @@ three places it is used, and the three silent failures around it; before this,
 - **Across:** [parallel-contingency-solve](../concepts/parallel-contingency-solve.md) — the chunking use ·
   [new-device-contingency-aux](new-device-contingency-aux.md) — writing a subset to `.aux` ·
   [reading-violationctg](reading-violationctg.md) — where the violation columns the filter uses come from
-- **Deeper:** reactive power planning backend · esa pp llm backend
 
 ## Content
 
@@ -53,7 +52,7 @@ Three recorded uses:
    only its own chunk's labels and `YES` for everything else, then runs a plain
    serial `CTGSolveAll`. The full set is intact in every worker's case; each just
    solves its slice.
-2. **Reactivating everything** (reactive power planning backend). Read the
+2. **Reactivating everything.** Read the
    `Contingency` key plus `CTGSkip`, set `CTGSkip="NO"` across the frame, write
    it back. This is the reset before a full sweep.
 3. **Persisting a subset** ([new-device-contingency-aux](new-device-contingency-aux.md)). `CTGSkip` travels in
@@ -121,11 +120,9 @@ helper to carry this loop for you.
 Every fact here was already recorded and is consolidated rather than derived:
 the chunking scheme from [parallel-contingency-solve](../concepts/parallel-contingency-solve.md), the `.aux` shape and its
 quoting trap from [new-device-contingency-aux](new-device-contingency-aux.md), the `Delete` filters, the
-single-condition limit and the backup/restore pair from
-reactive power planning backend, and the contingency field list from
-esa pp llm backend.
+single-condition limit, the backup/restore pair, and the contingency field list.
 
 Written 2026-09-07 because the A/B measurement found `CTGSkip` mentioned on five
 pages and owned by none: asked *"are you reducing the ctg set as well by setting
 the SKIP column to YES?"*, three independent agents each picked a **different**
-wrong page. See 2026 09 07 librarian card fails its ab.
+wrong page.

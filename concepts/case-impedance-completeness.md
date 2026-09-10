@@ -18,18 +18,19 @@ trusting any case you did not build**, and especially before promising anyone an
 
 ## Connections
 
-- **Up:** Cross cutting MOC
-- **Used in:** real power planning — found in the Synth9k 2031 case, 2026-08-18 ·
-  dispatch — independently confirmed on a second lineage 2026-08-18: `LineR <= 1e-6`
+- **Up:** [Home](../index.md)
+- **Found in:** a real-power planning study — the Synth9k 2031 case, 2026-08-18 — and
+  independently confirmed on a second lineage the same day: `LineR <= 1e-6`
   and `LineC == 0` on **97.5%** of `Synth9k_case` and
   **100.0%** of `Synth8k_draft` (median X/R 100,010 and 113,465), so the five
   scenario cases built from them in [applying-a-dispatch-to-a-case](../methods/applying-a-dispatch-to-a-case.md) inherit it
-- **💡 Could-apply-to:** reactive power planning (its input is exactly such a case) ·
-  synthetic creation (case handoff between build stages is where this is introduced) ·
-  identify differences (a diff that ignores R/C will not see it) · grid statistics ·
-  any project that receives a `.pwb` from another project or vintage
-- **Across:** derive by ratio (a ratio on a placeholder zero stays zero — check this
-  first) · artifact level validation (same family: the artifact exists, but is it real?)
+- **💡 Applies to:** any study whose input is exactly such a case · synthetic case
+  construction, where the handoff between build stages is where this is introduced · case
+  diffing, since a diff that ignores R/C will not see it · grid statistics · any project
+  that receives a `.pwb` from another project or vintage
+- **Across:** deriving a quantity by ratio (a ratio on a placeholder zero stays zero —
+  check this first) · artifact-level validation (same family: the artifact exists, but is
+  it real?)
 
 ## Content
 
@@ -90,7 +91,3 @@ Checklist for a restore:
 The 2031 case solved DC fine throughout. Convergence is not evidence of a complete model — it
 is evidence that the subset of the model your solver reads is self-consistent.
 
-## Links
-
-- real power planning · 2026 08 18 impedance by ratio and scenario envelope
-- derive by ratio · artifact level validation · reactive power planning

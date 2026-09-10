@@ -138,7 +138,7 @@ covers TWO ways rows go missing, not one.** It was originally keyed only off the
 mismatch guard, which let a run discard **2,972 unclassified violation rows on one planning model and
 still write `count_verified = True` on all 297 devices** — the audit trail was correct and
 the file people open was not. An unclassified row now taints its device exactly as a count
-mismatch does. See 2026 08 22 branch amp thermal rows discarded. The general rule: a
+mismatch does. The general rule: a
 bucket that means *"rows were dropped"* must reach the summary artifact, because `_audit/`
 is not what gets mailed.
 
