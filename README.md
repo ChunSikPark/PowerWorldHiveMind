@@ -102,18 +102,18 @@ Just say what you want — [the full prompt list](demos/start-here.md):
 
 **[BENCHMARK.md](BENCHMARK.md)** — 130 agent runs, thresholds committed before any started.
 
-**Yes, for the failures that do not raise an error.** Eight questions about PowerWorld
-behaviour that quietly returns a wrong answer: the kit got all eight, a model with web search
-got one, a model working from memory got none.
+![Where the kit wins and where it doesn't](assets/headline.svg)
 
-![Silent-failure traps](assets/traps.svg)
+**Yes, for behaviour that fails without raising an error.** Sixteen such questions: the kit
+got all sixteen. A model with web search got four. A model working from memory also got four
+— searching bought nothing over guessing.
 
-**No, for looking up a command name.** On seven questions whose answer is a SCRIPT command,
-web search scored 7 of 7 against this kit's 6, and returned argument syntax the kit does not
-publish. If that is your question, read PowerWorld's own manual.
+**No, for looking up a command name.** Web search scored 7 of 7 there against this kit's 6,
+and returned argument syntax the kit does not publish. Read PowerWorld's manual instead.
 
-The benchmark also records where the kit failed one of its eight checks, and where the answer
-key itself turned out to be wrong.
+The benchmark also records the check the kit failed, the three questions where it declined
+although public documentation covers them, and the five places the answer key itself was
+wrong.
 
 ---
 
