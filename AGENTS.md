@@ -185,8 +185,9 @@ just a wrong answer or a write that did nothing.
 
    Use `RunScriptCommand` only where no wrapper exists — about 41 actions, mostly
    oneline/GUI (`OpenOneline`, `ExportOneline`), dialogs, and a few writers. Check the
-   command against the esapp reference before concluding one is missing, and leave a
-   comment saying why whenever you do fall back to a string.
+   command against esapp's own method list before concluding a wrapper is missing —
+   absence from `references/aux-script-commands.md` proves nothing, since that page is a
+   working subset. Leave a comment saying why whenever you do fall back to a string.
 
 5. **`SaveCase` is the exception, and it is not one of the 310.** esapp routes it through
    COM, not the script builder, and `pw.esa.SaveCase(...)` is a **silent no-op** — returns

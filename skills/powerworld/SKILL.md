@@ -1,6 +1,6 @@
 ---
 name: powerworld
-description: "Use when working with PowerWorld Simulator, .pwb case files, SimAuto, or the esapp Python package - opening or modifying cases, solving power flow, adding buses/lines/generators, applying a dispatch, contingency analysis and violation reports, saving cases, and PowerWorld SCRIPT/aux actions. Also covers PowerWorld's built-in weather features: PWW weather files, TimeStep simulation for hourly renewable generator output, and fetching the .pww files those need via the TeamOverbyeWeather client."
+description: "Use when working with PowerWorld Simulator, .pwb case files, SimAuto, or the esapp Python package - opening or modifying cases, solving power flow, adding buses/lines/generators, applying a dispatch, contingency analysis and violation reports, saving cases, and PowerWorld SCRIPT/aux actions. Also covers PowerWorld's built-in weather features: PWW weather files, TimeStep simulation for hourly renewable generator output, and fetching the .pww files those need via the TeamOverbyeWeather client. Also fires on power-system study work phrased without any tool name: overloaded or heavily loaded branches, N-1 violations and what caused them, comparing two planning cases or vintages, what a transmission plan builds, testing whether a new line or reinforcement helps, hourly wind and solar output from weather, and applying a dispatch."
 ---
 
 # PowerWorld expert
@@ -94,8 +94,8 @@ produces a wrong answer.
    wraps 310 SCRIPT commands. You get a typed signature and correct argument building, but
    the real reason is that a hand-written string is a call site nobody can patch when
    PowerWorld changes that command's syntax. Reach for `RunScriptCommand` only where no
-   wrapper exists (~41 actions, mostly oneline/GUI and dialogs), and leave a comment saying
-   why.
+   wrapper exists (~41 actions, mostly oneline/GUI and dialogs). Check esapp's own method
+   list before concluding a wrapper is missing, and leave a comment saying why.
 4. **`SaveCase` is the exception.** It is a COM method, not one of the 310, and
    `pw.esa.SaveCase(...)` is a silent no-op — returns success, writes nothing. Use the script
    form and assert the file exists:

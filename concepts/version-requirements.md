@@ -64,7 +64,7 @@ is authoritative; the version-numbered keys are not.
 | | |
 |---|---|
 | **Simulator** | 24, build `24.2026.7.22` |
-| **`esapp`** | 0.1.3 |
+| **`esapp`** | 0.1.3 — what the pages here were live-tested against. 0.2.1 is current and changes write behaviour; see [esapp-script-command-wrappers](esapp-script-command-wrappers.md) |
 | **`TeamOverbyeWeather`** | 0.4.0 |
 | **Python** | 3.13, 64-bit |
 | **Platform** | Windows |
