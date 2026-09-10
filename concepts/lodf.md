@@ -229,11 +229,28 @@ Each cost real time; all measured 2026-08-10.
   explicit script commands and verify: `SolvePowerFlow(DC);` vs
   `SolvePowerFlow(POLARNEWT);`. **The only unambiguous test is that a real DC solve pins every
   bus to exactly 1.0 pu** — check it, don't trust the flag.
-- **`Branch.LineStatus` is rejected as read-only** by esapp's bracket writer, *even in edit
-  mode* (`pw[Branch] = df` → `Cannot set read-only field(s)`). The `OpenBranch(...)` /
-  `Open(...)` script commands fail validation. What works:
-  `pw.esa.RunScriptCommand('SetData(Branch, [BusNum,BusNum:1,LineCircuit,LineStatus], [f,t,"ckt","Open"]);')`
-  — consistent with [powerworld-limitset-setdata](../methods/powerworld-limitset-setdata.md).
+- **`Branch.LineStatus` is not settable through the bracket writer, and what that costs you
+  depends on your esapp version.** esapp's schema marks it read-only (`Branch.is_settable`
+  returns `False`). Through 0.1.x, `pw[Branch] = df` raised `Cannot set read-only field(s)`,
+  which is what the 2026-08-10 runs above hit. **On 0.2.1 it only warns** — `UserWarning:
+  Read-only field(s) on Branch: ['LineStatus']` — **and attempts the write regardless.** That
+  is the more dangerous shape of the two: the warning scrolls past and you cannot tell from
+  the call whether the status actually changed. See
+  [esapp-script-command-wrappers](esapp-script-command-wrappers.md) for the change and for
+  the `python -W error::UserWarning` mitigation that turns it back into a failure.
+
+  Be explicit instead of relying on either behaviour:
+
+  ```python
+  pw.esa.SetData("Branch", ["BusNum", "BusNum:1", "LineCircuit", "LineStatus"],
+                 [f, t, "ckt", "Open"])
+  ```
+
+  `SetData` is a typed wrapper in 0.2.1, so this obeys the call-the-named-method rule and is
+  consistent with [powerworld-limitset-setdata](../methods/powerworld-limitset-setdata.md).
+  `OpenBranch(...)` and `Open(...)` have no esapp wrapper at all and are reachable only as
+  `RunScriptCommand` strings. **Assert the effect whichever route you take** — read the
+  branch's status back, or check its flow went to zero. Never the absence of an exception.
 - **`pw.lodf(branch)` exists in esapp but is per-branch** — 13k COM round-trips. Build the
   matrix yourself.
 - **Always confirm the case solves before analysing it.** A freshly-opened `.pwb` returns
