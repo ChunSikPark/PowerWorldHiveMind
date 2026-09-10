@@ -3,14 +3,14 @@
 If you are about to drive PowerWorld from Python with an AI assistant, this page tells you
 what PowerWorldHiveMind changes, what it does not, and what it costs.
 
-Measured against release **v0.2.0**. Later releases are benchmarked the same way, so
-the numbers below can be compared across versions.
+Measured against release **v0.2.0**. Later releases are benchmarked the same way, so the
+numbers below can be compared across versions.
 
-**It solved 19 of 23 questions against 6 for a capable assistant with a web browser.**
-The gap is almost entirely in one place: **15 of 16** against
-**4 of 16** on the failures PowerWorld does not report as failures. On
-looking up a command name it is far weaker — 4 of 7 — and slower and
-more expensive than a web search for the same job.
+**It solved 19 of 23 questions against 6 for a capable assistant with a web
+browser.** The gap is almost entirely in one place: **15 of 16**
+against **4 of 16** on the failures PowerWorld does not report as
+failures. On looking up a command name it is weaker — 4 of 7 — and
+slower and more expensive than a web search for the same job.
 
 ## What was compared
 
@@ -19,11 +19,11 @@ more expensive than a web search for the same job.
 | **HiveMind** | the assistant has this repository on disk, and nothing else |
 | **A fresh assistant + web** | a capable coding assistant told nothing about PowerWorld, with no documentation and no files, free to search the open web |
 
-Both answered the same 23 questions. Every answer was then marked right or wrong by a
-grader that saw a reference answer and the candidates **without knowing which setup wrote
-which**. Two answers were planted in the pile to test the grader: one correct but worded to
-avoid every obvious keyword, one fluent and confidently backwards. It caught both. Had it
-missed either, every score here would have been thrown away.
+Both answered the same 23 questions. Every answer was then marked right or wrong
+by a grader that saw a reference answer and the candidates **without knowing which setup
+wrote which**. Two answers were planted in the pile to test the grader: one correct but
+worded to avoid every obvious keyword, one fluent and confidently backwards. It caught
+both. Had it missed either, every score here would have been thrown away.
 
 **Right or wrong only — there is no partial credit.** An earlier version of this benchmark
 used a three-level scale, and the middle level is where two of five scoring errors hid: a
@@ -60,14 +60,13 @@ error. These are the ones that cost you a day.
 | | **solved** | **15 of 16** | 4 of 16 |
 
 **This is what the repository is for.** A fresh assistant with the whole open web could
-confirm 4 of these 16. Public documentation describes what a command does;
-it does not tell you that the call returns success and writes nothing, or that a filter
-silently drops every tie-line, or that a field you are summing is already on a different
-base than you think.
+confirm 4 of these 16. Public documentation describes what a command
+does; it does not tell you that the call returns success and writes nothing, or that a
+filter silently drops every tie-line, or that a field you are summing is already on a
+different base than you think.
 
-**A09 defeated both.** On A09, both mixed raw thermal percentages with voltage deviations, so every
-thermal row outranks every voltage one — the same mistake the planted backwards answer
-made, which the grader also caught.
+**A09 defeated both setups.** Where neither the repository nor the open
+web gets there, the question is worth reading rather than scoring.
 
 ---
 
@@ -85,10 +84,10 @@ made, which the grader also caught.
 | | **solved** | **4 of 7** | 2 of 7 |
 
 Neither setup is good at this. HiveMind gets 4 of 7 and spends
-**66 searches** doing it, against 23 for the web. This repository
-deliberately does not publish argument syntax — the *Auxiliary File Format* manual is
-PowerWorld's copyright — so on several of these it names the right command and still cannot
-give you a signature to call it with.
+**66 searches** doing it, against 23 for the web. This
+repository deliberately does not publish argument syntax — the *Auxiliary File Format*
+manual is PowerWorld's copyright — so on several of these it names the right command and
+still cannot give you a signature to call it with.
 
 **If your question is "what is this command called", open the manual.**
 
@@ -97,11 +96,11 @@ give you a signature to call it with.
 ## 3. What it costs
 
 **Cost here is counted in searches, not tokens.** A search means the same thing in both
-setups: the assistant did not know, and went to look. A token does not — the two ran under
-different harnesses, and separately, the same knowledge base searched 8.1 times per question
-when asked an ordinary question and 14.3 times when asked for the best answer it could give.
-One sentence of instruction moved cost by 1.8x. **Ranking setups by tokens partly ranks the
-instructions they happened to be given.**
+setups: the assistant did not know, and went to look. A token does not — the setups read
+different amounts of conversation per step, and separately the same corpus
+searched 8.1 times per question when asked an ordinary question and 14.3 times when asked
+for the best answer it could give. One sentence of instruction moved cost by 1.8x.
+**Ranking setups by tokens partly ranks the instructions they happened to be given.**
 
 ![How many times each setup had to look](assets/hops.svg)
 
@@ -110,9 +109,8 @@ instructions they happened to be given.**
 | **HiveMind** | **19 of 23** | 146 | **7.7** |
 | Fresh assistant + web | 6 of 23 | 71 | 11.8 |
 
-HiveMind searches about twice as often in total (146 against 71) and still costs less
-per question it actually solves. It looks harder and finds more.
+HiveMind searches more in total (146 against 71) and still costs less per question it
+actually solves. It looks harder and finds more.
 
-Median wall-clock per question: **34 s** with HiveMind, **74 s** for the fresh assistant
-searching the web.
-
+Median wall-clock per question: **42 s** with HiveMind, **69 s** for the fresh
+assistant searching the web.

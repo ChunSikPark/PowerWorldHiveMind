@@ -28,5 +28,5 @@
 <rect x="330" y="388" width="134.29" height="24" rx="5" fill="#1baf7a"/>
 <text x="812" y="405" font-size="15" font-weight="700" fill="#0b0b0b">2 of 7</text>
 <text x="20" y="458" font-size="13" fill="#52514e">Bar length is the share of questions answered correctly.</text>
-<text x="20" y="477" font-size="12.5" fill="#898781">Right or wrong only, no partial credit. Same questions, same grader, both setups.</text>
+<text x="20" y="477" font-size="12.5" fill="#898781">Right or wrong only, no partial credit. Same questions, same grader.</text>
 </svg>
