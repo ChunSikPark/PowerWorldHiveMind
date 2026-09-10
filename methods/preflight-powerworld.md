@@ -31,6 +31,10 @@ of a study and then discovers on the last line that SimAuto was never licensed.
 
 Paste this and run it. It prints a line per check and stops at the first failure.
 
+Checks 1-4 are about the **machine** and need no case file; check 5 opens **your case**.
+Call `preflight_machine()` on its own when you do not have a case yet — during setup, say —
+and `preflight(case_path)` when you do.
+
 ```python
 """PowerWorld preflight. Run before writing any analysis code."""
 
@@ -40,7 +44,8 @@ from pathlib import Path
 CASE = r"C:\path\to\your_case.pwb"   # <- change this
 
 
-def preflight(case_path: str) -> bool:
+def preflight_machine() -> bool:
+    """Checks 1-4: can this machine drive PowerWorld? No case file needed."""
     # 1. Platform. SimAuto is a Windows COM server; there is no Linux or macOS path.
     if not sys.platform.startswith("win"):
         print(f"FAIL 1/5  platform is {sys.platform!r}, SimAuto requires Windows")
@@ -82,7 +87,11 @@ def preflight(case_path: str) -> bool:
         print("          or 'installed but the SimAuto add-on is not licensed'")
         return False
     print(f"ok   4/5  SimAuto COM server responds{version}")
+    return True
 
+
+def preflight_case(case_path: str) -> bool:
+    """Check 5: this particular case opens. Run preflight_machine() first."""
     # 5. The case itself opens and solves.
     if not Path(case_path).is_file():
         print(f"FAIL 5/5  case not found: {case_path}")
@@ -97,6 +106,11 @@ def preflight(case_path: str) -> bool:
         return False
     print(f"ok   5/5  case opens: {info['n_bus']} buses, {info['n_gen']} generators")
     return True
+
+
+def preflight(case_path: str) -> bool:
+    """All five checks, stopping at the first failure."""
+    return preflight_machine() and preflight_case(case_path)
 
 
 if __name__ == "__main__":

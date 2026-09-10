@@ -40,10 +40,11 @@ If pip is missing, `python -m ensurepip --upgrade` first.
 
 ## 3. Run the preflight
 
-Run checks 1 through 4 from `${CLAUDE_PLUGIN_ROOT}/methods/preflight-powerworld.md` — the
-platform, `pywin32`, `esapp`, and the SimAuto COM server. **Read that page and use its
-script**; do not write your own version from memory. Skip its check 5, which needs a case
-file the user has not given you yet.
+Call `preflight_machine()` from the script in
+`${CLAUDE_PLUGIN_ROOT}/methods/preflight-powerworld.md`. It runs checks 1 to 4 — the
+platform, `pywin32`, `esapp`, and the SimAuto COM server — and needs no case file. **Read
+that page and use its script**; do not write your own version from memory. Leave check 5
+(`preflight_case`) alone: the user has not given you a case yet.
 
 **Report the Simulator build date the preflight prints.** PowerWorld's behaviour shifts
 between versions and it shifts silently, so the build date belongs in every session's

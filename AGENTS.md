@@ -38,7 +38,7 @@ knew.
 
 ## How to find the page — and how much of it to read
 
-The kit is 41 pages — 15 in `concepts/`, 15 in `methods/`, 7 in `demos/`, 4 in
+The kit is 44 pages — 17 in `concepts/`, 16 in `methods/`, 7 in `demos/`, 4 in
 `references/` — and you will need three to five of them. The ladder below is about
 **finding** the right page cheaply. It is not a budget on how much of that page you read.
 
@@ -175,7 +175,7 @@ just a wrong answer or a write that did nothing.
    ```
 
    esapp 0.2.1 wraps **310 SCRIPT commands** as typed methods across 20 SAW mixins —
-   roughly 300 of the ~345 catalogued actions. Both forms reach the same COM call, so the
+   roughly 300 of the ~370 actions Simulator defines. Both forms reach the same COM call, so the
    win is not runtime validation: it is a Python-side signature check, correct argument
    building (bracket lists, quoting, filter and solver enums), and above all **one place
    the maintainer can patch when PowerWorld changes a command's syntax.** A hand-written

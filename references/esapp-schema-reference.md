@@ -15,7 +15,7 @@ round-trips) or the **command/method** for an operation. **Part A** documents th
 `GObject` category model (keys / secondary / editable / identifiers / settable) plus
 its runtime `@classmethod` accessors and the real per-type key/identifier table pulled
 from `grid.py`. **Part B** catalogs the `SAW` mixins and the named SAW methods; the
-full raw SCRIPT-command index lives in aux script catalog. Every field name and method below was read
+task-organized SCRIPT-command index lives in aux script catalog. Every field name and method below was read
 out of `C:\path\to\esapp` source — cited `file:line`.
 
 ## Connections
@@ -242,7 +242,7 @@ TS disambiguation on [esapp](../concepts/esapp.md).)*
 
 ### B.3 Common `RunScriptCommand(...)` script commands
 
-Full SCRIPT-command index (all 26 categories, 344 actions) → aux script catalog.
+Task-organized SCRIPT-command index (198 actions) → aux script catalog.
 The named methods above (§B.2) remain the preferred Python entry points; the catalog
 is the raw script-command reference for anything unwrapped.
 

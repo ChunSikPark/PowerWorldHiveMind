@@ -11,9 +11,8 @@ tags: [version, compatibility, simulator, simauto, requirements, preflight]
 
 Which PowerWorld version you need, how to find out which one you have, and what this
 knowledge base was verified against. Everything here was tested on **Simulator 24, build
-24.2026.7.22** — 13 of 14 feature areas confirmed working. Version matters more than it
-looks: field availability and script-action behaviour both shift between releases, and
-they shift *silently*.
+24.2026.7.22** — 13 of 14 feature areas confirmed working. Field availability and
+script-action behaviour both shift between releases, and they shift *silently*.
 
 ## Connections
 

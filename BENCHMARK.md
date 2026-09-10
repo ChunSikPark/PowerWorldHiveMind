@@ -7,9 +7,8 @@ Measured against release **v0.2.0**. Later releases are benchmarked the same way
 numbers below can be compared across versions.
 
 **It solved 19 of 23 questions against 6 for a capable assistant with a web
-browser.** The gap is almost entirely in one place: **15 of 16**
-against **4 of 16** on the failures PowerWorld does not report as
-failures. On looking up a command name it is weaker — 4 of 7 — and
+browser.** On the failures PowerWorld does not report as failures it scored **15 of 16**
+against **4 of 16**, and that class of question is almost the whole gap. On looking up a command name it is weaker — 4 of 7 — and
 slower and more expensive than a web search for the same job.
 
 ## What was compared
@@ -39,7 +38,7 @@ nobody re-checks it.
 Simulator accepts the call, reports success, and returns something wrong. Nothing raises an
 error. These are the ones that cost you a day.
 
-| Q | The question | HiveMind | Fresh assistant + web |
+| Q | What was asked about | HiveMind | Fresh assistant + web |
 |---|---|:--:|:--:|
 | A01 | Saved a case and no file appeared | ✅ | ❌ |
 | A02 | Set MW on only the coal units | ✅ | ❌ |
@@ -65,14 +64,14 @@ does; it does not tell you that the call returns success and writes nothing, or 
 filter silently drops every tie-line, or that a field you are summing is already on a
 different base than you think.
 
-**A09 defeated both setups.** Where neither the repository nor the open
-web gets there, the question is worth reading rather than scoring.
+**A09 defeated both setups** — sorting violations worst-first. Neither the repository nor
+the open web produced a correct answer.
 
 ---
 
 ## 2. Looking up a command: open PowerWorld's manual
 
-| Q | The question | HiveMind | Fresh assistant + web |
+| Q | What was asked about | HiveMind | Fresh assistant + web |
 |---|---|:--:|:--:|
 | R1 | Run a security-constrained OPF | ❌ | ❌ |
 | R2 | Export the Ybus for MATLAB | ✅ | ✅ |
@@ -95,9 +94,9 @@ still cannot give you a signature to call it with.
 
 **Cost here is counted in searches, not tokens.** A search means the same thing in both
 setups: the assistant did not know, and went to look. A token does not — the setups read
-different amounts of conversation per step, and separately the same corpus
-searched 8.1 times per question when asked an ordinary question and 14.3 times when asked
-for the best answer it could give. One sentence of instruction moved cost by 1.8x.
+different amounts of conversation per step, and separately HiveMind searched 8.1 times per
+question when asked an ordinary question and 14.3 times when told to give the best answer
+it could — 1.8x, from one sentence of instruction.
 **Ranking setups by tokens partly ranks the instructions they happened to be given.**
 
 ![How many times each setup had to look](assets/hops.svg)
@@ -108,7 +107,10 @@ for the best answer it could give. One sentence of instruction moved cost by 1.8
 | Fresh assistant + web | 6 of 23 | 71 | 11.8 |
 
 HiveMind searches more in total (146 against 71) and still costs less per question it
-actually solves. It looks harder and finds more.
+actually solves.
 
 Median wall-clock per question: **42 s** with HiveMind, **69 s** for the fresh
 assistant searching the web.
+
+The table cells describe what each question was about rather than quoting it; the questions
+and grading prompts are not published. Back to [README](README.md).

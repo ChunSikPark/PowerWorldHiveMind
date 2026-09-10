@@ -17,6 +17,38 @@
   download and the folder-picker are gone from the main path, replaced by two `/plugin`
   lines and `/powerworld-setup`. Both survive as a manual route for agents without a plugin
   system. `README.md`'s install section leads with the same route.
+- **`index.md` was unreadable as a catalog.** 43 of its 44 rows were page abstracts cut at a
+  character count, so every description stopped mid-sentence — the page whose only job is
+  helping you choose which page to open. All 44 rewritten as complete one-line descriptions.
+- **`references/aux-script-commands.md` was described as a complete catalog by four other
+  pages.** It holds 198 actions under 15 headings and its own abstract calls it a working
+  subset, but `esapp-schema-reference.md`, `concepts/esapp.md`,
+  `concepts/esapp-script-command-wrappers.md` and `AGENTS.md` variously called it "full",
+  "all 26 categories", "344 actions" and "345 catalogued actions". The two sentences about
+  esapp's wrapper coverage now measure against the ~370 actions Simulator defines rather
+  than against the catalog's own size, which made "roughly 300 of 345" impossible.
+- **`/powerworld-setup` could not be followed as written.** It told the agent to run
+  "checks 1 through 4" of the preflight script without writing its own version, but that
+  script ran all five as one function with a hardcoded case path. `preflight-powerworld.md`
+  now splits into `preflight_machine()` (checks 1-4, no case needed), `preflight_case()`
+  and `preflight()`; the command calls the first.
+- **Both plugin manifests advertised IEEE 738 dynamic line ratings**, which `AGENTS.md`
+  declares out of scope. Removed from the descriptions and the keyword arrays, so the
+  plugin browser no longer sells what the kit refuses to cover.
+- **`README.md` carried three contradictory setup routes** and its "which file your agent
+  reads" table claimed Claude Code loads `CLAUDE.md` — untrue on the plugin route, where a
+  plugin ships skills and commands and its instruction files are never loaded. The `git
+  clone` block labelled "fastest" and the beginner walkthrough that disagreed with
+  `GETTING-STARTED.md` on Node.js, on verifying Python, and on twenty versus thirty minutes
+  are gone; the paste-block survives as a labelled fallback. 369 lines to 286.
+- **A README claim contradicted the benchmark it linked to.** It said the kit is "weaker
+  than a web search" at command lookup; `BENCHMARK.md` reports 4 of 7 against 2 of 7, worse
+  on cost rather than on answers.
+- **Prose pass across the human-facing docs and the knowledge pages** for AI-slop patterns:
+  kickers, colon reveals, stacked rhetorical questions, metadiscourse that told the reader
+  what to notice, a benchmark pitch duplicated verbatim in two sections, and one page using
+  ASCII `--` where the other 43 use an em dash. Page counts corrected to 44/17/16/7/4 and
+  the rule count to eight.
 - **Codex plugin support**: adds a portable `plugin.json` at the repo root and
   `.agents/plugins/marketplace.json`, per the agent-plugins.org 1.0.0 schema, which Codex
   discovers via `codex plugin marketplace add`. Manifests validate against the published

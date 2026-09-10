@@ -42,7 +42,7 @@ pw.esa.RunScriptCommand("TimeStepDoRun;")    # wrong
 ```
 
 Applies to every SCRIPT command esapp wraps — 310 named methods across 20 SAW mixins in
-0.2.1, covering roughly 300 of the 345 actions catalogued in aux script catalog.
+0.2.1, covering roughly 300 of the ~370 SCRIPT actions Simulator defines.
 
 ### Why — the actual mechanism
 

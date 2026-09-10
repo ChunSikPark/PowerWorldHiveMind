@@ -130,7 +130,7 @@ client.download(
 ) -> list[Path]
 ```
 
-Two flags worth understanding:
+Two flags:
 
 - `local_crop=True` (the default) crops on your machine after downloading. Set it
   `False` only if you want exactly what the server sent.

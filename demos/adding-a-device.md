@@ -175,5 +175,4 @@ pages so a wrong answer is traceable.
 ### The lesson
 
 The correct call is not guessable. Three reasonable attempts failed identically and
-silently. The knowledge base is not a convenience here — it is the only way to get this
-right without a very long afternoon.
+silently.

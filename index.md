@@ -8,13 +8,13 @@ Complete runs on a real 37-bus case, including what goes wrong and how it was fi
 
 | Page | What it covers |
 |---|---|
-| [adding-a-device](demos/adding-a-device.md) | A complete worked run on a real 37-bus case. **Everything below actually happened**, including three failed attempts that raised no error at all. This is the single most important demo in the kit: `CreateData` accepts a... |
-| [comparing-planning-cases](demos/comparing-planning-cases.md) | Two vintages of the same system — a 2016 summer peak and a 2024 summer peak — diffed to find what the plan actually builds, then a contingency set generated for **only the new devices** and solved. Real numbers... |
-| [contingency-and-aux](demos/contingency-and-aux.md) | Running N-1 from nothing on a real 37-bus case, then **writing a filter and contingency `.aux` automatically** from the analysis result and loading it back. All numbers are from an actual run: 89 auto-inserted... |
-| [power-flow-and-sensitivities](demos/power-flow-and-sensitivities.md) | Solving a case and asking the three standard sensitivity questions, on a real 37-bus system. Includes the `1e8` sentinel that makes LODF results look insane, and a PTDF failure whose obvious recovery **also fails** —... |
-| [start-here](demos/start-here.md) | Worked runs on a real 37-bus case (Synth40: 37 buses, 89 branches, 45 generators). Every number on these pages came from an actual run — including the failures, which were left in on purpose. Start with the one-line... |
-| [timestep-and-pfw](demos/timestep-and-pfw.md) | Turning a weather file into hourly wind and solar output. Covers the check that decides whether the case can do this at all — **do its renewable units carry PFW model strings?** — verified on a real case where 9 of 45... |
-| [violation-remediation](demos/violation-remediation.md) | The full study, not a readout: find the N-1 violations, work out *why* they happen, propose candidate reinforcements, test each one independently, and rank them by measured effect. Real numbers from a real 37-bus case.... |
+| [adding-a-device](demos/adding-a-device.md) | Three attempts that reported success and created nothing, then the fix. `CreateData` accepts a malformed call and builds nothing. If you read one demo, read this one. |
+| [comparing-planning-cases](demos/comparing-planning-cases.md) | Diff a 2016 and a 2024 case to find what the plan builds — 691 new branches, 199 new generators — then solve a contingency set for only the new devices. Includes the scoping trap that makes the naive answer 87% wrong. |
+| [contingency-and-aux](demos/contingency-and-aux.md) | Run N-1 from nothing, then write a filter and contingency `.aux` from the result and load it back. 89 auto-inserted contingencies, 12 violations, 5 targeted ones merged. |
+| [power-flow-and-sensitivities](demos/power-flow-and-sensitivities.md) | AC and DC solves plus LODF and PTDF, including the `1e8` sentinel that makes LODF output look insane and a PTDF failure whose obvious fix fails the same way. |
+| [start-here](demos/start-here.md) | The one-line prompts to open with, and worked runs on a 37-bus case with every failure left in on purpose. |
+| [timestep-and-pfw](demos/timestep-and-pfw.md) | Turn a weather file into hourly wind and solar output, starting with the check that decides whether the case can do it at all: do its renewable units carry PFW model strings? Here, 9 of 45 did. |
+| [violation-remediation](demos/violation-remediation.md) | The full study: find 12 N-1 violations, work out why they happen, test five reinforcements, and rank them by measured effect. Two of the five made the system worse. |
 
 ## Methods — how to do a thing
 
@@ -22,22 +22,22 @@ Step-by-step procedures. Read the one that matches your task.
 
 | Page | What it covers |
 |---|---|
-| [adding-devices-esapp](methods/adding-devices-esapp.md) | How to programmatically create buses, branches (lines/transformers) and set loads in an open PowerWorld case with `esapp`, then solve a DC OPF and screen N-1 — the write-side mechanics the read-focused esapp-overview... |
-| [applying-a-dispatch-to-a-case](methods/applying-a-dispatch-to-a-case.md) | How to turn a computed dispatch (a MW number per generator) into a runnable scenario case: write `GenMW`, switch the unused units `Open`, scale load to the scenario's level, solve DC, and save. The headline gotcha is... |
-| [converting-lines-to-transformers](methods/converting-lines-to-transformers.md) | How to reclassify existing `Branch` objects as transformers when a case models every branch as a line even where the two ends sit at different nominal kV. Two gotchas, both live-verified on Synth8k: **(1)**... |
-| [esapp-overview](methods/esapp-overview.md) | The entry-point how-to for driving PowerWorld from Python with `esapp`: open a case, read and write data with the bracket interface, solve power flow, inspect results, and use `snapshot()` for safe experimentation. All... |
-| [handling-errors](methods/handling-errors.md) | What to do when something fails. Most PowerWorld failures are recoverable by the agent alone, so recover and keep going — the user asked for an analysis, not a running commentary on your debugging. This page sorts... |
-| [how-to-analyze-results](methods/how-to-analyze-results.md) | How to write code that reads and analyzes the solar/wind generation CSVs produced by the timestep simulation. Covers the two-CSV-per-run naming convention, the 8-row metadata header layout (ISO, fuel type, PFW model... |
-| [new-device-contingency-aux](methods/new-device-contingency-aux.md) | How to turn **a list of devices** (e.g. the branches and generators that are new in a planning case) into a PowerWorld contingency set, restrict violation reporting to **the areas you care about**, and ship both as one... |
-| [powerworld-limitset-setdata](methods/powerworld-limitset-setdata.md) | How to change PowerWorld's own limit-monitoring thresholds (`LimitSet` object — normal-ops `LSPULow`/`LSPUHigh` and N-1 contingency `LSCtgPULow`/`LSCtgPUHigh`) from a script command or from esapp. The headline gotcha:... |
-| [preflight-powerworld](methods/preflight-powerworld.md) | Run this before writing any analysis code. It takes about five seconds and answers the only question that matters at the start of a session: can this machine drive PowerWorld from Python at all? Five checks, each with... |
-| [ranking-new-devices-by-severity](methods/ranking-new-devices-by-severity.md) | Given a contingency AUX built by new-device-contingency-aux — one N-1 contingency per device that is new in a planning case — solve it and answer **which new device is worst**. |
-| [reading-violationctg](methods/reading-violationctg.md) | How to get **which contingency caused which violation** out of PowerWorld — thermal, voltage and interface, keyed by `CTGLabel` — by reading the `ViolationCTG` object after `CTGSolveAll()`. This is the only read path... |
-| [reducing-a-contingency-set](methods/reducing-a-contingency-set.md) | `CTGSkip` and `Delete(Contingency, <filter>)` do two different jobs and are routinely confused. **`CTGSkip` partitions a set without shrinking it** — every contingency stays in the case and the skipped ones are simply... |
-| [save-powerworld-case](methods/save-powerworld-case.md) | How to write an open PowerWorld case back to disk as a `.pwb` so it can be reopened and inspected in the GUI. The headline gotcha: **do NOT use the SimAuto `SaveCase` COM function** (`pw.esa.SaveCase(...)`) — on our... |
-| [teamoverbyeweather-client](methods/teamoverbyeweather-client.md) | `TeamOverbyeWeather` is a pip-installable Python client for the Team Overbye weather portal. One call downloads a weather dataset, crops it to a region, and crops it to a time window, returning `.pww` files ready for... |
-| [timestep-simulation-setup](methods/timestep-simulation-setup.md) | How to drive PowerWorld's TimeStep simulation — turning `.pww` weather files into hourly solar/wind generation CSVs. Covers the prerequisites a case must satisfy per renewable generator (`GenFuelType` WND/SUN, valid... |
-| [visualize-renewable-output](methods/visualize-renewable-output.md) | How to write matplotlib code that visualizes the solar/wind CSVs produced by the timestep simulation. Covers loading the 8-row metadata + hourly data structure, parsing timestamps, and the four key plot patterns: fleet... |
+| [adding-devices-esapp](methods/adding-devices-esapp.md) | Create buses, branches and loads in an open case, then solve a DC OPF and screen N-1. The write-side counterpart to esapp-overview. |
+| [applying-a-dispatch-to-a-case](methods/applying-a-dispatch-to-a-case.md) | Turn a MW-per-generator dispatch into a runnable scenario case. The DC solve fakes a balance rather than telling you the fleet is short. |
+| [converting-lines-to-transformers](methods/converting-lines-to-transformers.md) | Reclassify branches as transformers when a case models every branch as a line. `BranchDeviceType` is read-only; the real switch is `LineXFMR = "YES"` plus the nominal kV fields. |
+| [esapp-overview](methods/esapp-overview.md) | The starting page: open a case, read and write data, solve power flow, and use `snapshot()` to experiment without damaging anything. |
+| [handling-errors](methods/handling-errors.md) | What to do when something fails, sorted into fix it yourself, fix it and mention it, and stop and ask. |
+| [how-to-analyze-results](methods/how-to-analyze-results.md) | Read the solar and wind CSVs a timestep run produces: the two-file naming, the 8-row metadata header, and the UTC timestamp conversion. |
+| [new-device-contingency-aux](methods/new-device-contingency-aux.md) | Turn a list of devices into a contingency set plus an area-restricted violation filter, shipped as one `.aux` that loads without saving the case. |
+| [powerworld-limitset-setdata](methods/powerworld-limitset-setdata.md) | Change PowerWorld's limit-monitoring thresholds. `SetData` on `LimitSet` fails with a missing-key-field error unless you supply the entire field row. |
+| [preflight-powerworld](methods/preflight-powerworld.md) | Five checks in five seconds: can this machine drive PowerWorld from Python at all? Run it before writing any analysis code. |
+| [ranking-new-devices-by-severity](methods/ranking-new-devices-by-severity.md) | Solve a new-device contingency set and answer which new device is worst. Produces one `devices.csv`, ranked worst first. |
+| [reading-violationctg](methods/reading-violationctg.md) | Get which contingency caused which violation, keyed by `CTGLabel`, by reading `ViolationCTG` after `CTGSolveAll()`. |
+| [reducing-a-contingency-set](methods/reducing-a-contingency-set.md) | `CTGSkip` and `Delete` do different jobs and get confused for each other. `CTGSkip` partitions a set without shrinking it. |
+| [save-powerworld-case](methods/save-powerworld-case.md) | Write an open case back to disk. The COM `SaveCase` returns success and writes no file, so use the script form and check the file exists. |
+| [teamoverbyeweather-client](methods/teamoverbyeweather-client.md) | Download a weather dataset, crop it to a region and a time window, and get `.pww` files ready for PowerWorld. Pure Python — no PowerWorld licence needed. |
+| [timestep-simulation-setup](methods/timestep-simulation-setup.md) | Drive TimeStep to turn `.pww` files into hourly generation CSVs, including the per-generator prerequisites a case must satisfy first. |
+| [visualize-renewable-output](methods/visualize-renewable-output.md) | Plot the timestep CSVs: fleet totals over time, per-ISO and per-state breakdowns, capacity-factor curves, and peak and trough hours. |
 
 ## Concepts — what a thing is
 
@@ -45,23 +45,23 @@ Background. Read when a method references something you do not recognise.
 
 | Page | What it covers |
 |---|---|
-| [case-impedance-completeness](concepts/case-impedance-completeness.md) | A PowerWorld case can solve DC power flow perfectly, report sensible flows, and be handed between projects for years while carrying **no resistance and no line charging whatsoever**. DC power flow reads only `X`, so... |
-| [case-to-case-device-transplant](concepts/case-to-case-device-transplant.md) | How to copy a set of devices from one PowerWorld case into another without rebuilding the chain that produced them — useful whenever a feature was developed on one scenario and the others are stranded behind unscripted... |
-| [copper-plate](concepts/copper-plate.md) | Collapse the entire transmission network — strip all branches, loads, and shunts, then add a single slack bus — so generators dispatch to serve total system load **without any transmission constraints**. Every generator... |
-| [esapp-environment](concepts/esapp-environment.md) | What `esapp` is, what it needs to run, and how its pieces fit together. `esapp` (ESA++) is a Pythonic wrapper over PowerWorld Simulator's SimAuto COM server: a `PowerWorld` entry point, a bracket interface that returns... |
-| [esapp-script-command-wrappers](concepts/esapp-script-command-wrappers.md) | House rule for every line of PowerWorld-from-Python code: call the named esapp method (`pw.esa.TimeStepDoRun()`), not the hand-written script string (`pw.esa.RunScriptCommand("TimeStepDoRun;")`). 310 of esapp 0.2.1's... |
-| [esapp](concepts/esapp.md) | `esapp` (ESA++) is a Python toolkit that gives a Pythonic, pandas-flavored interface to PowerWorld Simulator's Automation Server (SimAuto) over COM. It is Windows-only and requires PowerWorld locally. This page is the... |
-| [gic](concepts/gic.md) | Geomagnetically induced currents are quasi-DC currents driven into the grid during a geomagnetic disturbance, flowing through long transmission lines and transformer neutrals. They cause half-cycle transformer... |
-| [glossary](concepts/glossary.md) | Every acronym and piece of jargon this knowledge base uses, defined once. Read the **Pairs that get confused** section even if you skip the rest — `PWW` versus `PFW` alone has cost people entire afternoons, and mixing... |
-| [lodf](concepts/lodf.md) | LODF gives **every branch's post-outage MW flow for every single-branch outage** from one matrix factorization — no per-contingency power-flow solve. It is not an approximation of DC contingency analysis; measured live... |
-| [parallel-contingency-solve](concepts/parallel-contingency-solve.md) | A workaround for PowerWorld's own distributed `CTGSolveAll` being non-functional in this environment: instead of relying on PowerWorld's DS server + registered compute hosts (which never spawn workers here — it silently... |
-| [per-unit-basis-discipline](concepts/per-unit-basis-discipline.md) | A per-unit or normalized quantity is a **pair**: the number *and* the base it was normalized against. Store only the number and you have stored nothing recoverable — yet per-unit values look like plain scalars, so they... |
-| [powerworld-inertia-and-cost-data](concepts/powerworld-inertia-and-cost-data.md) | Four non-obvious PowerWorld/esapp case-data facts, all discovered the hard way while building dispatch's HRML algorithm and worth knowing before any project touches generator inertia or cost data: (1) `Gen.TSH` is H on... |
-| [powerworld-simauto](concepts/powerworld-simauto.md) | SimAuto is PowerWorld Simulator's COM Automation Server — the Windows-only layer that all PowerWorld Python scripts ultimately talk to. In esapp it is wrapped by the `SAW` class (assembled via ~20 mixins) and reached... |
-| [pww-data](concepts/pww-data.md) | PWW (PowerWorld Weather) is a custom byte-packed binary format produced by weather auto and consumed by PowerWorld Simulator's TimeStep Simulation engine. It encodes gridded weather variables as uint8 values (0–254) per... |
-| [timestep-simulation](concepts/timestep-simulation.md) | A timestep simulation (in this project's sense) is PowerWorld's built-in TimeStep feature run over a weather time series: each renewable generator's hourly solar or wind MW output is computed quasi-statically from PWW... |
-| [timestep-workflow](concepts/timestep-workflow.md) | The end-to-end chain that turns a weather file into hourly solar and wind output for every renewable generator in a case: open the case, load a `.pww`, select the renewable units, tell PowerWorld which fields to save,... |
-| [version-requirements](concepts/version-requirements.md) | Which PowerWorld version you need, how to find out which one you have, and what this knowledge base was verified against. Everything here was tested on **Simulator 24, build 24.2026.7.22** — 13 of 14 feature areas... |
+| [case-impedance-completeness](concepts/case-impedance-completeness.md) | A case can solve DC power flow for years while carrying no resistance and no line charging at all. DC reads only `X`, so nothing ever complains. |
+| [case-to-case-device-transplant](concepts/case-to-case-device-transplant.md) | Copy a set of devices from one case into another without rebuilding the chain that produced them, by carving a filtered AUX out of the source case. |
+| [copper-plate](concepts/copper-plate.md) | Strip every branch, load and shunt and leave a single slack bus, so generators dispatch to total system load with no transmission constraints. |
+| [esapp-environment](concepts/esapp-environment.md) | What `esapp` is, what it needs to run, and how the `PowerWorld` entry point, the bracket interface and the `SAW` wrapper fit together. |
+| [esapp-script-command-wrappers](concepts/esapp-script-command-wrappers.md) | Why you call `pw.esa.TimeStepDoRun()` rather than `RunScriptCommand("TimeStepDoRun;")`, and the roughly 41 actions where no wrapper exists. |
+| [esapp](concepts/esapp.md) | The full API map for `esapp`: top-level imports, architecture, and what the package can actually do. |
+| [gic](concepts/gic.md) | Geomagnetically induced currents: what they do to transformers during a geomagnetic disturbance, and what PowerWorld models. |
+| [glossary](concepts/glossary.md) | Every acronym and piece of jargon this kit uses, defined once. Read the confused-pairs section even if you skip the rest — PWW versus PFW has cost people whole afternoons. |
+| [lodf](concepts/lodf.md) | Every branch's post-outage flow for every single-branch outage, from one matrix factorization. Measured live it is not an approximation of DC contingency analysis; it is the same answer. |
+| [parallel-contingency-solve](concepts/parallel-contingency-solve.md) | PowerWorld's own distributed `CTGSolveAll` never spawns workers here and silently degrades to serial. Split the contingency set across N processes instead. |
+| [per-unit-basis-discipline](concepts/per-unit-basis-discipline.md) | A per-unit value is meaningless without the base it was normalized against, and it looks like a plain scalar, so it gets copied between sources and summed. |
+| [powerworld-inertia-and-cost-data](concepts/powerworld-inertia-and-cost-data.md) | Four case-data facts to know before touching generator inertia or cost, starting with `Gen.TSH` being H on a 100 MVA system base rather than the unit's own. |
+| [powerworld-simauto](concepts/powerworld-simauto.md) | The Windows COM server every PowerWorld Python script ultimately talks to, its SAW mixin architecture, and the verified raw COM calls. |
+| [pww-data](concepts/pww-data.md) | The PWW binary weather format: gridded variables packed as uint8 per timestep and grid point, with 255 as the NaN sentinel. |
+| [timestep-simulation](concepts/timestep-simulation.md) | What a timestep simulation is here: hourly renewable output computed quasi-statically from weather data. It is not a transient-stability study. |
+| [timestep-workflow](concepts/timestep-workflow.md) | The whole chain from a `.pww` file to per-generator hourly CSVs, in the order PowerWorld requires it. |
+| [version-requirements](concepts/version-requirements.md) | Which Simulator version you need and what this kit was verified against: build 24.2026.7.22, with 13 of 14 feature areas confirmed working. |
 
 ## References — the heavy code layer
 
@@ -69,7 +69,7 @@ Exact backend mechanics. Open ONLY when writing code, and only the one you need.
 
 | Page | What it covers |
 |---|---|
-| [aux-script-commands](references/aux-script-commands.md) | A task-organized index of the PowerWorld SCRIPT actions this kit's workflows actually use, plus their close neighbours — 198 of the ~370 that Simulator defines. Look here to find *which* command does a job; look in... |
-| [esapp-package-backend](references/esapp-package-backend.md) | Internals reference for the esapp package project, covering bracket-interface mechanics (`Indexable.__getitem__`/`__setitem__`), SAW mixin composition, the component-generation pipeline, GObject schema model, embedded... |
-| [esapp-schema-reference](references/esapp-schema-reference.md) | This is the field-schema + SimAuto-command lookup for **writing esapp code**: read it when you need an object type's exact **key fields** (so a read-modify-write round-trips) or the **command/method** for an operation.... |
-| [time-step-simulation-backend](references/time-step-simulation-backend.md) | Code-reconstruction reference for the time step simulation project — the `_simulation_worker` PowerWorld call sequence (weather load → generator selection → field-save wrapper → run → export), `_GEN_PARAM` field list,... |
+| [aux-script-commands](references/aux-script-commands.md) | Which SCRIPT command does a job, organized by task. Argument lists and exact syntax live in PowerWorld's own *Auxiliary File Format* manual, not here. |
+| [esapp-package-backend](references/esapp-package-backend.md) | esapp internals: bracket-interface mechanics, SAW mixin composition, the component-generation pipeline, the schema model, and the exception hierarchy. |
+| [esapp-schema-reference](references/esapp-schema-reference.md) | The exact key fields and command names for writing esapp code. Open it when a read-modify-write has to round-trip. |
+| [time-step-simulation-backend](references/time-step-simulation-backend.md) | The timestep worker's PowerWorld call sequence, its generator field list, and the CSV post-processing that skips the 8 header rows. |

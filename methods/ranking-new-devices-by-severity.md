@@ -17,27 +17,27 @@ device that is new in a planning case — solve it and answer **which new device
 **One file comes out: `devices.csv`, one row per new device, ranked worst first.** It is
 the only file at the top of the output directory; the per-metric sorts and the
 per-violation-row evidence live one level down in `_audit/`. The question it answers is the
-one that gets asked out loud -- *without device X, what does this case experience?* -- so a
+one that gets asked out loud — *without device X, what does this case experience?* — so a
 device that was never tested must still have a row, or "absent" and "harmless" become the
 same thing.
 
 **The single ordering rests on one idea: the FRACTION BEYOND THE LIMIT.** Percent-of-rating
-and per-unit volts genuinely do not share a unit -- but each quantity *divided by the limit
+and per-unit volts genuinely do not share a unit — but each quantity *divided by the limit
 it actually violated* is dimensionless, and those are comparable without inventing an
 exchange rate. That is what makes a 0.80 pu bus (0.158 beyond a 0.95 floor) outrank a 101%
 branch (0.010 beyond its rating), which no per-metric sort does. It still asserts that a 5%
-overload and a 5% voltage excursion are comparably bad -- but that claim is visible and
+overload and a 5% voltage excursion are comparably bad — but that claim is visible and
 checkable, which "percent vs per-unit" never was. The per-metric sorts in `_audit/` keep
 the two apart on their own units; this is the one sanctioned crossing.
 
 Six things here decide whether the ranking means anything, and each fails silently:
 
-1. **Subtract the base case -- AND attribute the magnitude.** A branch already at 105%
+1. **Subtract the base case — AND attribute the magnitude.** A branch already at 105%
    appears under *every* contingency, so without subtraction every device inherits the same
    overloads (**38% of all rows** on one measured run, 464,794 of 1,218,162). But the
    subtraction only decides *whether* a row counts: a branch at 220% nudged to 221% survives
    it legitimately and then reports **221%** for a device that caused **+1%**. Score
-   `min(exceedance, addition)` -- see *Attribution* below. Measured at a 60% threshold:
+   `min(exceedance, addition)` — see *Attribution* below. Measured at a 60% threshold:
    **97.8% of caused thermal rows are on an already-violating branch, the reported
    exceedance is a median 82.6x what the device added, and 883 of 890 devices move.**
 2. **Rank voltage on distance OUTSIDE the band, never on `LimViolPct`.** Low and high volts
@@ -52,7 +52,7 @@ Six things here decide whether the ranking means anything, and each fails silent
 5. **Report the bus AS IT SITS, not only its excursion.** `0.037 pu outside the band` and
    `0.913 pu` are the same bus, and only one of them reads as serious. The excursion is
    measured against whichever band the run was configured with, so a reader who forgets the
-   band reads a severe bus as trivial. Carry both -- the score is built from the excursion
+   band reads a severe bus as trivial. Carry both — the score is built from the excursion
    and must stay auditable.
 6. **A device's own area is not the reporting scope.** They routinely differ, and the file
    gives no hint that they do. See *The area trap* below.
@@ -90,7 +90,7 @@ set is corrected while the *magnitudes* are not. Score each row as the smaller o
 You can blame a device for neither more damage than exists, nor more than it put there. The
 `min` self-corrects when the base was *below* the limit as well: a branch at 88% taken to
 157% has addition 69 but exceedance 57, and only 57 points of it are a violation at all.
-A row with no base value was clean, so the whole exceedance is the device's -- missing base
+A row with no base value was clean, so the whole exceedance is the device's — missing base
 data must never silently zero a real violation.
 
 | category | exceedance | addition |
@@ -100,8 +100,8 @@ data must never silently zero a real violation.
 | `voltage_high` | `(V - limit)/limit` | `(V - base_V)/limit` |
 
 `T` is the run's thermal threshold, so thermal normalizes exactly as voltage does. **Read
-the base value with the SAME key the subtraction uses** -- unordered bus pair plus
-normalized circuit -- or a row is filtered against one baseline and scored against another,
+the base value with the SAME key the subtraction uses** — unordered bus pair plus
+normalized circuit — or a row is filtered against one baseline and scored against another,
 which is worse than either alone.
 
 **`LimViolLimit` on a thermal row is the branch's MVA RATING, not 100.** Measured 21, 46,
@@ -109,7 +109,7 @@ which is worse than either alone.
 other's field yields percent-minus-MVA, which is a plausible-looking number.
 
 **Average as well as worst, on the attributed quantity.** The mean over a device's rows
-separates one catastrophic element from twenty mildly-over ones -- which the count only
+separates one catastrophic element from twenty mildly-over ones — which the count only
 half-answers. Computed on absolute percent it would re-inherit the whole base-case
 contamination. Measured: the top devices score ~1.16 on their worst element and average
 ~0.010 across ~190 rows.
@@ -117,7 +117,7 @@ contamination. Measured: the top devices score ~1.16 on their worst element and 
 ### The output table: natural units only
 
 **A number the reader cannot interpret is not a result.** The score below is correct,
-dimensionless, and unreadable to someone opening a spreadsheet -- and requiring them to
+dimensionless, and unreadable to someone opening a spreadsheet — and requiring them to
 learn the scoring scheme before they can read the answer is the wrong trade for a file
 whose whole purpose is to be opened by other people. So the file carries **only** percent
 of rating, per unit, and counts; the arithmetic that produced the ordering moves to a
@@ -145,13 +145,13 @@ is not what gets mailed.
 **Worst and average answer different questions**, and the count answers neither. A device
 whose worst overload is 157% and whose average is also 157% overloads exactly one branch;
 one with a high worst and a low average has a single hot spot among many marginal
-violations. Averages must be taken in the SAME natural unit as the worst -- an average of
+violations. Averages must be taken in the SAME natural unit as the worst — an average of
 the dimensionless score reads as noise (`0.064`), and an average of two different units at
 once is meaningless even though it is well-defined.
 
 **`worst_*` means most attributable, not highest number.** The reported rows are the ones
 that drove the rank. Once the base case is attributed those need not be the arithmetic
-maximum -- a 221%-on-a-220%-branch loses to a 150%-from-clean one -- and printing the
+maximum — a 221%-on-a-220%-branch loses to a 150%-from-clean one — and printing the
 maximum beside a rank derived from a different row is how the two disagree in public.
 
 **What was deliberately taken OFF the file**, and the cost: `severity_score`,
@@ -163,7 +163,7 @@ was traded for a table anyone can read.
 
 ### The one ordering: fraction beyond the limit
 
-`rank` is dense `1..N` -- no ties, no gaps -- and orders **diverged first**, then
+`rank` is dense `1..N` — no ties, no gaps — and orders **diverged first**, then
 `severity_score` descending, then `CTGLabel` ascending so two runs of the same case agree.
 
 `severity_score` is each violation's fraction beyond the limit it actually violated:
@@ -175,7 +175,7 @@ was traded for a table anyone can read.
 | `voltage_high` | `(V - limit)/limit` | 1.10 pu vs a 1.05 ceiling -> `0.048` |
 
 The units cancel, so this is a real dimensionless quantity rather than a fudge factor. **Do
-not collapse it to `abs(pct/100 - 1)`** -- it is arithmetically identical on all three
+not collapse it to `abs(pct/100 - 1)`** — it is arithmetically identical on all three
 categories today, but it gets `voltage_low` right for the wrong reason and would keep
 "working" silently if a polarity were ever redefined.
 
@@ -185,11 +185,11 @@ one scores `NaN` and ranks first. **There is deliberately no `status` column**: 
 stay filterable data rather than a string to parse, and `ranked_by` says which in words.
 
 Derive those labels from the COUNTS, never from the score. A silent device carries a real
-`0.0`, not `NaN`, so a test keyed on a missing score never fires for it -- a mistake that
+`0.0`, not `NaN`, so a test keyed on a missing score never fires for it — a mistake that
 leaves the label silently blank on exactly the rows it was written for.
 
 The percentage for voltage is `LimViolPct` **for the row already chosen as worst by
-severity**, never a re-max on pct -- for `voltage_low`, *lower* pct is worse, so re-maxing
+severity**, never a re-max on pct — for `voltage_low`, *lower* pct is worse, so re-maxing
 selects the least severe bus while looking entirely correct.
 
 ### The per-metric sorts, and why they survive in `_audit/`
@@ -208,19 +208,19 @@ orders overvoltages exactly backwards. Distance outside the band fixes it: 0.87 
 0.90 floor and 1.13 against a 1.10 ceiling both score 0.03, and are genuinely equally bad.
 
 "Worst single violation" and "broke the most things" are different questions, which is why
-the count is its own axis rather than a tiebreaker -- and why the single `severity_score`
+the count is its own axis rather than a tiebreaker — and why the single `severity_score`
 ordering does not retire these. It answers the first question only.
 
 ### The area trap
 
 A device's own area and the **reporting scope** are different things, and nothing in the
 file says so. Violations are scoped by `Area.BGReportLimits` in the AUX, which monitors
-*violated elements*, not outaged devices -- so a device far outside the monitored region is
+*violated elements*, not outaged devices — so a device far outside the monitored region is
 still solved and still counted, because its outage can violate something inside.
 
 Measured on Synth2k with two of eight areas monitored: **364 of the 531 out-of-area devices
 caused in-region violations.** So `n_violations = 0` on an out-of-area device means "causes
-nothing in the monitored region", never "was not checked" -- and filtering the device table
+nothing in the monitored region", never "was not checked" — and filtering the device table
 on area to "recover the region" silently discards 364 real results while looking like a
 sensible narrowing.
 
@@ -276,7 +276,7 @@ An empty result and a clean grid look identical, so each of these is handled exp
 ### The bus's own voltage limit, not the band you configured
 
 `Bus.BusVoltCtgLimHigh` / `BusVoltCtgLimLow` are PowerWorld's **effective** per-bus
-contingency limits -- "Ctg Limit PU Volt presently being used by bus, as specified by its
+contingency limits — "Ctg Limit PU Volt presently being used by bus, as specified by its
 limit group". A bus carrying `BusVoltLim = YES` overrides the `LimitSet` band the tool
 writes, so **the configured band is not necessarily the criterion any given bus was judged
 against**, and a baseline that assumes it is will be blind in exactly one direction.
@@ -285,7 +285,7 @@ MEASURED on a planning model: three buses carry a **1.05** ceiling while the run
 **1.10**. Sitting at ~1.053 they are inside the configured band, so the baseline never
 recorded them; their post-contingency rows carried no `base_value`, were read as violations
 the outage CREATED, and survived `--only-new`. **657 of 673 reported rows were those three
-buses under all 219 devices** -- 219 of 220 devices ranked as causing something, off a
+buses under all 219 devices** — 219 of 220 devices ranked as causing something, off a
 base-case condition. Overlap with the base-case high-voltage set: **0 of 3**. A flat band
 cannot detect this; the buses never exceed 1.10 at all.
 
@@ -302,7 +302,7 @@ Two traps in the fix itself:
 
 PowerWorld's own `CTG_Options.CTG_WhatToDoWithBC` (0 = do not report base-case violations;
 1 = report all; 2 = change-from-base criteria) and this tool's Python-side `--only-new` are
-**redundant, not conflicting** -- verified rather than assumed. Setting the option to `0` on
+**redundant, not conflicting** — verified rather than assumed. Setting the option to `0` on
 Synth2k case4 and running with `--include-worsened` yields **the identical 36-row set** that
 `--only-new` yields on the unmodified case: same rows, zero difference either way. Two
 independent mechanisms, one inside PowerWorld's contingency engine and one in Python,
@@ -310,14 +310,14 @@ agreeing exactly.
 
 Two honest qualifications. The `CTGViol` COUNTS differ (82 vs 153 summed over those 36
 rows), because PowerWorld reports fewer violations per contingency when it is suppressing
-base-case ones -- the row SET is identical, the per-contingency tallies are not. And the two
+base-case ones — the row SET is identical, the per-contingency tallies are not. And the two
 runs were not config-identical: the `= 0` run screened every voltage level while the
 `--only-new` run used a 69 kV floor. The comparison still holds because the kV filter
 dropped nothing on this case (its lowest violated element is 115 kV), but that is a
 property of Synth2k rather than of the equivalence.
 
 `base_case_violations.csv` is unaffected by the option, because it is read from
-`Branch.LinePercent` / `Bus.BusPUVolt` and never from `ViolationCTG` -- a `= 0` run still
+`Branch.LinePercent` / `Bus.BusPUVolt` and never from `ViolationCTG` — a `= 0` run still
 records its 6 base-case violations and simply drops 0 of them as pre-existing.
 
 **So there is no reason to modify and re-save a case for this.** The flag does the same job
@@ -335,7 +335,7 @@ and leaves the case untouched, which matters when the cases are CEII and read-on
 case3 is the control: zero base-case violations, so the filter is a proven no-op. On case4
 **87.1% of the WITH rows were already-broken elements**, six pre-existing violations
 inflated the device count **12.6x**, and the thermal median moved `100.125 -> 104.383` while
-the **maximum stayed at 153.647** -- the worst outage survives either way. The 8
+the **maximum stayed at 153.647** — the worst outage survives either way. The 8
 low-voltage rows survive both ways too, which is what shows the filter discriminating
 rather than just cutting.
 
@@ -422,16 +422,16 @@ tolerance fix, and what to actually assert:
 - `rank` may differ only among devices whose `severity_score` differs by less than
   `WORSENING_REL_TOL`. Measured: 10 of 890 devices REORDER, by at most 5 positions, all in
   ranks 131-238, none in the material band, with a maximum severity difference among those
-  ten of **8.5e-07**. That is not a suite-wide bound and must not be quoted as one -- 110
+  ten of **8.5e-07**. That is not a suite-wide bound and must not be quoted as one — 110
   devices carry a nonzero severity difference, the largest being **1.1e-06**. They simply
   do not reorder, because the gap to their neighbour is wider than the wobble.
 
 ## Provenance
 
-**2026-08-22 (b)** -- **the baseline was judging buses against the wrong number.** A bus can
+**2026-08-22 (b)** — **the baseline was judging buses against the wrong number.** A bus can
 carry its own contingency voltage limits that override the `LimitSet` band the tool writes,
 and the baseline was testing every bus against the configured `v_min`/`v_max`. On that planning model
-three buses at a 1.05 ceiling, sitting at ~1.053, were therefore invisible to it -- and
+three buses at a 1.05 ceiling, sitting at ~1.053, were therefore invisible to it — and
 **657 of 673 reported rows were those three buses re-reported under all 219 devices**, with
 219 of 220 devices ranked as causing something. `from_case` now reads
 `BusVoltCtgLimHigh`/`Low` and judges each bus against the limit PowerWorld applied,
@@ -443,13 +443,13 @@ Separately verified, and it settles a question that had been assumed both ways:
 **`CTG_WhatToDoWithBC = 0` and `--only-new` produce the identical 36-row set** on Synth2k
 case4. Redundant, not conflicting; no case needs modifying or re-saving to get the
 behaviour. `set_limit_monitoring.py`, which sets that option, turned out never to have run
-at all -- its input path pointed at a case that does not exist -- and it verified its own
+at all — its input path pointed at a case that does not exist — and it verified its own
 write from memory BEFORE saving, so a no-op save would have passed. Both fixed.
 
 Suite 292 -> 305 tests.
 
 
-**2026-08-22** -- **two scope filters added, one absolute tolerance replaced, and a
+**2026-08-22** — **two scope filters added, one absolute tolerance replaced, and a
 reproducibility claim retracted.** `MIN_KV` (report only violations above a nominal kV,
 judged on the violated element's higher end) and `ONLY_NEW` (report only elements clean in
 the base case) are now the study defaults at 69.0 / True. Three defects caught by review
@@ -464,7 +464,7 @@ filtered and an unfiltered run byte-identical on disk.
 `THERMAL_TOL`/`VOLTAGE_TOL` (absolute 1e-6) replaced by one **relative**
 `WORSENING_REL_TOL = 1e-4` via `baseline.worsened()`, mirroring the fix `limits.py` had
 already made for its own read-back check. An absolute 1e-6 on a percent near 100 asks for
-~1e-8 relative precision -- below one float32 ULP there (7.6e-6) and far below solver
+~1e-8 relative precision — below one float32 ULP there (7.6e-6) and far below solver
 repeatability, so it was not a tolerance, it was `>`. Measured: a branch at 100.072085% in
 the base case read 100.072148% after one outage, 6.3e-5 pp, and the absolute test admitted
 it. Effect on case4: caused rows 460 serial / 459 parallel to **278 / 278, identical row for
@@ -477,7 +477,7 @@ must exceed float32 resolution at a base of 100, which is what would have caught
 original.
 
 
-**2026-08-18 (b)** -- **attribution added, and it changes the answer.** Subtracting the base
+**2026-08-18 (b)** — **attribution added, and it changes the answer.** Subtracting the base
 case was only filtering rows, not correcting magnitudes, so a device that nudged an
 already-broken branch outranked one that broke a healthy line. Measured on Synth2k with the
 threshold at 60%: 878 base thermal violations, **97.8% of caused thermal rows on an
@@ -490,14 +490,14 @@ and `avg_severity` were both recomputed independently from the raw rows and matc
 
 Two facts found along the way, each of which produces a plausible wrong number rather than
 an error: **`LimViolLimit` on a thermal row is the branch's MVA rating** (21, 46, 57, 4352),
-not 100 -- so thermal must score off `LimViolPct`; and the LimitSet read-back used an
+not 100 — so thermal must score off `LimViolPct`; and the LimitSet read-back used an
 **absolute** `1e-6` tolerance on `LSLinePercent`, which lives near 100 where float32 cannot
 resolve that finely. Wrote 60.0, read back 60.00000238418579, run aborted claiming every
 violation was measured against the wrong limit. The default 100.0 passed **only because 1.0
 is exactly representable in binary**, hiding it for every threshold except the default; the
 tolerance is now relative to the value's magnitude.
 
-**2026-08-18 (a)** -- the three ranked lists were collapsed into a single ranked `devices.csv`
+**2026-08-18 (a)** — the three ranked lists were collapsed into a single ranked `devices.csv`
 with the `relative_severity` ordering, on `Synth2k_case` (890
 new-device contingencies, band squeezed to `[0.95, 1.05]` to force voltage rows). Exit 0 in
 40.5 s across 7 workers. Every number in the file was recomputed independently from the raw
@@ -509,7 +509,7 @@ device at `0.0386` outranking a ~103% overload at `0.0310`.
 
 Two paths that case could **not** exercise, and which stay unit-test-only until a planning-model run:
 zero diverged contingencies (so `converged=False` and the NaN-ranks-first rule), and zero
-`voltage_high` rows -- all 4,238 voltage rows were `voltage_low`, leaving the polarity half
+`voltage_high` rows — all 4,238 voltage rows were `voltage_low`, leaving the polarity half
 of the severity function unmeasured on real data.
 
 Measured 2026-08-17 by `C:\path\to\regional-contingency`

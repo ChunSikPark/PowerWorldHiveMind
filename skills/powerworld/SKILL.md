@@ -5,8 +5,8 @@ description: "Use when working with PowerWorld Simulator, .pwb case files, SimAu
 
 # PowerWorld expert
 
-A knowledge base of PowerWorld Simulator automation. Its value is failure knowledge: most
-PowerWorld mistakes are silent, and this records them.
+A knowledge base of PowerWorld Simulator automation. Most PowerWorld mistakes are silent;
+this records them.
 
 ## Where these pages live
 

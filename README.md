@@ -8,27 +8,22 @@
 
 ### Tired of babysitting your coding agent?
 
-Confused why it keeps coming back with errors it should have solved itself? Tired of
-explaining, again, that `SaveCase` silently does nothing and that a filtered write
-changes nothing at all?
+Tired of explaining, again, that `SaveCase` silently does nothing and that a filtered
+write changes nothing at all?
 
 **PowerWorldHiveMind juices up your agent.** Drop it in, and your assistant stops
-guessing at PowerWorld and starts knowing it — including the dozen failures that never
-raise an exception and quietly hand you a wrong answer.
+guessing at PowerWorld and starts knowing it, including the failures that never raise an
+exception and quietly hand you a wrong answer.
 
-You give it a case. It gives you the analysis. You stop being the documentation.
+You give it a case, it gives you the analysis, and you stop having to be the documentation.
 
-**Does it work? We measured it.** Against the same 23 questions, a capable assistant with
-this repository solved **19**; the same assistant with a web browser and no PowerWorld
-knowledge solved **6**. On the failures PowerWorld never reports as failures the split is
-**15 to 4**. On looking up a command name it is weaker than a web
-search, and the page says so. Every answer was marked by a grader that did not know which
-setup wrote it. [**See the benchmark**](BENCHMARK.md).
+**Does it work? We measured it: 19 of 23 against 6 for the same assistant with a web
+browser, marked blind.** [See the benchmark](BENCHMARK.md).
 
-### Built for the study, not the query
+### It runs the whole study
 
-"Which branches are overloaded" is where most tooling stops. The work starts after that
-readout:
+Most tooling answers "which branches are overloaded" and stops. The useful work comes
+after that readout:
 
 | Instead of | You get |
 |---|---|
@@ -40,10 +35,11 @@ readout:
 It diagnoses, proposes a fix, applies it, re-verifies, and tells you which options to
 reject. In [the remediation demo](demos/violation-remediation.md), two of five plausible
 reinforcements made the system worse, including the one an engineer would pick first.
-Reasoning about a network does not tell you that. Measuring it does.
+You only find that out by measuring it.
 
-This repository is a knowledge base — 44 linked markdown files about driving PowerWorld
-Simulator from Python. There is no software to run. You download it, point your AI assistant at it, and it starts
+This repository is a knowledge base: 44 linked markdown files about driving PowerWorld
+Simulator from Python. The kit itself is markdown, with nothing to build or run. It needs
+two Python packages, which your agent installs. Point your assistant at it and it starts
 writing PowerWorld code that works instead of code that looks plausible.
 
 Hand it a case file and ask a question in plain English:
@@ -52,30 +48,6 @@ Hand it a case file and ask a question in plain English:
 >
 > *"Add a 138 kV line between bus 12 and bus 40 and tell me what it does to the
 > N-1 violations."*
-
----
-
-## Fastest setup: paste this to your agent
-
-If you use **Claude Code, Codex CLI, Cursor, or Windsurf**, you do not need any of the
-manual steps below. Paste this whole block into it:
-
-```
-Set this up for me:
-1. git clone https://github.com/ChunSikPark/PowerWorldHiveMind.git
-2. pip install esapp TeamOverbyeWeather
-3. Read PowerWorldHiveMind/AGENTS.md
-4. Run the preflight in PowerWorldHiveMind/methods/preflight-powerworld.md and
-   tell me whether PowerWorld automation works on this machine.
-Then you are my PowerWorld expert - I will give you a case file next.
-```
-
-It will do all four steps and report back. Your agent is now juiced.
-
-**This does not work in the ChatGPT or Claude websites.** They have no access to your
-computer: they cannot clone, install, or run anything, and pasting the link only lets
-them browse a few pages. For those, use the uploads in [`dist/`](dist/) - see
-[Using it with ChatGPT or the Claude website](#using-it-with-chatgpt-or-the-claude-website).
 
 ---
 
@@ -115,95 +87,24 @@ grader that did not know which setup wrote it.
 
 **On the things PowerWorld gets wrong quietly, it is not close.** 16 questions where
 Simulator accepts your call, reports success and returns something wrong: HiveMind solved
-**15**. A fresh assistant with the whole open web solved 4. Public
-documentation says what a command does; it does not say that the call returns success and
-writes nothing.
+**15**. A fresh assistant with the whole open web solved 4. The web can tell you what a
+command does. It cannot tell you which commands lie about having done it.
 
 **On looking up a command name, open PowerWorld's manual instead.** HiveMind managed
 4 of 7 there and spent more searches doing it than the web did. This
 repository deliberately does not publish argument syntax, so it will sometimes name the right
 command and still not give you a signature to call it with.
 
-Overall: **19 of 23 against 6 of 23**. The page gives every question individually, what
-each setup answered, what it cost, and — at some length — the ways an earlier version of this
-benchmark was wrong.
+Overall: **19 of 23 against 6 of 23**. The page lists every question, both verdicts, what
+each setup spent, and how an earlier version of this benchmark was scored wrong.
 
 ---
 
-## Never used this kind of thing before? Start here.
+## Never used this kind of thing before?
 
-This section assumes you have never installed Python and have never used an AI coding
-assistant. If that is not you, skip to [Install](#install).
-
-Full walkthrough with screenshots of what you should see at each step:
-**[GETTING-STARTED.md](GETTING-STARTED.md)**
-
-There are four things to get, in this order. Budget about thirty minutes.
-
-### 1. Get this knowledge base
-
-Click the green **Code** button at the top of this page, then **Download ZIP**. Unzip it
-somewhere you can find again — your Documents folder is fine.
-
-You do not need `git`. You do not need an account.
-
-### 2. Get Python
-
-Download it from [python.org/downloads](https://www.python.org/downloads/) and run the
-installer.
-
-**One thing matters:** on the first installer screen, tick the box that says
-**"Add Python to PATH"** before clicking Install. It is easy to miss and everything
-downstream breaks without it.
-
-Check it worked — open Command Prompt and type:
-
-```
-python --version
-```
-
-If you see a version number, you are done. If you see "not recognized", the PATH box was
-not ticked; re-run the installer and choose Modify.
-
-### 3. Get an AI coding agent
-
-You need one that runs **on your computer** and can read your files. Pick any:
-
-| Agent | Download | Install command |
-|---|---|---|
-| **Claude Code** *(best supported here)* | [claude.com/claude-code](https://claude.com/claude-code) | `npm install -g @anthropic-ai/claude-code` |
-| **Claude Desktop** | [claude.ai/download](https://claude.ai/download) | installer for Mac/Windows |
-| **Codex CLI** (OpenAI) | [github.com/openai/codex](https://github.com/openai/codex) | `npm install -g @openai/codex` |
-| **Cursor** | [cursor.com](https://cursor.com) | installer |
-| **Windsurf** | [windsurf.com](https://windsurf.com) | installer |
-
-The npm ones need [Node.js](https://nodejs.org) first.
-
-**Browser chat is not enough.** [chatgpt.com](https://chatgpt.com) and
-[claude.ai](https://claude.ai) in a browser cannot open your `.pwb`, run Python, or reach
-PowerWorld. They can still read this knowledge and write code for you to run yourself —
-upload a file from [`dist/`](dist/) — but "hand it a case, get an answer" needs one of
-the agents above.
-
-### 4. Get the Python packages
-
-Open Command Prompt in the folder where you unzipped this repository, and run:
-
-```
-pip install esapp TeamOverbyeWeather
-```
-
-`esapp` drives PowerWorld. `TeamOverbyeWeather` downloads weather data.
-
-### Then: your first question
-
-Start your AI assistant **in the folder where you unzipped this repository** — that part
-matters, since it is how the assistant finds the knowledge. Then ask:
-
-> Read AGENTS.md, then run the preflight check to see if PowerWorld works on this
-> machine.
-
-If preflight passes, ask it anything from the table below.
+**[GETTING-STARTED.md](GETTING-STARTED.md)** walks through it from zero, with screenshots
+of what you should see at each step. It assumes you have never installed Python and have
+never used an AI coding assistant. Budget about twenty minutes.
 
 ---
 
@@ -247,23 +148,45 @@ codex plugin marketplace add ChunSikPark/PowerWorldHiveMind
 Then open `/plugins`, install **powerworld-hivemind**, and start a new session. *(Not yet
 tested against a released Codex build — if it fails, clone it by hand and open an issue.)*
 
-**By hand**, for any other agent, or when you want the files somewhere you can read them:
+### Fallback: clone it yourself
 
-```bash
-git clone https://github.com/ChunSikPark/PowerWorldHiveMind.git
-cd PowerWorldHiveMind
-pip install esapp TeamOverbyeWeather
+For Cursor, Windsurf, any other agent, or when a plugin install will not cooperate. Paste
+this whole block into your agent:
+
+```
+Set this up for me:
+1. git clone https://github.com/ChunSikPark/PowerWorldHiveMind.git
+2. pip install esapp TeamOverbyeWeather
+3. Read PowerWorldHiveMind/AGENTS.md
+4. Run the preflight in PowerWorldHiveMind/methods/preflight-powerworld.md and
+   tell me whether PowerWorld automation works on this machine.
+Then you are my PowerWorld expert - I will give you a case file next.
 ```
 
-Then start your agent in that directory. There is no `/powerworld-setup` on this route —
-ask the agent to read `AGENTS.md` and run the preflight instead.
+It does all four steps and reports back. There is no `/powerworld-setup` on this route; the
+preflight in step 4 replaces it.
+
+No `git`? Click the green **Code** button at the top of this page, then **Download ZIP**,
+unzip it, and start your agent in that folder instead of step 1.
 
 New to all of this? [GETTING-STARTED.md](GETTING-STARTED.md) walks through it from zero.
 
+**None of this works in the ChatGPT or Claude websites.** They cannot reach your files
+or run anything. For those, use the uploads in [`dist/`](dist/) — see [Using it with
+ChatGPT or the Claude website](#using-it-with-chatgpt-or-the-claude-website).
+
 ### Which file your agent actually reads
 
-The instructions live in `AGENTS.md`. Not every tool loads that filename, so the kit
-ships a shim for the ones that don't — there is nothing for you to configure.
+This depends on which route you took, and the two are not the same.
+
+**On the plugin route**, a plugin ships skills and commands, not instruction files. Claude
+Code loads `skills/powerworld/SKILL.md` and registers `/powerworld-setup`. It does **not**
+load `CLAUDE.md` or `AGENTS.md` from the plugin. `SKILL.md` carries the rules that matter
+and points at the pages; the routing table in `AGENTS.md` stays on disk for the agent to
+open when it needs it.
+
+**On the manual route**, the instructions live in `AGENTS.md`, and the kit ships a shim for
+the tools that load a different filename. There is nothing for you to configure.
 
 | Your agent | Loads | Shipped as |
 |---|---|---|
@@ -293,8 +216,8 @@ difficulty. Pre-built uploads live in [`dist/`](dist/):
 | You are using | Upload | Notes |
 |---|---|---|
 | **claude.ai** — as a Skill | `dist/powerworld-hivemind-skill.zip` | Settings → Capabilities → Skills. Paid plans only |
-| **claude.ai** — as a Project | `dist/powerworld-hivemind-bundle.md` | Add to Project knowledge; one file, ~84k tokens |
-| **ChatGPT** — Custom GPT | the three `dist/powerworld-hivemind-{methods,concepts,references}.md` | Split to stay under the knowledge-file cap |
+| **claude.ai** — as a Project | `dist/powerworld-hivemind-bundle.md` | Add to Project knowledge. One large file: fits a Project, too big for most free chats |
+| **ChatGPT** — Custom GPT | the four `dist/powerworld-hivemind-{methods,concepts,demos,references}.md` | Split to stay under the knowledge-file cap |
 | **A one-off chat** | `dist/powerworld-hivemind-bundle.md` | Attach it and ask your question |
 
 Then ask normally. The assistant will hand you code; you run it on the machine that has
@@ -365,4 +288,4 @@ independent knowledge base and is not affiliated with or endorsed by them.
 ## For agents
 
 Read [AGENTS.md](AGENTS.md). It has the traversal protocol, the task-routing table, and
-the seven rules that fail silently.
+the eight rules that fail silently.

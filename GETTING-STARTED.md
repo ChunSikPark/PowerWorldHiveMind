@@ -86,8 +86,7 @@ Open Claude. At the **top left** there is a toggle with two halves: `Chat and Co
 ![The Code button sits at the top left, next to Chat and Cowork](assets/desktop-code-toggle.png)
 
 `Chat and Cowork` is the ordinary conversation mode. It cannot see the files on your
-computer. `Code` can. Landing in the wrong one is the most common way to get stuck on this
-page.
+computer. `Code` can. Landing in the wrong one is a common way to get stuck here.
 
 ---
 
@@ -108,7 +107,7 @@ it lives — there is no folder to pick, no ZIP to unzip, and nothing to keep tr
 
 **Then start a new session** so the plugin loads. Every session after this one has it.
 
-**If `/plugin` is not recognised**, your Claude app is an older version — reinstall from
+**If `/plugin` is not recognized**, your Claude app is an older version — reinstall from
 [claude.com/download](https://claude.com/download). If the first line fails mentioning
 `git`, Git is not installed; see the table in Step 1.
 
@@ -214,7 +213,8 @@ question there:
 | `powerworld-hivemind-methods.md` | The how-to pages. Start here |
 | `powerworld-hivemind-concepts.md` | Background and theory |
 | `powerworld-hivemind-demos.md` | Worked examples |
-| `powerworld-hivemind-bundle.md` | Everything. Too large for most free chats |
+| `powerworld-hivemind-references.md` | Exact field names and command signatures |
+| `powerworld-hivemind-bundle.md` | Everything in one file. Too large for most free chats |
 
 The chat reads the knowledge and writes code for you to run yourself. It cannot run that
 code, see the error, and fix it, so you copy results back and forth by hand.
@@ -252,7 +252,7 @@ Ask your agent:
 
 > Download February 2021 weather for Texas.
 
-No licence, no Windows requirement, no PowerWorld.
+That works on any machine, with no PowerWorld licence and no Windows.
 
 ---
 
@@ -271,7 +271,7 @@ Once setup passes, ask in plain English. The agent finds the right pages itself.
 
 > Run an N-1 contingency analysis and show me the worst violations.
 
-You do not need to know which file covers what. That is what the knowledge base is for.
+The agent works out which page it needs; you do not have to.
 
 ---
 
@@ -326,7 +326,7 @@ for a file starting with `Claude` and ending in `.exe`, and double-click it. Or 
 install and you are looking at the desktop, where Claude puts no icon: open Start, type
 `Claude`, right-click the result and choose **Pin to taskbar**.
 
-**`/plugin` or `/powerworld-setup` is not recognised.** For `/plugin`, your Claude app is
+**`/plugin` or `/powerworld-setup` is not recognized.** For `/plugin`, your Claude app is
 an older version — reinstall from [claude.com/download](https://claude.com/download). For
 `/powerworld-setup`, the plugin installed but the session has not reloaded: start a new
 session and try again.
