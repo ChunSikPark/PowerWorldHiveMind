@@ -3,21 +3,20 @@
 If you are about to drive PowerWorld from Python with an AI assistant, this page tells you what
 PowerWorldHiveMind changes, what it does not, and what it costs.
 
-**It is decisive on the things PowerWorld gets wrong quietly. It is the worst of four options
+**It is decisive on the things PowerWorld gets wrong quietly. It is the worst of the three
 for looking up a command name — slower, more expensive and less accurate than a web search.**
 
 ## What was compared
 
-The same AI model answered the same questions four ways:
+The same AI model answered the same questions three ways:
 
-| Setup | What it had |
+| Setup | What that means |
 |---|---|
-| **HiveMind** | this repository on disk, nothing else |
-| **AI alone** | no documentation at all, answering from what the model already knew |
-| **AI + web** | no repository, but a search engine and PowerWorld's public documentation |
-| **Private wiki** | a much larger internal PowerWorld knowledge base, included for reference |
+| **HiveMind** | the assistant has this repository on disk, and nothing else |
+| **AI alone** | a fresh assistant, as if you opened ChatGPT or Claude and asked without teaching it anything about PowerWorld first |
+| **AI + web** | the same fresh assistant, still knowing nothing about PowerWorld, but free to search the open web and read PowerWorld's public documentation |
 
-130 runs across 36 questions. Every threshold was written down and committed before any of them
+108 runs across 36 questions. Every threshold was written down and committed before any of them
 started.
 
 ![Where HiveMind wins and where it doesn't](assets/headline.svg)
@@ -72,16 +71,16 @@ AI alone never once said "I don't know." Confident on all sixteen, right on four
 
 ## 2. Looking up a command: use PowerWorld's manual
 
-| Q | The question | HiveMind | Private wiki | AI alone | AI + web |
-|---|---|:--:|:--:|:--:|:--:|
-| R1 | Run a security-constrained OPF | ✅ | ✅ | ✅ | ✅ |
-| R2 | Export the Ybus for MATLAB | ✅ | ✅ | ✅ | ✅ |
-| R3 | Renumber the buses | ✅ | ✅ | ❌ | ✅ |
-| R4 | Built-in LODF screening | ✅ | ❌ | ❌ | ✅ |
-| R5 | Combine and crop weather files | ✅ | ✅ | ❌ | ✅ |
-| R6 | Set participation factors | ✅ | ✅ | ✅ | ✅ |
-| R7 | Reduce a case to an equivalent | ❌ | ❌ | ✅ | ✅ |
-| | **named the right command** | 6 / 7 | 5 / 7 | 4 / 7 | **7 / 7** |
+| Q | The question | HiveMind | AI alone | AI + web |
+|---|---|:--:|:--:|:--:|
+| R1 | Run a security-constrained OPF | ✅ | ✅ | ✅ |
+| R2 | Export the Ybus for MATLAB | ✅ | ✅ | ✅ |
+| R3 | Renumber the buses | ✅ | ❌ | ✅ |
+| R4 | Built-in LODF screening | ✅ | ❌ | ✅ |
+| R5 | Combine and crop weather files | ✅ | ❌ | ✅ |
+| R6 | Set participation factors | ✅ | ✅ | ✅ |
+| R7 | Reduce a case to an equivalent | ❌ | ✅ | ✅ |
+| | **named the right command** | 6 / 7 | 4 / 7 | **7 / 7** |
 
 Search also returned argument syntax this repository deliberately does not publish, because the
 *Auxiliary File Format* manual is PowerWorld's copyright:
@@ -106,11 +105,11 @@ uncovered, because it could not give you a signature to call it with.
 The command reference lists the commands for them anyway. The best answer gives you both: the
 command, and a warning that the methodology is not here.
 
-| Q | The question | HiveMind | Private wiki | AI alone | AI + web |
-|---|---|:--:|:--:|:--:|:--:|
-| T1 | Run a PV nose curve | ✅ both | ⚠️ command only | ❌ | ❌ |
-| T2 | Critical clearing time | ✅ both | ⚠️ boundary only | ❌ | ❌ |
-| T3 | Run a QV study at a bus | ✅ both | ⚠️ command only | ❌ | ❌ |
+| Q | The question | HiveMind | AI alone | AI + web |
+|---|---|:--:|:--:|:--:|
+| T1 | Run a PV nose curve | ✅ both | ❌ | ❌ |
+| T2 | Critical clearing time | ✅ both | ❌ | ❌ |
+| T3 | Run a QV study at a bus | ✅ both | ❌ | ❌ |
 
 ---
 
@@ -185,16 +184,16 @@ entirely on how fast it finds the right page.
 
 And on command lookup it is the most expensive of all four:
 
-| Q | HiveMind | Private wiki | AI alone | AI + web |
-|---|---:|---:|---:|---:|
-| R1 | 1.74M / 13 | 1.35M / 12 | 65k / 0 | 1.36M / 11 |
-| R2 | 1.43M / 11 | 911k / 9 | 346k / 2 | 863k / 7 |
-| R3 | 1.48M / 11 | 1.22M / 8 | 65k / 0 | 707k / 5 |
-| R4 | 1.38M / 10 | 547k / 5 | 65k / 0 | 487k / 4 |
-| R5 | 942k / 6 | 977k / 7 | 130k / 0 | 1.17M / 9 |
-| R6 | 1.09M / 7 | 695k / 6 | 65k / 0 | 706k / 6 |
-| R7 | 1.31M / 8 | 477k / 4 | 65k / 0 | 1.09M / 9 |
-| | **9.37M / 66** | 6.18M / 51 | 801k / 2 | **6.38M / 51** |
+| Q | HiveMind | AI alone | AI + web |
+|---|---:|---:|---:|
+| R1 | 1.74M / 13 | 65k / 0 | 1.36M / 11 |
+| R2 | 1.43M / 11 | 346k / 2 | 863k / 7 |
+| R3 | 1.48M / 11 | 65k / 0 | 707k / 5 |
+| R4 | 1.38M / 10 | 65k / 0 | 487k / 4 |
+| R5 | 942k / 6 | 130k / 0 | 1.17M / 9 |
+| R6 | 1.09M / 7 | 65k / 0 | 706k / 6 |
+| R7 | 1.31M / 8 | 65k / 0 | 1.09M / 9 |
+| | **9.37M / 66** | 801k / 2 | **6.38M / 51** |
 
 ---
 
@@ -208,12 +207,11 @@ costs about the same no matter which setup you use:
 | Silent failures | HiveMind | 80 | 10.27M | **128k** |
 | Silent failures | AI + web | 114 | 13.15M | **115k** |
 | Command lookup | HiveMind | 118 | 15.63M | **132k** |
-| Command lookup | Private wiki | 113 | 11.65M | **103k** |
 | Command lookup | AI + web | 76 | 8.78M | **115k** |
 | No answer here | HiveMind | 36 | 5.09M | **141k** |
 | No answer here | AI + web | 27 | 3.31M | **123k** |
 
-**Between 103k and 141k tokens per search, across every setup.** Your cost is set by *how many
+**Between 115k and 141k tokens per search, across every setup and every question group.** Your cost is set by *how many
 times the assistant has to look*, not by how much it reads when it gets there. A knowledge base
 that answers in one search is cheap; one that needs nine is not, regardless of page length.
 
@@ -231,7 +229,6 @@ That is why A03 cost 205k with HiveMind (one search, straight to the page) and A
 | Silent failures | AI + web | 4 of 16 | 3.69M |
 | Command lookup | AI alone | 4 of 7 | 399k |
 | Command lookup | AI + web | 7 of 7 | 1.43M |
-| Command lookup | Private wiki | 5 of 7 | 2.71M |
 | Command lookup | **HiveMind** | 6 of 7 | **2.87M** |
 
 **Read cheapness carefully.** AI alone is cheapest in both groups because it barely tried — two
@@ -239,10 +236,10 @@ searches across sixteen questions — not because it is efficient. It got 4 of 1
 
 On silent failures HiveMind costs 38% more per answer than guessing and gets four times as many
 right, while searching costs five times more for the same four. On command lookup HiveMind is
-the most expensive per correct answer of all four setups.
+the most expensive per correct answer of the three.
 
-Median wall-clock per question: **18 s** answering from memory, **34 s** with HiveMind, **62 s**
-searching, **167 s** with the private wiki.
+Median wall-clock per question: **18 s** answering from memory, **34 s** with HiveMind, and
+**62 s** searching.
 
 ---
 
