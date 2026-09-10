@@ -1,10 +1,10 @@
 # Benchmark
 
-If you are about to drive PowerWorld from Python with an AI assistant, this page tells you
-what PowerWorldHiveMind changes and what it does not.
+If you are about to drive PowerWorld from Python with an AI assistant, this page tells you what
+PowerWorldHiveMind changes, what it does not, and what it costs.
 
-**It changes a lot on the things PowerWorld gets wrong quietly, and nothing at all on looking
-up a command name.** Details below, per question, with the cost.
+**It is decisive on the things PowerWorld gets wrong quietly. It is the worst of four options
+for looking up a command name — slower, more expensive and less accurate than a web search.**
 
 ## What was compared
 
@@ -15,63 +15,64 @@ The same AI model answered the same questions four ways:
 | **HiveMind** | this repository on disk, nothing else |
 | **AI alone** | no documentation at all, answering from what the model already knew |
 | **AI + web** | no repository, but a search engine and PowerWorld's public documentation |
-| **A private wiki** | a much larger internal PowerWorld knowledge base, for reference |
+| **Private wiki** | a much larger internal PowerWorld knowledge base, included for reference |
 
-130 runs. Every threshold was written down and committed before any of them started.
+130 runs across 36 questions. Every threshold was written down and committed before any of them
+started.
 
 ![Where HiveMind wins and where it doesn't](assets/headline.svg)
 
 ---
 
-## The questions where PowerWorld lies to you
+## 1. Questions where PowerWorld lies to you
 
-These are the ones that cost you a day. PowerWorld accepts the call, reports success, and
-returns something wrong. Nothing raises an error.
+Simulator accepts the call, reports success, and returns something wrong. Nothing raises an
+error. These are the ones that cost you a day.
 
 | Q | The question | HiveMind | AI alone | AI + web |
 |---|---|:--:|:--:|:--:|
 | A01 | Saved the case, no file appeared | ✅ | ✅ | ❌ |
 | A02 | Set MW on just the coal units | ✅ | ✅ | ⚠️ |
-| A03 | DC solve says balanced, but generation is short | ✅ | ✅ | ✅ |
+| A03 | DC solve says balanced, generation is short | ✅ | ✅ | ✅ |
 | A04 | Created lines, nothing was created | ✅ | ⚠️ | ✅ |
 | A05 | Setting the N-1 voltage limits | ✅ | ❌ | ⚠️ |
 | A06 | Which contingency caused which overload | ✅ | ⚠️ | ✅ |
 | A07 | Area filter hid every tie-line violation | ✅ | ⚠️ | ❌ |
-| A08 | Violations read back from a case never solved | ✅ | ✅ | ✅ |
+| A08 | Violations from a case never solved | ✅ | ✅ | ✅ |
 | A09 | Sorting violations worst-first | ✅ | ❌ | ❌ |
 | A10 | One contingency per new generator | ✅ | ❌ | ❌ |
 | A11 | Total system inertia | ✅ | ❌ | ❌ |
 | A12 | Reclassifying lines as transformers | ✅ | ❌ | ⚠️ |
-| A13 | What a case needs for hourly wind and solar | ✅ | ⚠️ | ⚠️ |
+| A13 | Prerequisites for hourly wind and solar | ✅ | ⚠️ | ⚠️ |
 | A14 | Capacity factor from timestep output | ✅ | ❌ | ❌ |
-| A15 | Case solves in DC — trust it for AC? | ✅ | ⚠️ | ⚠️ |
+| A15 | Solves in DC, trust it for AC? | ✅ | ⚠️ | ⚠️ |
 | A16 | Speeding up a two-hour contingency run | ✅ | ⚠️ | ❌ |
 | | **right / partial / wrong** | **16 / 0 / 0** | 4 / 6 / 6 | 4 / 5 / 7 |
 
 ✅ right · ⚠️ partly right · ❌ wrong
 
-**Searching scored the same as not searching.** Four right either way. The search did not come
-up empty — it found PowerWorld's own help pages, cited them, and still got these wrong:
+**Searching scored the same as not searching** — four right either way. The search did not come
+up empty. It found PowerWorld's own help pages, cited them, and was wrong:
 
-| Question | What the search-backed answer said | What actually happens |
+| Q | What the search-backed answer said | What actually happens |
 |---|---|---|
-| A07 tie-lines | your filter is set to require both ends | `AreaNum` reads `0` on a tie-line, so the filter drops it |
-| A11 inertia | H times MVA base | `TSH` is already on a 100 MVA base — multiplying overstates a large unit several times over |
-| A12 transformers | not possible outside the GUI | it is scriptable, via `LineXFMR` and `ChangeParametersMultipleElement` |
-| A09 sorting | sort by Percent descending, per the help page | that puts low-voltage violations in backwards order |
-| A16 speed | buy the distributed-computing add-on | it never spawns workers here and silently runs single-process |
+| A07 | your filter is set to require both ends | `AreaNum` reads `0` on a tie-line, so the filter drops it |
+| A11 | H times MVA base | `TSH` is already on a 100 MVA base — multiplying overstates a large unit several times over |
+| A12 | not possible outside the GUI | it is scriptable, via `LineXFMR` and `ChangeParametersMultipleElement` |
+| A09 | sort by Percent descending, per the help page | that puts low-voltage violations in backwards order |
+| A16 | buy the distributed-computing add-on | it never spawns workers here and silently runs single-process |
+| A01 | a relative path or a missing overwrite flag | the COM save call reports success and writes nothing |
 
 A09 hands you a backwards priority list. A12 stops the work by declaring it impossible. A16
 sends you to purchase an add-on that reports success and does nothing.
 
-Answering from memory alone never once said "I don't know." It was confident on all sixteen
-and right on four.
+AI alone never once said "I don't know." Confident on all sixteen, right on four.
 
 ---
 
-## Looking up a command: use PowerWorld's manual instead
+## 2. Looking up a command: use PowerWorld's manual
 
-| Q | The question | HiveMind | A private wiki | AI alone | AI + web |
+| Q | The question | HiveMind | Private wiki | AI alone | AI + web |
 |---|---|:--:|:--:|:--:|:--:|
 | R1 | Run a security-constrained OPF | ✅ | ✅ | ✅ | ✅ |
 | R2 | Export the Ybus for MATLAB | ✅ | ✅ | ✅ | ✅ |
@@ -82,8 +83,8 @@ and right on four.
 | R7 | Reduce a case to an equivalent | ❌ | ❌ | ✅ | ✅ |
 | | **named the right command** | 6 / 7 | 5 / 7 | 4 / 7 | **7 / 7** |
 
-Search also returned argument syntax this repository deliberately does not publish, because
-the *Auxiliary File Format* manual is PowerWorld's copyright:
+Search also returned argument syntax this repository deliberately does not publish, because the
+*Auxiliary File Format* manual is PowerWorld's copyright:
 
 ```
 SaveYbusInMatlabFormat("filename", IncludeVoltages)
@@ -95,67 +96,157 @@ WeatherPWWFileGeoReduce("source", "destination", minLat, maxLat, minLon, maxLon)
 On three of these seven, HiveMind named the correct command and still reported the question
 uncovered, because it could not give you a signature to call it with.
 
-**If your question is "what is this command called", open the manual. This repository adds
-nothing there.**
+**If your question is "what is this command called", open the manual.**
 
 ---
 
-## Knowing when to stop
+## 3. Topics this repository says are out of scope
 
-![Does it say so when it cannot answer](assets/boundary.svg)
+`AGENTS.md` states that PV/QV curve studies and transient-stability theory are not covered.
+The command reference lists the commands for them anyway. The best answer gives you both: the
+command, and a warning that the methodology is not here.
+
+| Q | The question | HiveMind | Private wiki | AI alone | AI + web |
+|---|---|:--:|:--:|:--:|:--:|
+| T1 | Run a PV nose curve | ✅ both | ⚠️ command only | ❌ | ❌ |
+| T2 | Critical clearing time | ✅ both | ⚠️ boundary only | ❌ | ❌ |
+| T3 | Run a QV study at a bus | ✅ both | ⚠️ command only | ❌ | ❌ |
+
+---
+
+## 4. Questions with no answer here at all
 
 Ten questions had no answer in this repository. Saying so is the correct response.
 
-| | said "I cannot answer this" |
-|---|---:|
-| **HiveMind** | **8 of 10** |
-| AI + web | 1 of 10 |
-| AI alone | 0 of 10 |
+| Q | The question | HiveMind | AI alone | AI + web |
+|---|---|:--:|:--:|:--:|
+| X01 | Transformer taps to fix high bus voltage | ✅ declined | ❌ answered | ❌ answered |
+| X02 | Conductor thermal rating from weather | ✅ declined | ❌ answered | ❌ answered |
+| X03 | `CTGSkip` or `Delete` to shrink a set | ❌ answered | ❌ answered | ❌ answered |
+| X04 | Screen which branches matter | — void, see below | ❌ answered | ❌ answered |
+| X05 | Size a new transformer | ✅ declined | ❌ answered | ❌ answered |
+| X06 | Match a fleet to EIA-860 | ✅ declined | ❌ answered | ❌ answered |
+| N1 | Available transfer capability | ✅ declined | ❌ answered | ✅ declined |
+| N2 | Integrated topology processing | ✅ declined | ❌ answered | 🔵 answered from public docs |
+| N3 | Schedule an action mid-run | ✅ declined | ❌ answered | 🔵 answered from public docs |
+| N4 | Short-circuit fault study | ✅ declined | ❌ answered | 🔵 answered from public docs |
+| | **declined** | **8 of 10** | 0 of 10 | 1 of 10 |
 
-Asked how to size a transformer against the flow it will carry — a question with a real trap
-in it, since the transformer's own impedance changes that flow — the search-backed answer
-produced a confident methodology assembled from HVAC-vendor blog posts.
+🔵 **N2, N3 and N4 are documented publicly**, and the search returned correct, sourced
+procedures for all three — including that integrated topology processing needs a separately
+licensed add-on. On those, HiveMind said "I don't cover this" while a browser would have
+answered you. Five of its eight refusals are the behaviour you want; three are not.
 
-**The catch, shown in the chart rather than hidden in a footnote:** three of those ten topics
-*are* documented publicly, and search answered all three correctly. So five of HiveMind's eight
-refusals are the behaviour you want, and three are it refusing something you could have looked
-up.
+**X04 is void** — the question assumed this repository could not screen branches. It can, via
+`concepts/lodf.md`. The answer key was wrong, not the answer.
+
+Asked how to size a transformer against the flow it will carry — a question with a real trap in
+it, since the transformer's own impedance changes that flow — the search-backed answer produced
+a confident methodology assembled from HVAC-vendor blog posts.
+
+![Does it say so when it cannot answer](assets/boundary.svg)
 
 ---
 
-## What it costs
+## 5. What each question cost
+
+Accuracy and cost do not sit on the same axis. The cheapest setup scores zero, and the most
+expensive one is not the most accurate:
 
 ![Cost against accuracy](assets/cost.svg)
 
-Total tokens read across all sixteen questions:
+Tokens read, and number of searches, per question. "Tokens read" is input plus cache writes
+plus cache reads — everything the model had to process.
 
-| | tokens | vs HiveMind |
-|---|---:|---:|
-| AI alone | 2.2 M | 0.18× |
-| **HiveMind** | **11.9 M** | 1.00× |
-| AI + web | 14.8 M | 1.24× |
+| Q | The question | HiveMind | AI alone | AI + web |
+|---|---|---:|---:|---:|
+| A01 | Saved the case, no file appeared | 204k / 1 | 129k / 0 | 1.01M / 8 |
+| A02 | Set MW on just the coal units | **1.44M / 9** | 129k / 0 | 702k / 5 |
+| A03 | DC solve says balanced, generation short | 205k / 1 | 129k / 0 | 632k / 5 |
+| A04 | Created lines, nothing was created | 515k / 3 | 129k / 0 | 861k / 7 |
+| A05 | Setting the N-1 voltage limits | 754k / 5 | 129k / 0 | 1.58M / 12 |
+| A06 | Which contingency caused which overload | 513k / 4 | 129k / 0 | 926k / 7 |
+| A07 | Area filter hid every tie-line violation | 782k / 6 | 65k / 0 | 1.32M / 11 |
+| A08 | Violations from a case never solved | 855k / 6 | 129k / 0 | 633k / 4 |
+| A09 | Sorting violations worst-first | 942k / 6 | 129k / 0 | 861k / 7 |
+| A10 | One contingency per new generator | 857k / 5 | 345k / 2 | 1.08M / 8 |
+| A11 | Total system inertia | 801k / 6 | 129k / 0 | 783k / 6 |
+| A12 | Reclassifying lines as transformers | 602k / 4 | 129k / 0 | 1.32M / 11 |
+| A13 | Prerequisites for hourly wind and solar | 644k / 5 | 129k / 0 | 1.01M / 8 |
+| A14 | Capacity factor from timestep output | 557k / 4 | 129k / 0 | 707k / 5 |
+| A15 | Solves in DC, trust it for AC? | **1.30M / 9** | 65k / 0 | 560k / 4 |
+| A16 | Speeding up a two-hour contingency run | 922k / 6 | 129k / 0 | 781k / 6 |
+| | **total** | **11.90M / 80** | 2.16M / 2 | 14.78M / 114 |
 
-**The average hides something you should know before budgeting.** HiveMind is cheaper than
-searching on average, but **on 5 of the 16 questions it cost more**:
+**HiveMind is cheaper than searching on average and more expensive on 5 of the 16.** A02 cost
+2.1× what the search cost; A15 cost 2.3×. When the search across these pages goes wide, this
+repository is the expensive option. Per-question it ranges from 204k to 1.44M tokens, depending
+entirely on how fast it finds the right page.
 
-| Q | HiveMind | AI + web | |
-|---|---:|---:|---|
-| A02 set MW on coal units | **1,441,683** | 701,552 | HiveMind cost 2.1× more |
-| A15 trust DC for AC | **1,302,504** | 560,408 | 2.3× more |
-| A08 stale violations | **854,547** | 633,144 | 1.3× more |
-| A09 sorting violations | **942,303** | 861,413 | 1.1× more |
-| A16 speeding up a run | **921,833** | 781,196 | 1.2× more |
+And on command lookup it is the most expensive of all four:
 
-When the search across these pages goes wide, HiveMind is the expensive option. It reads
-between 200,000 and 1.4 million tokens per question depending on how quickly it finds the
-right page. Searching the web ran 4 to 12 tool calls per question; answering from memory ran
-none.
-
-Wall-clock, median per question: 34 s with HiveMind, 18 s from memory, 62 s searching.
+| Q | HiveMind | Private wiki | AI alone | AI + web |
+|---|---:|---:|---:|---:|
+| R1 | 1.74M / 13 | 1.35M / 12 | 65k / 0 | 1.36M / 11 |
+| R2 | 1.43M / 11 | 911k / 9 | 346k / 2 | 863k / 7 |
+| R3 | 1.48M / 11 | 1.22M / 8 | 65k / 0 | 707k / 5 |
+| R4 | 1.38M / 10 | 547k / 5 | 65k / 0 | 487k / 4 |
+| R5 | 942k / 6 | 977k / 7 | 130k / 0 | 1.17M / 9 |
+| R6 | 1.09M / 7 | 695k / 6 | 65k / 0 | 706k / 6 |
+| R7 | 1.31M / 8 | 477k / 4 | 65k / 0 | 1.09M / 9 |
+| | **9.37M / 66** | 6.18M / 51 | 801k / 2 | **6.38M / 51** |
 
 ---
 
-## Where HiveMind failed its own threshold
+## 6. Context efficiency
+
+Every search re-reads the conversation so far. That re-read is where the tokens go, and it
+costs about the same no matter which setup you use:
+
+| Group | Setup | Searches | Context re-read | **Per search** |
+|---|---|---:|---:|---:|
+| Silent failures | HiveMind | 80 | 10.27M | **128k** |
+| Silent failures | AI + web | 114 | 13.15M | **115k** |
+| Command lookup | HiveMind | 118 | 15.63M | **132k** |
+| Command lookup | Private wiki | 113 | 11.65M | **103k** |
+| Command lookup | AI + web | 76 | 8.78M | **115k** |
+| No answer here | HiveMind | 36 | 5.09M | **141k** |
+| No answer here | AI + web | 27 | 3.31M | **123k** |
+
+**Between 103k and 141k tokens per search, across every setup.** Your cost is set by *how many
+times the assistant has to look*, not by how much it reads when it gets there. A knowledge base
+that answers in one search is cheap; one that needs nine is not, regardless of page length.
+
+That is why A03 cost 205k with HiveMind (one search, straight to the page) and A02 cost 1.44M
+(nine searches, hunting).
+
+### Tokens per correct answer
+
+![What each correct answer cost](assets/efficiency.svg)
+
+| Group | Setup | Correct | Tokens per correct answer |
+|---|---|:--:|---:|
+| Silent failures | AI alone | 4 of 16 | 539k |
+| Silent failures | **HiveMind** | **16 of 16** | **744k** |
+| Silent failures | AI + web | 4 of 16 | 3.69M |
+| Command lookup | AI alone | 4 of 7 | 399k |
+| Command lookup | AI + web | 7 of 7 | 1.43M |
+| Command lookup | Private wiki | 5 of 7 | 2.71M |
+| Command lookup | **HiveMind** | 6 of 7 | **2.87M** |
+
+**Read cheapness carefully.** AI alone is cheapest in both groups because it barely tried — two
+searches across sixteen questions — not because it is efficient. It got 4 of 16.
+
+On silent failures HiveMind costs 38% more per answer than guessing and gets four times as many
+right, while searching costs five times more for the same four. On command lookup HiveMind is
+the most expensive per correct answer of all four setups.
+
+Median wall-clock per question: **18 s** answering from memory, **34 s** with HiveMind, **62 s**
+searching, **167 s** with the private wiki.
+
+---
+
+## 7. Where HiveMind failed its own threshold
 
 Eight checks, all registered before the run. Seven passed.
 
@@ -170,10 +261,10 @@ Eight checks, all registered before the run. Seven passed.
 | reads only this repository | 0 breaches | 0 of 38 runs | pass |
 | beats the no-documentation baseline | +5 of 16 | +12 | pass |
 
-The failure: asked whether `CTGSkip` or `Delete` shrinks a contingency set, four runs split two
-right and two wrong. `CTGSkip` appeared in three pages as a field being written, and nowhere
-with an explanation of what it does — so the search found the word, assumed the topic was
-covered, and stopped.
+The failure is X03. Asked whether `CTGSkip` or `Delete` shrinks a contingency set, four runs
+split two right and two wrong. `CTGSkip` appeared in three pages as a field being written, and
+nowhere with an explanation of what it does — so the search found the word, assumed the topic
+was covered, and stopped.
 
 A term half-mentioned is worse than one never mentioned: it ends the search without answering
 anything.
@@ -191,16 +282,18 @@ Fixed by adding `methods/reducing-a-contingency-set.md`, then re-run four times:
 
 ## What this does not tell you
 
-- **One model, one attempt per question.** Between 4 and 16 questions per measurement. A
-  number based on 7 questions moves on a single answer.
+- **One model, one attempt per question.** Between 3 and 16 questions per measurement. A number
+  based on 7 questions moves on a single answer.
 - **No code was run against PowerWorld.** Code was judged on whether it would have failed
   quietly, not on whether it executed.
+- **Token figures are one run each**, not averages over repeats. Treat them as the right order
+  of magnitude, not to three digits.
 - **The answer key had errors, and every one flattered this repository.** Five key entries were
   wrong. A results extractor silently replaced 57 of 130 answers with placeholder text,
   deflating both non-HiveMind setups. Two scoring keys missed commands the answers plainly
   contained. An earlier version of this page reported search at 1 of 8 and did not mention it
-  had beaten HiveMind at command lookup. Each error was caught by reading an answer that
-  contradicted its own score — never by a script.
+  had beaten HiveMind at command lookup. Each was caught by reading an answer that contradicted
+  its own score — never by a script.
 - **The failed check has not been re-run**, because the question that failed is now covered and
   can no longer test whether HiveMind admits ignorance.
 
