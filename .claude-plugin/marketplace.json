@@ -1,11 +1,14 @@
 {
   "name": "powerworld-hivemind",
-  "owner": { "name": "Team Overbye, Texas A&M University" },
+  "owner": {
+    "name": "Team Overbye, Texas A&M University"
+  },
   "plugins": [
     {
       "name": "powerworld-hivemind",
       "source": "./",
       "description": "Make your agent a PowerWorld expert: automation, weather analysis, and the failure modes that fail silently."
     }
-  ]
+  ],
+  "description": "PowerWorld Simulator automation knowledge for AI coding agents: esapp, SimAuto, weather and timestep simulation, and the failure modes that fail silently."
 }

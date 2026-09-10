@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "powerworld-hivemind",
+  "version": "0.2.0",
+  "description": "PowerWorld Simulator automation and power-system weather analysis knowledge: esapp, SimAuto, PWW weather data, timestep simulation, IEEE 738 dynamic line ratings, and contingency analysis.",
+  "author": { "name": "Team Overbye, Texas A&M University" },
+  "homepage": "https://github.com/ChunSikPark/PowerWorldHiveMind",
+  "repository": "https://github.com/ChunSikPark/PowerWorldHiveMind",
+  "license": "CC-BY-4.0",
+  "keywords": ["powerworld", "simauto", "esapp", "power-systems", "weather", "ieee-738", "dlr"]
+}

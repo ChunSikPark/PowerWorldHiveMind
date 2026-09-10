@@ -5,3 +5,4 @@ __pycache__/
 # hivemind phase 2: moves with the project, never pushed
 .claude/
 .venv/
+.omc/

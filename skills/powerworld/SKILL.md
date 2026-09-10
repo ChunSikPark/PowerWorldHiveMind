@@ -8,6 +8,25 @@ description: "Use when working with PowerWorld Simulator, .pwb case files, SimAu
 A knowledge base of PowerWorld Simulator automation. Its value is failure knowledge: most
 PowerWorld mistakes are silent, and this records them.
 
+## Where these pages live
+
+Every path on this page — `concepts/`, `methods/`, `demos/`, `references/`, `index.md`,
+`AGENTS.md` — is relative to the **kit root**, never to the user's working directory.
+
+Installed as a Claude Code plugin, the kit root is `${CLAUDE_PLUGIN_ROOT}`. Resolve it once
+at the start of the session and prefix every path below with it —
+`${CLAUDE_PLUGIN_ROOT}/methods/preflight-powerworld.md` — and scope every search to it.
+
+Anywhere else (Codex, Cursor, or the kit copied into a project), the kit root is whichever
+directory holds `AGENTS.md` alongside the four content directories. That is usually the
+project root or a `PowerWorldHiveMind/` subdirectory of it. Find it once, then use it the
+same way.
+
+**Searching the working directory instead of the kit root is the one failure this skill
+cannot survive** — it fires, sends you to a page, and the page is not there. If a path
+below does not resolve, you have the wrong root. Find the root; do not conclude the page
+is missing.
+
 ## Consult it before you reason
 
 **Do not work PowerWorld problems out from first principles or from general API
@@ -22,9 +41,10 @@ returns a wrong answer. Nothing will prompt you to look something up.
 
 ## Before anything else
 
-**Run the preflight** in `methods/preflight-powerworld.md`. Five seconds, and it tells you
-whether this machine can drive PowerWorld at all. Record the Simulator build date it prints —
-behaviour shifts silently between versions (`concepts/version-requirements.md`).
+**Run the preflight** in `methods/preflight-powerworld.md` (under the kit root). Five
+seconds, and it tells you whether this machine can drive PowerWorld at all. Record the
+Simulator build date it prints — behaviour shifts silently between versions
+(`concepts/version-requirements.md`).
 
 A preflight failure is a fact about the machine, not a bug in your code. Report which check
 failed and stop. In particular the **SimAuto add-on is licensed separately from Simulator**,
@@ -33,8 +53,9 @@ so a healthy-looking installation can still run no automation at all.
 ## Finding the right page
 
 **Search the four content directories first** — `concepts/`, `methods/`, `demos/`,
-`references/`. Search page text, not the catalog. Put several terms in one pass and include
-both the plain-English phrasing and the identifier it maps to ("save the case" *and*
+`references/`, all under the kit root resolved above. Search page text, not the catalog.
+Put several terms in one pass and include both the plain-English phrasing and the
+identifier it maps to ("save the case" *and*
 `SaveCase`), then rank a page by how many terms land on it. Measured over 48 agents on 16
 questions: search found the right page 10 times out of 16, the routing table 8, starting from
 `index.md` 7.
@@ -43,9 +64,9 @@ Once you have the right page, **read its `## Content` in full.** The limit is on
 not depth** — opening eight pages while hunting means your search terms were wrong, not that
 you should read less of the page you found.
 
-`AGENTS.md` carries the full 22-row task-routing table and the rest of the ladder. Use it and
-`index.md` as disambiguators when search comes back thin, never as the first move — both name
-topics, and a topic is coarser than a page.
+`AGENTS.md` at the kit root carries the full 22-row task-routing table and the rest of the
+ladder. Use it and `index.md` as disambiguators when search comes back thin, never as the
+first move — both name topics, and a topic is coarser than a page.
 
 **Never conclude "not in the knowledge base" from a routing-table miss alone.** Report an
 absence only after searching all four directories on both phrasings.

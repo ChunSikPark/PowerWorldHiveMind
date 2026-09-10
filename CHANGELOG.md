@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased
+
+- **The plugin's skill could not find its own pages.** `skills/powerworld/SKILL.md` sent the
+  agent to `concepts/`, `methods/`, `demos/` and `references/` as bare relative paths, so an
+  installed plugin — which lives under `~/.claude/plugins/cache/…` — had the agent searching
+  the user's working directory instead. All 44 pages shipped correctly; nothing could find
+  them. The skill now resolves `${CLAUDE_PLUGIN_ROOT}` first and anchors every path to it,
+  with a fallback for agents that do not set that variable. Verified by installing the
+  plugin and reading back its component inventory and cached page count.
+- **New `/powerworld-setup` command** (`commands/powerworld-setup.md`): finds Python,
+  installs `esapp`, `TeamOverbyeWeather` and `pywin32`, runs preflight checks 1–4, reports
+  the Simulator build date, and reads the failure back in plain language — including that
+  the SimAuto add-on is licensed separately and no code change fixes it.
+- **`GETTING-STARTED.md` rebuilt around the plugin install.** Six steps to five: the ZIP
+  download and the folder-picker are gone from the main path, replaced by two `/plugin`
+  lines and `/powerworld-setup`. Both survive as a manual route for agents without a plugin
+  system. `README.md`'s install section leads with the same route.
+- **Codex plugin support**: adds a portable `plugin.json` at the repo root and
+  `.agents/plugins/marketplace.json`, per the agent-plugins.org 1.0.0 schema, which Codex
+  discovers via `codex plugin marketplace add`. Manifests validate against the published
+  schema but are **untested against a released Codex build**; both docs say so.
+
 ## 0.1.5 — 2026-09-09
 
 **Example cases are now referred to by neutral names** — `Synth2k`, `Synth40`, `Synth8k`,

@@ -227,7 +227,27 @@ see [methods/teamoverbyeweather-client.md](methods/teamoverbyeweather-client.md)
 
 ## Install
 
-For people who already have the tooling.
+**Claude Code — two lines, nothing to keep track of:**
+
+```
+/plugin marketplace add ChunSikPark/PowerWorldHiveMind
+/plugin install powerworld-hivemind
+```
+
+Start a new session so the plugin loads, then run `/powerworld-setup`. That installs the
+Python packages and checks whether this machine can drive PowerWorld at all, including the
+separately-licensed SimAuto add-on that catches most people.
+
+**Codex** reads the portable plugin manifest this repo also ships:
+
+```
+codex plugin marketplace add ChunSikPark/PowerWorldHiveMind
+```
+
+Then open `/plugins`, install **powerworld-hivemind**, and start a new session. *(Not yet
+tested against a released Codex build — if it fails, clone it by hand and open an issue.)*
+
+**By hand**, for any other agent, or when you want the files somewhere you can read them:
 
 ```bash
 git clone https://github.com/ChunSikPark/PowerWorldHiveMind.git
@@ -235,7 +255,10 @@ cd PowerWorldHiveMind
 pip install esapp TeamOverbyeWeather
 ```
 
-Then start your agent in that directory.
+Then start your agent in that directory. There is no `/powerworld-setup` on this route —
+ask the agent to read `AGENTS.md` and run the preflight instead.
+
+New to all of this? [GETTING-STARTED.md](GETTING-STARTED.md) walks through it from zero.
 
 ### Which file your agent actually reads
 
@@ -255,13 +278,6 @@ or your change is overwritten.
 Using something not on the list? Find out which filename it loads at startup. If it is
 not one of the three above, point it at `AGENTS.md` yourself — and please open an issue,
 so the next person does not have to work it out twice.
-
-**Claude Code plugin:**
-
-```
-/plugin marketplace add ChunSikPark/PowerWorldHiveMind
-/plugin install powerworld-hivemind
-```
 
 **Into an existing project:** copy the cloned `PowerWorldHiveMind` folder in as a
 subdirectory. The kit is plain markdown — nothing to build, nothing to run.
