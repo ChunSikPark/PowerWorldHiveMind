@@ -83,7 +83,7 @@ Then:
 app, where `/plugin` is a terminal-only command. Nothing is broken. Use the plugin browser
 instead: click the **+** next to the prompt box, choose **Plugins**, then **Add plugin**.
 
-Start a new session so the plugin loads, then run `/powerworld-setup`. That installs the
+Start a new session so the plugin loads, then run `/powerworld-hivemind:powerworld-setup`. That installs the
 Python packages and checks whether this machine can drive PowerWorld at all, including the
 separately-licensed SimAuto add-on that catches most people.
 
@@ -111,7 +111,7 @@ Set this up for me:
 Then you are my PowerWorld expert - I will give you a case file next.
 ```
 
-It does all four steps and reports back. There is no `/powerworld-setup` on this route; the
+It does all four steps and reports back. There is no `/powerworld-hivemind:powerworld-setup` on this route; the
 preflight in step 4 replaces it.
 
 No `git`? Click the green **Code** button at the top of this page, then **Download ZIP**,
@@ -128,7 +128,7 @@ ChatGPT or the Claude website](#using-it-with-chatgpt-or-the-claude-website).
 This depends on which route you took, and the two are not the same.
 
 **On the plugin route**, a plugin ships skills and commands, not instruction files. Claude
-Code loads `skills/powerworld/SKILL.md` and registers `/powerworld-setup`. It does **not**
+Code loads `skills/powerworld/SKILL.md` and registers `/powerworld-hivemind:powerworld-setup`. It does **not**
 load `CLAUDE.md` or `AGENTS.md` from the plugin. `SKILL.md` carries the rules that matter
 and points at the pages; the routing table in `AGENTS.md` stays on disk for the agent to
 open when it needs it.

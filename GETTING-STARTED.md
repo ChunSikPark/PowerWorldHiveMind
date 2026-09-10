@@ -6,7 +6,7 @@ agent, and are not sure what a "terminal" is, you are the person this page is fo
 Budget about twenty minutes. Do the steps in order — each one depends on the last.
 
 **You will not need to type a single terminal command.** Everything below is downloads,
-buttons, and two lines typed into a chat box.
+buttons, and one line pasted into a chat box.
 
 ---
 
@@ -16,7 +16,7 @@ Four pieces, and it helps to know what each is for:
 
 | Piece | What it does |
 |---|---|
-| **This knowledge base** | Markdown files. Not a program. It teaches your AI coding agent how PowerWorld actually behaves. Step 4 installs it in two lines |
+| **This knowledge base** | Markdown files. Not a program. It teaches your AI coding agent how PowerWorld actually behaves. Step 4 installs it in one line |
 | **Python** | The language your agent will write code in |
 | **An AI coding agent** | The program that reads the knowledge and writes the code. Claude Code, Codex, Cursor |
 | **Two Python packages** | `esapp` talks to PowerWorld; `TeamOverbyeWeather` downloads weather. Step 5 installs these for you |
@@ -55,7 +55,7 @@ You do **not** need Node.js, and you do **not** need to install anything from a 
 The desktop app includes Claude Code.
 
 Using something other than Claude Code? See [Other agents](#other-agents) below — the kit
-works with all of them, but Steps 3 to 5 are Claude-specific.
+works with all of them, but Steps 3 to 6 are Claude-specific.
 
 No paid plan? See [If you have no paid plan](#if-you-have-no-paid-plan).
 
@@ -119,10 +119,7 @@ does pressing Enter in the middle of a line:
 /plugin install powerworld-hivemind
 ```
 
-That is the whole installation. Claude downloads the knowledge base itself and knows where
-it lives — there is no folder to pick, no ZIP to unzip, and nothing to keep track of.
-
-**Then start a new session** so the plugin loads. Every session after this one has it.
+**Then start a new session** so the plugin loads.
 
 **If it says "`/plugin` isn't available in this environment"**, nothing is broken and you
 did nothing wrong — `/plugin` only works in the terminal version. Use the sentence above
@@ -137,7 +134,7 @@ instead, which works in both.
 Type:
 
 ```
-/powerworld-setup
+/powerworld-hivemind:powerworld-setup
 ```
 
 This installs the two Python packages and runs the checks that say whether this machine
@@ -148,7 +145,7 @@ because PowerWorld's behaviour changes between versions. Go on to Step 6.
 
 **It cannot find Python.** The "Add Python to PATH" box in Step 2 was not ticked. Re-run
 the Python installer, choose **Modify**, and turn on "Add Python to environment
-variables". Then run `/powerworld-setup` again.
+variables". Then run `/powerworld-hivemind:powerworld-setup` again.
 
 **It fails on SimAuto or a licence.** Read [About the PowerWorld
 licence](#about-the-powerworld-licence). This one is not fixable in code.
@@ -173,10 +170,11 @@ and check the file exists afterwards.
 and it is what any assistant says when it has not read these pages. If you get it, the
 knowledge did not load. Two usual causes:
 
-- **You did not start a new session after installing.** Plugins load when a session starts.
-  Close it, open a new one, ask again.
-- **The plugin is not installed in this profile.** Run `/plugin` and check
-  `powerworld-hivemind` is listed and enabled.
+- **You did not restart after installing.** It loads when a session starts. Close Claude,
+  open it again, ask again.
+- **It did not land in the right folder.** Ask Claude: *"Does the folder
+  `~/.claude/skills/powerworld-hivemind` exist, and does it contain AGENTS.md?"* If not,
+  redo Step 4.
 
 Ask a second one if you want to be sure:
 
@@ -248,7 +246,7 @@ Other agents put this in a different place, but every one of them has some way t
 folder. Command-line agents are covered in [Using a terminal
 instead](#using-a-terminal-instead).
 
-**3. Set it up.** There is no `/powerworld-setup` on this route, so ask in words instead:
+**3. Set it up.** There is no `/powerworld-hivemind:powerworld-setup` on this route, so ask in words instead:
 
 > Read AGENTS.md. Check whether Python is installed, install the `esapp` and
 > `TeamOverbyeWeather` packages if they are missing, then run the preflight check to see
@@ -380,11 +378,11 @@ for a file starting with `Claude` and ending in `.exe`, and double-click it. Or 
 install and you are looking at the desktop, where Claude puts no icon: open Start, type
 `Claude`, right-click the result and choose **Pin to taskbar**.
 
-**`/plugin` or `/powerworld-setup` is not recognized.** For `/plugin`, first check the
-command is on one line with no break in it — that is the usual cause. Otherwise use the
-terminal commands in Step 4, or reinstall Claude from
-[claude.com/download](https://claude.com/download). For `/powerworld-setup`, the plugin
-installed but the session has not reloaded: start a new session and try again.
+**A slash command is not recognized.** `/plugin` does not exist in the desktop app at
+all — use the one-line install in Step 4 instead, which works in both. If
+`/powerworld-hivemind:powerworld-setup` is not recognized, the knowledge base is installed
+but the session has not reloaded: restart Claude and try again. Note the command carries
+the `powerworld-hivemind:` prefix; plain `/powerworld-setup` is not its name.
 
 **The agent does not seem to know about PowerWorld.** On the plugin route, start a new
 session — plugins load at session start. On the manual route, it is pointed at the wrong
