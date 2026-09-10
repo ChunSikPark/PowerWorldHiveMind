@@ -1,144 +1,115 @@
 # Getting started, from zero
 
-This assumes nothing. If you have never installed Python, never used an AI coding
-agent, and are not sure what a "terminal" is, you are the person this page is for.
+This page assumes nothing. If you have never installed Python and have never used an AI
+coding agent, you are the person it is written for.
 
-Budget about twenty minutes. Do the steps in order — each one depends on the last.
-
-**You will not need to type a single terminal command.** Everything below is downloads,
-buttons, and one line pasted into a chat box.
+About fifteen minutes. Do the steps in order. **You will not type a single terminal
+command** — it is downloads, buttons, and one line pasted into a chat box.
 
 ---
 
 ## What you are setting up
 
-Four pieces, and it helps to know what each is for:
-
-| Piece | What it does |
+| Piece | What it is for |
 |---|---|
-| **This knowledge base** | Markdown files. Not a program. It teaches your AI coding agent how PowerWorld actually behaves. Step 4 installs it in one line |
-| **Python** | The language your agent will write code in |
-| **An AI coding agent** | The program that reads the knowledge and writes the code. Claude Code, Codex, Cursor |
-| **Two Python packages** | `esapp` talks to PowerWorld; `TeamOverbyeWeather` downloads weather. Step 5 installs these for you |
+| **An AI coding agent** | The program that reads the knowledge and writes the code. Claude Code here |
+| **Python** | The language your agent writes that code in |
+| **This knowledge base** | Markdown files, not a program. It teaches your agent how PowerWorld really behaves. Step 4, one line |
+| **Two Python packages** | `esapp` talks to PowerWorld, `TeamOverbyeWeather` fetches weather. Step 5 installs them for you |
 
-Throughout this page, **"agent"** means the AI coding agent, the program from row three.
-An agent can open your files and run code on your computer. A chat window cannot.
+You also need **PowerWorld Simulator** itself. You either have it through your university
+or employer, or you do not — see [About the PowerWorld
+licence](#about-the-powerworld-licence).
 
-PowerWorld Simulator itself is a fifth piece, but you either already have it through your
-university or employer, or you do not. See [About the PowerWorld
-licence](#about-the-powerworld-licence) below — a small part still works without it, but
-most of this kit is about operating Simulator.
+Throughout this page, **agent** means the program in row one. An agent can open your files
+and run code on your computer. A chat window in a browser cannot, which is why this kit
+needs one.
 
 ---
 
-## Step 1 — Install the Claude desktop app
+## Step 1 — Install Claude
 
-Download it from **[claude.com/download](https://claude.com/download)**, run the
-installer, and sign in.
+Download it from **[claude.com/download](https://claude.com/download)**, run the installer,
+and sign in.
 
-**Downloading is not installing.** The download leaves a file sitting in your `Downloads`
-folder and nothing happens until you open it. Look in `Downloads` for a file whose name
-starts with `Claude` and ends in `.exe`, and double-click it.
+**Downloading is not installing.** The download leaves a file in your `Downloads` folder
+and nothing happens until you open it. Look for a file whose name starts with `Claude` and
+ends in `.exe`, and double-click it.
 
-Once it is installed, Claude does not put an icon on your desktop, so an empty desktop is
-not a sign that anything went wrong. Open Start, type `Claude`, right-click the result and
-choose **Pin to taskbar**, and it will be there next time.
+Claude does not put an icon on your desktop, so an empty desktop does not mean it failed.
+Open Start, type `Claude`, right-click the result, and choose **Pin to taskbar**.
 
-**Two things must be true or this will not work:**
+**Two things must be true or nothing below works:**
 
-| Requirement | Why |
+| You need | Why |
 |---|---|
-| **A paid Claude plan**: Pro, Max, Team or Enterprise | The free plan does not include Claude Code. If the **Code** button asks you to upgrade, that is the reason, and nothing is broken |
-| **Git installed** ([git-scm.com/downloads/win](https://git-scm.com/downloads/win)) | On Windows, local sessions do not start without it, and Step 4 needs it to fetch the knowledge base. Click through the installer with all the default options |
+| **A paid Claude plan** — Pro, Max, Team or Enterprise | The free plan does not include Claude Code. If the **Code** button asks you to upgrade, that is why |
+| **Git** — [git-scm.com/downloads/win](https://git-scm.com/downloads/win) | Step 4 uses it to fetch the knowledge base. Click through the installer with every default |
 
-You do **not** need Node.js, and you do **not** need to install anything from a terminal.
-The desktop app includes Claude Code.
+You do **not** need Node.js. The Claude app already includes Claude Code.
 
-Using something other than Claude Code? See [Other agents](#other-agents) below — the kit
-works with all of them, but Steps 3 to 6 are Claude-specific.
-
-No paid plan? See [If you have no paid plan](#if-you-have-no-paid-plan).
+Using Codex, Cursor or Windsurf instead? See [Other agents](#other-agents).
 
 ---
 
 ## Step 2 — Install Python
 
-Go to [python.org/downloads](https://www.python.org/downloads/) and click the big
-download button. Run the installer when it finishes.
+Go to [python.org/downloads](https://www.python.org/downloads/) and click the big download
+button. Run the installer.
 
-**On the first screen, tick "Add Python to PATH" before clicking Install Now.**
+**On the first screen, tick "Add Python to PATH" before you click Install.**
 
-This is the single most common thing to get wrong. The checkbox is small, at the bottom,
-and unticked by default. Without it, later steps fail with errors that do not tell you
-why.
+This is the single most common thing to get wrong. The box is small, near the bottom, and
+off by default. Miss it and later steps fail with errors that never mention Python.
 
-You do not have to verify this yourself. Your agent checks it in Step 5.
+You do not have to check this yourself. Step 5 checks it for you.
 
 ---
 
-## Step 3 — Switch to Code
+## Step 3 — Open Claude Code
 
-Open Claude. At the **top left** there is a toggle with two halves: `Chat and Cowork` and
-`Code`.
+Open Claude. At the **top left** is a toggle with two halves: `Chat and Cowork` and `Code`.
 
 **Click `Code`.**
 
 ![The Code button sits at the top left, next to Chat and Cowork](assets/desktop-code-toggle.png)
 
-`Chat and Cowork` is the ordinary conversation mode. It cannot see the files on your
-computer. `Code` can. Landing in the wrong one is a common way to get stuck here.
+`Chat and Cowork` is ordinary conversation and cannot see your files. `Code` can. Landing
+in the wrong one is a common way to get stuck.
 
 ---
 
 ## Step 4 — Install the knowledge base
 
-In the box where you type, paste this and press Enter. It is a sentence, not a command:
+Paste this into the box where you type and press Enter. It is a sentence, not a command —
+you are asking Claude to fetch something for you.
 
 ```
 Install the PowerWorld knowledge base: git clone https://github.com/ChunSikPark/PowerWorldHiveMind ~/.claude/skills/powerworld-hivemind
 ```
 
-Claude downloads it into a folder it already watches. That is the whole installation: no
-folder to pick, no ZIP to unzip, nothing to remember where you put.
+Claude downloads it into a folder it already watches. There is no folder to choose, no ZIP
+to unzip, and nothing to remember the location of.
 
-**Now load it — and "restart Claude" is not enough on its own.** Closing and reopening the
-app usually reopens the *same* conversation, and a reopened conversation keeps whatever it
-started with, so the new knowledge stays invisible. Do one of these instead:
-
-- **Type `/reload-plugins`** in the conversation you are in. Quickest, and it works in the
-  desktop app.
-- **Start a new conversation.** Not the one that was already open.
-
-You only do this once. Every conversation after it has the knowledge already.
-
-To update it later, ask Claude to `git pull` in that folder. To remove it, delete the
-folder.
-
-### The slash-command route
-
-If you are using the Claude Code **terminal** version, these two do the same job and keep
-themselves up to date. Enter them **one at a time** — pasting both at once fails, and so
-does pressing Enter in the middle of a line:
+**Then load it.** Type:
 
 ```
-/plugin marketplace add ChunSikPark/PowerWorldHiveMind
+/reload-plugins
 ```
 
-```
-/plugin install powerworld-hivemind
-```
+**Closing and reopening the app is not enough.** It usually reopens the same conversation,
+and a reopened conversation keeps whatever it started with — so the knowledge stays
+invisible and it looks like the install failed. `/reload-plugins` avoids that. Starting a
+genuinely new conversation works too.
 
-**Then start a new session** so the plugin loads.
+You do this once. Every conversation afterwards has the knowledge already.
 
-**If it says "`/plugin` isn't available in this environment"**, nothing is broken and you
-did nothing wrong — `/plugin` only works in the terminal version. Use the sentence above
-instead, which works in both.
-
-**If Claude cannot run `git`**, Git is not installed; see the table in Step 1.
+**To update it later**, ask Claude to `git pull` in that folder. **To remove it**, delete
+the folder.
 
 ---
 
-## Step 5 — Run the setup check
+## Step 5 — Check your machine
 
 Type:
 
@@ -146,145 +117,87 @@ Type:
 /powerworld-hivemind:powerworld-setup
 ```
 
-This installs the two Python packages and runs the checks that say whether this machine
-can drive PowerWorld at all. One of three things happens:
+The `powerworld-hivemind:` prefix is part of the name. Plain `/powerworld-setup` will not
+work.
 
-**Everything passes.** It prints the PowerWorld **build date**, which is worth noting
-because PowerWorld's behaviour changes between versions. Go on to Step 6.
+This installs the two Python packages and runs four quick checks. One of three things
+happens.
+
+**Everything passes.** It prints your PowerWorld **build date** — worth noting, because
+PowerWorld's behaviour changes between versions. Go to Step 6.
 
 **It cannot find Python.** The "Add Python to PATH" box in Step 2 was not ticked. Re-run
-the Python installer, choose **Modify**, and turn on "Add Python to environment
-variables". Then run `/powerworld-hivemind:powerworld-setup` again.
+the Python installer, choose **Modify**, turn on "Add Python to environment variables", and
+run the command again.
 
 **It fails on SimAuto or a licence.** Read [About the PowerWorld
-licence](#about-the-powerworld-licence). This one is not fixable in code.
+licence](#about-the-powerworld-licence). No code change fixes this one.
 
 ---
 
-## Step 6 — Check that it actually knows PowerWorld
+## Step 6 — Prove it worked
 
-Step 5 checked your machine. This checks that the knowledge reached your agent, which is a
-separate thing and fails separately.
+Step 5 checked your machine. This checks that your agent actually got the knowledge, which
+is a separate thing and fails separately.
 
 **Open a folder that has nothing to do with PowerWorld** — any project, or an empty one.
-The knowledge should travel with you, and this is the step that proves it does. Then ask:
+The knowledge travels with you, and this proves it. Ask:
 
 > Without running any code, tell me what happens if I call `pw.esa.SaveCase("out.pwb")`.
 
-**A right answer says it silently does nothing** — that the call returns success, writes no
-file, and that you have to use the script form `RunScriptCommand('SaveCase("out.pwb", PWB);')`
-and check the file exists afterwards.
+**Right answer: it silently writes no file.** The call reports success, no file appears,
+and you have to use `RunScriptCommand('SaveCase("out.pwb", PWB);')` and check the file
+exists afterwards.
 
-**A wrong answer says it saves the case.** That is the sensible guess from the method name,
-and it is what any assistant says when it has not read these pages. If you get it, the
-knowledge did not load. Two usual causes:
+**Wrong answer: it saves the case.** That is the reasonable guess from the method name, and
+it is what any assistant says without these pages. If you get it, the knowledge did not
+load:
 
-- **The conversation predates the install.** Reopening the app is not enough if it reopens
-  the same conversation. Type `/reload-plugins`, or start a new conversation.
-- **It did not land in the right folder.** Ask Claude: *"Does the folder
-  `~/.claude/skills/powerworld-hivemind` exist, and does it contain AGENTS.md?"* If not,
-  redo Step 4.
+- **The conversation predates the install.** Type `/reload-plugins`, or start a new
+  conversation.
+- **It landed somewhere else.** Ask Claude whether `~/.claude/skills/powerworld-hivemind`
+  exists and contains `AGENTS.md`. If not, redo Step 4.
 
-Ask a second one if you want to be sure:
-
-> Which page in the knowledge base covers reading contingency violations, and what does it
-> warn about?
-
-It should name `methods/reading-violationctg.md` and say the results persist stale inside
-the `.pwb`, so you clear them before solving. If it names a page but cannot open it, tell it
-the pages live under `${CLAUDE_PLUGIN_ROOT}` — and please [open an
-issue](https://github.com/ChunSikPark/PowerWorldHiveMind/issues), because that is a bug in
-the kit rather than in anything you did.
+You are done. Skip to [What to ask next](#what-to-ask-next).
 
 ---
 
-## Not using Claude Code?
+## Other agents
 
-Steps 3, 4 and 5 assume the Claude desktop app. Everything else on this page still
-applies. Pick your route below, then rejoin at [What to ask next](#what-to-ask-next).
+Any agent that runs on your computer and can read your files works with this kit.
 
-### Codex
-
-Codex has its own plugin marketplace, and this repository ships a manifest for it:
+**Codex** has its own plugin marketplace and this repository ships a manifest for it:
 
 ```
 codex plugin marketplace add ChunSikPark/PowerWorldHiveMind
 ```
 
-Then open the plugin browser with `/plugins`, install **powerworld-hivemind**, and start a
-new session. *(Not yet tested against a released Codex build — if it does not work, use the
-manual route below, and please open an issue so this line can be fixed.)*
+Then open `/plugins`, install **powerworld-hivemind**, and start a new session. *(Not yet
+tested against a released Codex build — if it fails, use the manual route below and please
+open an issue.)*
 
-### Other agents
+**Cursor, Windsurf, or anything else**: clone the repository and start your agent inside
+the folder.
 
-Any agent that runs on your computer and can read your files will work with this kit:
+```
+git clone https://github.com/ChunSikPark/PowerWorldHiveMind
+```
 
-| Agent | Where |
-|---|---|
-| **Claude Code** *(best supported here)* | [claude.com/download](https://claude.com/download) for the app, or [code.claude.com/docs/en/setup](https://code.claude.com/docs/en/setup) for the command-line version |
-| **Codex** (OpenAI) | [github.com/openai/codex](https://github.com/openai/codex) |
-| **Cursor** | [cursor.com](https://cursor.com) |
-| **Windsurf** | [windsurf.com](https://windsurf.com) |
+No `git`? On the repository page, click the green **Code** button, then **Download ZIP**,
+and unzip it somewhere you will find again.
 
-### The manual route: download the folder
-
-This works with every agent, and is the fallback whenever a plugin install will not
-cooperate.
-
-**1. Download it.** At the top of the repository page, click the green **Code** button,
-then **Download ZIP**. Unzip it somewhere you will find again — `Documents` is fine. You
-should end up with a folder named `PowerWorldHiveMind` containing `AGENTS.md`,
-`README.md`, and folders called `methods`, `concepts`, `demos` and `references`. You do not
-need a GitHub account and you do not need `git`.
-
-**2. Point your agent at it.** This is where people go wrong, and the failure is silent:
-the agent works, it just does not know the knowledge base exists.
-
-In the Claude desktop app, at the bottom of the window just above the box where you type,
-there is a row of small buttons. The first says **`Local`**, meaning *use my own computer
-and my own files*. Leave it on `Local`. Next to it is a **folder button**. Click it.
-
-![The folder button sits immediately right of Local](assets/desktop-folder-chip.png)
-
-A short menu opens. Choose **`Open folder…`**, then select the `PowerWorldHiveMind` folder
-you unzipped. The folder button now reads `PowerWorldHiveMind`.
-
-![Choose Open folder from the menu](assets/desktop-open-folder.png)
-
-Other agents put this in a different place, but every one of them has some way to open a
-folder. Command-line agents are covered in [Using a terminal
-instead](#using-a-terminal-instead).
-
-**3. Set it up.** There is no `/powerworld-hivemind:powerworld-setup` on this route, so ask in words instead:
+Then point your agent at that folder — every agent has some way to open one — and ask:
 
 > Read AGENTS.md. Check whether Python is installed, install the `esapp` and
-> `TeamOverbyeWeather` packages if they are missing, then run the preflight check to see
-> if PowerWorld works on this machine.
+> `TeamOverbyeWeather` packages if they are missing, then run the preflight check.
 
----
-
-## If you have no paid plan
-
-**You can still use this knowledge base, just not hands-free.** Upload one of the bundled
-files from the [`dist/`](dist/) folder to any free chat, Claude or ChatGPT, and ask your
-question there:
-
-| File | Contains |
-|---|---|
-| `powerworld-hivemind-methods.md` | The how-to pages. Start here |
-| `powerworld-hivemind-concepts.md` | Background and theory |
-| `powerworld-hivemind-demos.md` | Worked examples |
-| `powerworld-hivemind-references.md` | Exact field names and command signatures |
-| `powerworld-hivemind-bundle.md` | Everything in one file. Too large for most free chats |
-
-The chat reads the knowledge and writes code for you to run yourself. It cannot run that
-code, see the error, and fix it, so you copy results back and forth by hand.
+There is no `/powerworld-hivemind:powerworld-setup` on this route; that request replaces it.
 
 ---
 
 ## About the PowerWorld licence
 
-PowerWorld automation needs three things, and the third catches almost everyone:
+PowerWorld automation needs three things, and the third catches almost everyone.
 
 1. **Windows.** The interface PowerWorld exposes for automation is Windows-only. There is
    no Mac or Linux version.
@@ -292,24 +205,19 @@ PowerWorld automation needs three things, and the third catches almost everyone:
 3. **The SimAuto add-on, licensed separately.**
 
 That third point is the one to understand. **SimAuto is a different licence from
-Simulator.** Your Simulator can open cases perfectly, run studies, and look completely
-healthy, while every line of automation fails — and nothing in the program tells you this
-is why.
+Simulator.** Your Simulator can open cases, run studies, and look completely healthy while
+every line of automation fails, and nothing in the program tells you that is why.
 
-If preflight fails on that check, no amount of changing the code will help. Ask whoever
+If Step 5 fails on that check, no amount of changing the code will help. Ask whoever
 administers your PowerWorld licence whether it includes SimAuto.
 
-### If you have no PowerWorld licence
+### Without a PowerWorld licence
 
 **A small part still works.** Fetching and inspecting weather data is pure Python:
+downloading ERA5, HRRR and NOAA data, and reading, cropping and combining `.pww` files.
 
-- Downloading ERA5, HRRR, and NOAA weather data
-- Reading, cropping, and combining `.pww` weather files
-
-That is where it stops without a licence: *using* those files means PowerWorld's TimeStep
-feature, which runs inside Simulator.
-
-Ask your agent:
+That is where it stops. *Using* those files means PowerWorld's TimeStep feature, which runs
+inside Simulator. Ask your agent:
 
 > Download February 2021 weather for Texas.
 
@@ -319,106 +227,62 @@ That works on any machine, with no PowerWorld licence and no Windows.
 
 ## What to ask next
 
-Once setup passes, ask in plain English. The agent finds the right pages itself.
+Ask in plain English. Your agent finds the right pages itself.
 
 > Open my case at C:\path\to\case.pwb and summarize it.
 
 > Which branches are most heavily loaded in this case?
 
-> Load this weather file and run a timestep simulation to get hourly wind and solar output
-> for the renewable generators.
+> Run an N-1 contingency analysis and show me the worst violations.
 
 > Add a 138 kV line between bus 12 and bus 40 and tell me what it does to overloads.
 
-> Run an N-1 contingency analysis and show me the worst violations.
+> Load this weather file and give me hourly wind and solar output for the renewable
+> generators.
 
-The agent works out which page it needs; you do not have to.
+> Compare my 2016 and 2024 cases and tell me what the plan builds.
 
----
-
-## Using a terminal instead
-
-Skip this unless you are using a command-line agent such as the Claude Code CLI or Codex,
-or you simply prefer typing.
-
-**New to terminals?** Anthropic's [terminal
-guide](https://code.claude.com/docs/en/terminal-guide) walks through it properly.
-
-On the Claude Code CLI, the plugin route in Step 4 works exactly as written — start
-`claude` anywhere and type the two `/plugin` lines. Nothing below is needed.
-
-On the manual route, your agent must be **started inside the folder you unzipped**. The
-easy way to do that on Windows, with no paths to type:
-
-1. Open the `PowerWorldHiveMind` folder in File Explorer, the normal way.
-2. Click the **address bar** at the top (the strip showing the folder path) so it
-   highlights.
-3. Type `cmd` and press Enter.
-
-A terminal opens, already sitting in that folder. Check you are in the right place:
-
-```
-dir
-```
-
-(`ls` on Mac.) **You should see** `AGENTS.md`, `README.md`, `index.md`, and the `methods`,
-`concepts`, `demos` and `references` folders.
-
-Then start your agent from that same window: `claude` for the Claude Code CLI, `codex`
-for Codex. Install commands for each are on their own sites; see the table in [Other
-agents](#other-agents).
-
-To install the two Python packages yourself rather than letting the agent do it:
-
-```
-pip install esapp TeamOverbyeWeather
-```
-
-**If you see** `'pip' is not recognized` — Python is not on your PATH. Go back to Step 2.
-**If you see** a permissions error, add `--user` after `install`.
+You do not need to know which page covers what. That is the agent's job.
 
 ---
 
 ## When something goes wrong
 
-**I downloaded Claude but I cannot find it.** Two different things cause this and they
-look identical. Either the installer downloaded and was never run — look in `Downloads`
-for a file starting with `Claude` and ending in `.exe`, and double-click it. Or it did
-install and you are looking at the desktop, where Claude puts no icon: open Start, type
-`Claude`, right-click the result and choose **Pin to taskbar**.
+**I installed Claude but cannot find it.** Either the installer downloaded and was never
+run — look in `Downloads` for a file starting with `Claude`, ending in `.exe`, and
+double-click it. Or it did install and you are looking at the desktop, where Claude puts no
+icon: open Start, type `Claude`, right-click, **Pin to taskbar**.
 
-**A slash command is not recognized.** `/plugin` does not exist in the desktop app at
-all — use the one-line install in Step 4 instead, which works in both. If
-`/powerworld-hivemind:powerworld-setup` is not recognized, the knowledge base is installed
-but the session has not reloaded: restart Claude and try again. Note the command carries
-the `powerworld-hivemind:` prefix; plain `/powerworld-setup` is not its name.
+**There is no Code button.** Your app is an older version. Reinstall from
+[claude.com/download](https://claude.com/download).
 
-**The agent does not seem to know about PowerWorld.** On the plugin route, start a new
-session — plugins load at session start. On the manual route, it is pointed at the wrong
-folder; see [The manual route](#the-manual-route-download-the-folder), or just tell it:
+**Clicking Code asks me to upgrade.** Claude Code needs a paid plan. See Step 1.
+
+**A slash command is not recognized.** For `/powerworld-hivemind:powerworld-setup`, the
+knowledge base is installed but this conversation has not loaded it — type
+`/reload-plugins`. Check the prefix too: plain `/powerworld-setup` is not its name. As for
+`/plugin`, it does not exist in the desktop app at all; Step 4 does not need it.
+
+**Claude cannot run `git`.** Git is not installed. See the table in Step 1.
+
+**My agent does not seem to know about PowerWorld.** Type `/reload-plugins`, or start a new
+conversation. On the manual route, it is pointed at the wrong folder — tell it
 `Read AGENTS.md in this folder.`
 
-**There is no Code button in the Claude app.** Your app is an older version. Reinstall
-from [claude.com/download](https://claude.com/download).
-
-**Clicking Code asks you to upgrade.** Claude Code needs a paid plan. See Step 1, or use
-the [`dist/`](dist/) bundles with a free chat instead.
-
-**The agent writes code that errors.** Ask it to check its approach against the knowledge
-base: `Check the preflight page and the relevant page — is this the documented way to do
-it?`
+**The code it writes errors.** Ask it to check itself against the knowledge base: `Check
+the preflight page and the relevant page — is this the documented way to do it?`
 
 **Everything fails with a COM or licence error.** See [About the PowerWorld
-licence](#about-the-powerworld-licence). This is not fixable in code.
+licence](#about-the-powerworld-licence). Not fixable in code.
 
 **An answer looks wrong.** Ask which pages it used: `Which pages from this knowledge base
-did you use?` If a page is wrong, that is a bug worth reporting — open an issue on the
-repository saying which page and what it got wrong.
+did you use?` If a page is wrong, that is worth reporting — open an issue saying which page
+and what it got wrong. Those reports are the most valuable ones this project gets.
 
 ---
 
 ## Where to go from here
 
 - **[index.md](index.md)** — every page, one line each
-- **[AGENTS.md](AGENTS.md)** — what your agent reads; worth skimming to see what it knows
+- **[AGENTS.md](AGENTS.md)** — what your agent reads. Worth skimming to see what it knows
 - **[README.md](README.md)** — the short version of this page

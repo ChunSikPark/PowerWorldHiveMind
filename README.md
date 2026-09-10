@@ -53,41 +53,31 @@ Hand it a case file and ask a question in plain English:
 
 ## Install
 
-**Easiest, and it works everywhere.** Paste this sentence to Claude — not a command, just
-ask it:
+Paste this into Claude Code. It is a sentence, not a command:
 
 ```
 Install the PowerWorld knowledge base: git clone https://github.com/ChunSikPark/PowerWorldHiveMind ~/.claude/skills/powerworld-hivemind
 ```
 
-Then type `/reload-plugins`, or start a new conversation — reopening the app usually
-reopens the same conversation, which keeps the plugin set it started with. Anything under
-`~/.claude/skills/` that carries a
-`.claude-plugin/plugin.json` is picked up automatically, so there is no marketplace to add,
-no `/plugin` command, and no terminal. Works in the desktop app and the CLI alike. To
-update it later, ask Claude to `git pull` in that folder; to remove it, delete the folder.
-
-**Or, in the Claude Code CLI, two slash commands.** These auto-update themselves, which the
-route above does not. Enter them **one at a time** — pasting both at once fails, and so
-does letting a line break in the middle.
+Then load it:
 
 ```
-/plugin marketplace add ChunSikPark/PowerWorldHiveMind
+/reload-plugins
 ```
 
-Then:
+That is the whole installation. Anything under `~/.claude/skills/` carrying a
+`.claude-plugin/plugin.json` loads automatically, so there is no marketplace to add, no
+`/plugin` command, and no terminal. It works in the desktop app and the CLI alike.
 
-```
-/plugin install powerworld-hivemind
-```
+**Reopening the app is not the same as loading it.** Reopening usually restores the same
+conversation, and a restored conversation keeps whatever it started with. Use
+`/reload-plugins`, or start a new conversation.
 
-**If Claude answers `/plugin isn't available in this environment`**, you are in the desktop
-app, where `/plugin` is a terminal-only command. Nothing is broken. Use the plugin browser
-instead: click the **+** next to the prompt box, choose **Plugins**, then **Add plugin**.
+Then run `/powerworld-hivemind:powerworld-setup`. That installs the Python packages and
+checks whether this machine can drive PowerWorld at all, including the separately licensed
+SimAuto add-on that catches most people.
 
-Start a new session so the plugin loads, then run `/powerworld-hivemind:powerworld-setup`. That installs the
-Python packages and checks whether this machine can drive PowerWorld at all, including the
-separately-licensed SimAuto add-on that catches most people.
+To update it, ask Claude to `git pull` in that folder. To remove it, delete the folder.
 
 **Codex** reads the portable plugin manifest this repo also ships:
 
@@ -98,32 +88,18 @@ codex plugin marketplace add ChunSikPark/PowerWorldHiveMind
 Then open `/plugins`, install **powerworld-hivemind**, and start a new session. *(Not yet
 tested against a released Codex build — if it fails, clone it by hand and open an issue.)*
 
-### Fallback: clone it yourself
+**Any other agent** — Cursor, Windsurf, anything that reads your files: clone the repo and
+start your agent inside the folder.
 
-For Cursor, Windsurf, any other agent, or when a plugin install will not cooperate. Paste
-this whole block into your agent:
-
-```
-Set this up for me:
-1. git clone https://github.com/ChunSikPark/PowerWorldHiveMind.git
-2. pip install esapp TeamOverbyeWeather
-3. Read PowerWorldHiveMind/AGENTS.md
-4. Run the preflight in PowerWorldHiveMind/methods/preflight-powerworld.md and
-   tell me whether PowerWorld automation works on this machine.
-Then you are my PowerWorld expert - I will give you a case file next.
+```bash
+git clone https://github.com/ChunSikPark/PowerWorldHiveMind
+cd PowerWorldHiveMind
+pip install esapp TeamOverbyeWeather
 ```
 
-It does all four steps and reports back. There is no `/powerworld-hivemind:powerworld-setup` on this route; the
-preflight in step 4 replaces it.
+Then tell it: `Read AGENTS.md and run the preflight.`
 
-No `git`? Click the green **Code** button at the top of this page, then **Download ZIP**,
-unzip it, and start your agent in that folder instead of step 1.
-
-New to all of this? [GETTING-STARTED.md](GETTING-STARTED.md) walks through it from zero.
-
-**None of this works in the ChatGPT or Claude websites.** They cannot reach your files
-or run anything. For those, use the uploads in [`dist/`](dist/) — see [Using it with
-ChatGPT or the Claude website](#using-it-with-chatgpt-or-the-claude-website).
+New to all of this? [GETTING-STARTED.md](GETTING-STARTED.md) walks it from zero.
 
 ### Which file your agent actually reads
 
@@ -229,28 +205,6 @@ Without a PowerWorld licence, most of this kit is not usable — it is about ope
 Simulator. The exception is fetching and inspecting weather data, which is pure Python:
 see [methods/teamoverbyeweather-client.md](methods/teamoverbyeweather-client.md). But
 *applying* that weather requires PowerWorld, since TimeStep runs inside Simulator.
-
-## Using it with ChatGPT or the Claude website
-
-A browser chat cannot open your `.pwb`, run Python, or reach SimAuto. It can still read
-this knowledge and **write correct code for you to run yourself**, which is most of the
-difficulty. Pre-built uploads live in [`dist/`](dist/):
-
-| You are using | Upload | Notes |
-|---|---|---|
-| **claude.ai** — as a Skill | `dist/powerworld-hivemind-skill.zip` | Settings → Capabilities → Skills. Paid plans only |
-| **claude.ai** — as a Project | `dist/powerworld-hivemind-bundle.md` | Add to Project knowledge. One large file: fits a Project, too big for most free chats |
-| **ChatGPT** — Custom GPT | the four `dist/powerworld-hivemind-{methods,concepts,demos,references}.md` | Split to stay under the knowledge-file cap |
-| **A one-off chat** | `dist/powerworld-hivemind-bundle.md` | Attach it and ask your question |
-
-Then ask normally. The assistant will hand you code; you run it on the machine that has
-PowerWorld.
-
-**For the full experience** — where you hand over a case file and get an answer back —
-you need an assistant that can read your disk and run code: Claude Code, Codex CLI,
-Cursor, or Windsurf. See [Install](#install).
-
----
 
 ## What it covers
 
