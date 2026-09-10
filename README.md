@@ -100,19 +100,22 @@ Just say what you want — [the full prompt list](demos/start-here.md):
 
 ## Does it actually help?
 
-**[BENCHMARK.md](BENCHMARK.md)** — 130 agent runs, thresholds committed before any started.
+**[BENCHMARK.md](BENCHMARK.md)** — the same AI model answered the same PowerWorld questions
+four ways: with PowerWorldHiveMind, with no documentation at all, with a web search engine,
+and with a large private wiki. 130 runs, thresholds committed before any of them started.
 
-![Where the kit wins and where it doesn't](assets/headline.svg)
+![Where HiveMind wins and where it doesn't](assets/headline.svg)
 
-**Yes, for behaviour that fails without raising an error.** Sixteen such questions: the kit
-got all sixteen. A model with web search got four. A model working from memory also got four
-— searching bought nothing over guessing.
+**On the things PowerWorld gets wrong quietly, it is not close.** Sixteen questions where
+Simulator accepts your call, reports success and returns something wrong: HiveMind got all
+sixteen. Searching the web got four. Answering from memory also got four — the searching
+bought nothing.
 
-**No, for looking up a command name.** Web search scored 7 of 7 there against this kit's 6,
-and returned argument syntax the kit does not publish. Read PowerWorld's manual instead.
+**On looking up a command name, use PowerWorld's manual instead.** Search scored 7 of 7 there
+against HiveMind's 6, and returned argument syntax this repository does not publish.
 
-The benchmark also records the check the kit failed, the three questions where it declined
-although public documentation covers them, and the five places the answer key itself was
+The page gives every question individually, what each setup answered, what it cost in tokens
+and time, the one check HiveMind failed, and the places the answer key itself turned out to be
 wrong.
 
 ---
