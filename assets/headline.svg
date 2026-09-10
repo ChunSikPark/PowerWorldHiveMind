@@ -47,8 +47,8 @@
   <line x1="85" y1="219" x2="85" y2="300" stroke="#57606a" stroke-width="1.5" stroke-dasharray="3,3"/>
   <circle cx="85" cy="232" r="3" fill="#ffffff" stroke="#57606a" stroke-width="1.5"/>
   <circle cx="85" cy="287" r="3" fill="#ffffff" stroke="#57606a" stroke-width="1.5"/>
-  <text x="40" y="322" font-size="10.5" font-style="italic" fill="#57606a">AI + web and AI alone tie at 4/16 correct &#8212;</text>
-  <text x="40" y="336" font-size="10.5" font-style="italic" fill="#57606a">the extra searching bought nothing over guessing from memory.</text>
+  <text x="40" y="322" font-size="10.5" font-style="italic" fill="#57606a">The two 4/16 figures come from runs whose context held four of</text>
+  <text x="40" y="336" font-size="10.5" font-style="italic" fill="#57606a">this repository&#8217;s own code rules. Being re-measured.</text>
 
   <!-- Panel 2: Looking up a command -->
   <rect x="420" y="75" width="380" height="300" rx="8" fill="#f6f8fa" stroke="#e1e4e8" stroke-width="1"/>

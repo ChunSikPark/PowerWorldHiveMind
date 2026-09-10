@@ -159,41 +159,41 @@ plus cache reads — everything the model had to process.
 
 | Q | The question | HiveMind | AI alone | AI + web |
 |---|---|---:|---:|---:|
-| A01 | Saved the case, no file appeared | 204k / 1 | 129k / 0 | 1.01M / 8 |
-| A02 | Set MW on just the coal units | **1.44M / 9** | 129k / 0 | 702k / 5 |
-| A03 | DC solve says balanced, generation short | 205k / 1 | 129k / 0 | 632k / 5 |
-| A04 | Created lines, nothing was created | 515k / 3 | 129k / 0 | 861k / 7 |
-| A05 | Setting the N-1 voltage limits | 754k / 5 | 129k / 0 | 1.58M / 12 |
-| A06 | Which contingency caused which overload | 513k / 4 | 129k / 0 | 926k / 7 |
-| A07 | Area filter hid every tie-line violation | 782k / 6 | 65k / 0 | 1.32M / 11 |
-| A08 | Violations from a case never solved | 855k / 6 | 129k / 0 | 633k / 4 |
-| A09 | Sorting violations worst-first | 942k / 6 | 129k / 0 | 861k / 7 |
-| A10 | One contingency per new generator | 857k / 5 | 345k / 2 | 1.08M / 8 |
-| A11 | Total system inertia | 801k / 6 | 129k / 0 | 783k / 6 |
-| A12 | Reclassifying lines as transformers | 602k / 4 | 129k / 0 | 1.32M / 11 |
-| A13 | Prerequisites for hourly wind and solar | 644k / 5 | 129k / 0 | 1.01M / 8 |
-| A14 | Capacity factor from timestep output | 557k / 4 | 129k / 0 | 707k / 5 |
-| A15 | Solves in DC, trust it for AC? | **1.30M / 9** | 65k / 0 | 560k / 4 |
-| A16 | Speeding up a two-hour contingency run | 922k / 6 | 129k / 0 | 781k / 6 |
-| | **total** | **11.90M / 80** | 2.16M / 2 | 14.78M / 114 |
+| A01 | Saved the case, no file appeared | 205k / 1 | 130k / 0 | 1.01M / 8 |
+| A02 | Set MW on just the coal units | **1.44M / 9** | 130k / 0 | 703k / 5 |
+| A03 | DC solve says balanced, generation short | 205k / 1 | 129k / 0 | 633k / 5 |
+| A04 | Created lines, nothing was created | 516k / 3 | 131k / 0 | 863k / 7 |
+| A05 | Setting the N-1 voltage limits | 756k / 5 | 131k / 0 | 1.58M / 12 |
+| A06 | Which contingency caused which overload | 515k / 4 | 131k / 0 | 927k / 7 |
+| A07 | Area filter hid every tie-line violation | 783k / 6 | 66k / 0 | 1.33M / 11 |
+| A08 | Violations from a case never solved | 856k / 6 | 130k / 0 | 635k / 4 |
+| A09 | Sorting violations worst-first | 945k / 6 | 131k / 0 | 864k / 7 |
+| A10 | One contingency per new generator | 860k / 5 | 347k / 2 | 1.09M / 8 |
+| A11 | Total system inertia | 803k / 6 | 131k / 0 | 785k / 6 |
+| A12 | Reclassifying lines as transformers | 604k / 4 | 131k / 0 | 1.33M / 11 |
+| A13 | Prerequisites for hourly wind and solar | 645k / 5 | 131k / 0 | 1.02M / 8 |
+| A14 | Capacity factor from timestep output | 559k / 4 | 131k / 0 | 709k / 5 |
+| A15 | Solves in DC, trust it for AC? | **1.30M / 9** | 65k / 0 | 562k / 4 |
+| A16 | Speeding up a two-hour contingency run | 925k / 6 | 132k / 0 | 783k / 6 |
+| | **total** | **11.93M / 80** | 2.18M / 2 | 14.82M / 114 |
 
-**HiveMind is cheaper than searching on average and more expensive on 5 of the 16.** A02 cost
+**HiveMind is cheaper than searching on average and more expensive on 6 of the 16.** A02 cost
 2.1× what the search cost; A15 cost 2.3×. When the search across these pages goes wide, this
-repository is the expensive option. Per-question it ranges from 204k to 1.44M tokens, depending
+repository is the expensive option. Per-question it ranges from 205k to 1.44M tokens, depending
 entirely on how fast it finds the right page.
 
-And on command lookup it is the most expensive of all four:
+And on command lookup it is the most expensive of the three:
 
 | Q | HiveMind | AI alone | AI + web |
 |---|---:|---:|---:|
-| R1 | 1.74M / 13 | 65k / 0 | 1.36M / 11 |
-| R2 | 1.43M / 11 | 346k / 2 | 863k / 7 |
-| R3 | 1.48M / 11 | 65k / 0 | 707k / 5 |
-| R4 | 1.38M / 10 | 65k / 0 | 487k / 4 |
-| R5 | 942k / 6 | 130k / 0 | 1.17M / 9 |
-| R6 | 1.09M / 7 | 65k / 0 | 706k / 6 |
-| R7 | 1.31M / 8 | 65k / 0 | 1.09M / 9 |
-| | **9.37M / 66** | 801k / 2 | **6.38M / 51** |
+| R1 | 1.75M / 13 | 66k / 0 | 1.36M / 11 |
+| R2 | 1.43M / 11 | 347k / 2 | 864k / 7 |
+| R3 | 1.48M / 11 | 66k / 0 | 709k / 5 |
+| R4 | 1.38M / 10 | 65k / 0 | 488k / 4 |
+| R5 | 943k / 6 | 131k / 0 | 1.17M / 9 |
+| R6 | 1.09M / 7 | 66k / 0 | 708k / 6 |
+| R7 | 1.32M / 8 | 66k / 0 | 1.09M / 9 |
+| | **9.39M / 66** | 806k / 2 | **6.39M / 51** |
 
 ---
 
@@ -206,40 +206,62 @@ costs about the same no matter which setup you use:
 |---|---|---:|---:|---:|
 | Silent failures | HiveMind | 80 | 10.27M | **128k** |
 | Silent failures | AI + web | 114 | 13.15M | **115k** |
-| Command lookup | HiveMind | 118 | 15.63M | **132k** |
-| Command lookup | AI + web | 76 | 8.78M | **115k** |
-| No answer here | HiveMind | 36 | 5.09M | **141k** |
-| No answer here | AI + web | 27 | 3.31M | **123k** |
+| Command lookup | HiveMind | 66 | 8.49M | **129k** |
+| Command lookup | AI + web | 51 | 5.74M | **113k** |
+| No answer here | HiveMind | 71 | 9.79M | **138k** |
+| No answer here | AI + web | 43 | 5.19M | **121k** |
 
-**Between 115k and 141k tokens per search, across every setup and every question group.** Your cost is set by *how many
+**Between 113k and 138k tokens per search, across every setup and every question group.** Your cost is set by *how many
 times the assistant has to look*, not by how much it reads when it gets there. A knowledge base
 that answers in one search is cheap; one that needs nine is not, regardless of page length.
 
 That is why A03 cost 205k with HiveMind (one search, straight to the page) and A02 cost 1.44M
 (nine searches, hunting).
 
-### Tokens per correct answer
+### What it costs, and why this is not a ranking
 
-![What each correct answer cost](assets/efficiency.svg)
+The obvious table here would be tokens per correct answer, per setup. **It has been removed.**
+It divided by the number of questions each setup got right, and for the two comparison setups
+that number came from runs whose context contained four of this repository's code rules — so
+every figure in it was built on a denominator that is not trustworthy. A re-run is measured and
+awaiting scoring.
 
-| Group | Setup | Correct | Tokens per correct answer |
-|---|---|:--:|---:|
-| Silent failures | AI alone | 4 of 16 | 539k |
-| Silent failures | **HiveMind** | **16 of 16** | **744k** |
-| Silent failures | AI + web | 4 of 16 | 3.69M |
-| Command lookup | AI alone | 4 of 7 | 399k |
-| Command lookup | AI + web | 7 of 7 | 1.43M |
-| Command lookup | **HiveMind** | 6 of 7 | **2.87M** |
+What can be said now is about **cost**, and it needs one honest caveat first.
 
-**Read cheapness carefully.** AI alone is cheapest in both groups because it barely tried — two
-searches across sixteen questions — not because it is efficient. It got 4 of 16.
+**Do not rank these setups by tokens.** Three things make a token count incomparable across
+them: they ran under different harnesses, they re-read different amounts of conversation per
+step, and — the one that surprised us — **they were given different instructions.** The same
+knowledge base, asked for an ordinary answer, took 8.1 searches per question; asked for the
+best answer it could produce, it took 14.3. One sentence moved cost 1.8x, more than doubling
+the corpus size did. A cost comparison across setups whose prompts differ is measuring the
+prompts.
 
-On silent failures HiveMind costs 38% more per answer than guessing and gets four times as many
-right, while searching costs five times more for the same four. On command lookup HiveMind is
-the most expensive per correct answer of the three.
+So the comparable unit here is **a search**, not a token. A search means the same thing
+everywhere: the assistant did not know, and had to go and look.
 
-Median wall-clock per question: **18 s** answering from memory, **34 s** with HiveMind, and
-**62 s** searching.
+![How many times each setup had to look](assets/hops.svg)
+
+**HiveMind searched 146 times across the 23 questions; a fresh assistant with a web browser
+searched 71.** That is not a win for either — it is the shape of the difference. Reading a
+knowledge base means opening pages, rejecting them, and opening more; a web search returns a
+digest. What it costs is settled below; whether the extra looking bought better answers is the
+part that is not yet scored.
+
+### Inside one setup, cost is set by how fast the page is found
+
+![What a question costs is how long the search took](assets/spread.svg)
+
+Every search re-reads the conversation so far, and that re-read is where the tokens go — about
+**143k per search**, near enough constant no matter which question or how long the run. So the
+cost of a question is very nearly *searches x 143k*, and nothing else moves it much.
+
+The consequence is a **9x spread across questions on the same pages**: 205k tokens when the
+right page is found immediately, 1.75M when it takes thirteen tries. Page length is not what
+you are paying for. **A long page found in one search is cheap; a short one found in nine is
+not.**
+
+Median wall-clock per question: **34 s** with HiveMind, **74 s** for a fresh assistant
+searching the web. That one needs no normalising — it is what a person actually waits.
 
 ---
 
@@ -291,6 +313,18 @@ Fixed by adding `methods/reducing-a-contingency-set.md`, then re-run four times:
   contained. An earlier version of this page reported search at 1 of 8 and did not mention it
   had beaten HiveMind at command lookup. Each was caught by reading an answer that contradicted
   its own score — never by a script.
+- **The per-answer cost figures were wrong once too, in the other direction.** The
+  command-lookup rows divided the whole of the second run across all fourteen of its
+  questions by one seven-question group's correct count, overstating every figure by about
+  1.8x — worst for this repository. Corrected above; the chart is now generated from the
+  measurements rather than transcribed.
+- **The two comparison setups were not as uninformed as they should have been.** Both ran
+  inside a harness that auto-loaded this repository's `AGENTS.md` into their context, and
+  four of its code rules state outright what four of the sixteen questions ask. "AI alone"
+  got exactly those four right and nothing else. Its real score is at most 4 of 16, so the
+  gap measured here is a floor rather than an estimate — but "searching scored the same as
+  not searching" rests on a number that has to be measured again before it can be trusted.
+  A re-run with both setups called directly, outside any harness, is specified and pending.
 - **The failed check has not been re-run**, because the question that failed is now covered and
   can no longer test whether HiveMind admits ignorance.
 
