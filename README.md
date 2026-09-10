@@ -100,24 +100,27 @@ Just say what you want — [the full prompt list](demos/start-here.md):
 
 ## Does it actually help?
 
-**[BENCHMARK.md](BENCHMARK.md)** — the same AI model answered the same PowerWorld questions
-three ways: with PowerWorldHiveMind on disk; as a fresh assistant taught nothing about
-PowerWorld first; and as that same fresh assistant free to search the open web. 108 runs,
-thresholds committed before any of them started.
+**[BENCHMARK.md](BENCHMARK.md)** — the same AI model answered the same 23 PowerWorld questions
+two ways: with PowerWorldHiveMind on disk, and as a capable assistant told nothing about
+PowerWorld but free to search the open web. Every answer was then marked right or wrong by a
+grader that did not know which setup wrote it.
 
-![Where HiveMind wins and where it doesn't](assets/headline.svg)
+![Where PowerWorldHiveMind helps and where it does not](assets/headline.svg)
 
-**On the things PowerWorld gets wrong quietly, it is not close.** Sixteen questions where
-Simulator accepts your call, reports success and returns something wrong: HiveMind got all
-sixteen. Searching the web got four. Answering from memory also got four — the searching
-bought nothing.
+**On the things PowerWorld gets wrong quietly, it is not close.** 16 questions where
+Simulator accepts your call, reports success and returns something wrong: HiveMind solved
+**15**. A fresh assistant with the whole open web solved 4. Public
+documentation says what a command does; it does not say that the call returns success and
+writes nothing.
 
-**On looking up a command name, use PowerWorld's manual instead.** Search scored 7 of 7 there
-against HiveMind's 6, and returned argument syntax this repository does not publish.
+**On looking up a command name, open PowerWorld's manual instead.** HiveMind managed
+4 of 7 there and spent more searches doing it than the web did. This
+repository deliberately does not publish argument syntax, so it will sometimes name the right
+command and still not give you a signature to call it with.
 
-The page gives every question individually, what each setup answered, what it cost in tokens
-and time, the one check HiveMind failed, and the places the answer key itself turned out to be
-wrong.
+Overall: **19 of 23 against 6 of 23**. The page gives every question individually, what
+each setup answered, what it cost, and — at some length — the ways an earlier version of this
+benchmark was wrong.
 
 ---
 

@@ -1,77 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="820" height="400" viewBox="0 0 820 400" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">
-  <rect x="0" y="0" width="820" height="400" fill="#ffffff"/>
-
-  <text x="40" y="34" font-size="20" font-weight="700" fill="#1f2328">Where HiveMind wins, and where it doesn't</text>
-  <text x="40" y="56" font-size="13" fill="#57606a">PowerWorldHiveMind against a fresh AI, with and without web search</text>
-
-  <!-- Panel 1: Undocumented traps (stacked correct / partial / wrong, out of 16) -->
-  <rect x="20" y="75" width="380" height="300" rx="8" fill="#f6f8fa" stroke="#e1e4e8" stroke-width="1"/>
-  <text x="40" y="105" font-size="16" font-weight="700" fill="#1f2328">Undocumented traps</text>
-  <text x="40" y="123" font-size="11" fill="#57606a">16 questions &#183; PowerWorld fails silently, no error</text>
-
-  <!-- legend -->
-  <rect x="40" y="133" width="9" height="9" fill="#2563eb"/>
-  <text x="53" y="141" font-size="10.5" fill="#57606a">Correct</text>
-  <rect x="112" y="133" width="9" height="9" fill="#c7ccd1"/>
-  <text x="125" y="141" font-size="10.5" fill="#57606a">Partial</text>
-  <rect x="182" y="133" width="9" height="9" fill="#6b7280"/>
-  <text x="195" y="141" font-size="10.5" fill="#57606a">Wrong</text>
-
-  <!-- row: with HiveMind - 16 correct, 0 partial, 0 wrong -->
-  <text x="40" y="158" font-size="12" fill="#24292f">HiveMind</text>
-  <rect x="40" y="164" width="180" height="26" rx="3" fill="none" stroke="#d0d7de" stroke-width="1"/>
-  <rect x="40" y="164" width="180.00" height="26" fill="#2563eb"/>
-  <text x="130" y="181" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">16 correct</text>
-
-  <!-- row: AI + web - 4 correct, 5 partial, 7 wrong -->
-  <text x="40" y="213" font-size="12" fill="#24292f">AI + web</text>
-  <rect x="40" y="219" width="180" height="26" rx="3" fill="none" stroke="#d0d7de" stroke-width="1"/>
-  <rect x="40.00" y="219" width="45.00" height="26" fill="#2563eb"/>
-  <rect x="85.00" y="219" width="56.25" height="26" fill="#c7ccd1"/>
-  <rect x="141.25" y="219" width="78.75" height="26" fill="#6b7280"/>
-  <text x="62.5" y="236" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
-  <text x="113.125" y="236" font-size="12" font-weight="700" fill="#24292f" text-anchor="middle">5</text>
-  <text x="180.625" y="236" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">7</text>
-
-  <!-- row: AI alone - 4 correct, 6 partial, 6 wrong -->
-  <text x="40" y="268" font-size="12" fill="#24292f">AI alone</text>
-  <rect x="40" y="274" width="180" height="26" rx="3" fill="none" stroke="#d0d7de" stroke-width="1"/>
-  <rect x="40.00" y="274" width="45.00" height="26" fill="#2563eb"/>
-  <rect x="85.00" y="274" width="67.50" height="26" fill="#c7ccd1"/>
-  <rect x="152.50" y="274" width="67.50" height="26" fill="#6b7280"/>
-  <text x="62.5" y="291" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
-  <text x="118.75" y="291" font-size="12" font-weight="700" fill="#24292f" text-anchor="middle">6</text>
-  <text x="186.25" y="291" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">6</text>
-
-  <!-- tie marker: AI + web and AI alone both land on 4/16 correct -->
-  <line x1="85" y1="219" x2="85" y2="300" stroke="#57606a" stroke-width="1.5" stroke-dasharray="3,3"/>
-  <circle cx="85" cy="232" r="3" fill="#ffffff" stroke="#57606a" stroke-width="1.5"/>
-  <circle cx="85" cy="287" r="3" fill="#ffffff" stroke="#57606a" stroke-width="1.5"/>
-  <text x="40" y="322" font-size="10.5" font-style="italic" fill="#57606a">The two 4/16 figures come from runs whose context held four of</text>
-  <text x="40" y="336" font-size="10.5" font-style="italic" fill="#57606a">this repository&#8217;s own code rules. Being re-measured.</text>
-
-  <!-- Panel 2: Looking up a command -->
-  <rect x="420" y="75" width="380" height="300" rx="8" fill="#f6f8fa" stroke="#e1e4e8" stroke-width="1"/>
-  <text x="440" y="105" font-size="16" font-weight="700" fill="#1f2328">Looking up a command</text>
-  <text x="440" y="123" font-size="11" fill="#57606a">7 questions &#183; answer is a SCRIPT command name</text>
-
-  <!-- row: AI + web (winner, 7/7) -->
-  <text x="440" y="184" font-size="12" fill="#24292f">AI + web</text>
-  <rect x="440" y="190" width="180" height="26" rx="3" fill="none" stroke="#d0d7de" stroke-width="1"/>
-  <rect x="440" y="190" width="180.00" height="26" rx="3" fill="#d97706"/>
-  <text x="628" y="208" font-size="13" font-weight="700" fill="#d97706">7 / 7</text>
-
-  <!-- row: with HiveMind (6/7) -->
-  <text x="440" y="239" font-size="12" fill="#24292f">HiveMind</text>
-  <rect x="440" y="245" width="180" height="26" rx="3" fill="none" stroke="#d0d7de" stroke-width="1"/>
-  <rect x="440" y="245" width="154.29" height="26" rx="3" fill="#a8c3f0"/>
-  <text x="602" y="263" font-size="13" font-weight="600" fill="#3a5da8">6 / 7</text>
-
-  <!-- row: AI alone (4/7) -->
-  <text x="440" y="294" font-size="12" fill="#24292f">AI alone</text>
-  <rect x="440" y="300" width="180" height="26" rx="3" fill="none" stroke="#d0d7de" stroke-width="1"/>
-  <rect x="440" y="300" width="102.86" height="26" rx="3" fill="#b0b7c3"/>
-  <text x="551" y="318" font-size="13" font-weight="600" fill="#57606a">4 / 7</text>
-
-  <text x="440" y="392" font-size="10" fill="#8c95a1">Bar length is proportional to value / panel total; panel 1 bars are stacked correct + partial + wrong.</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="492" viewBox="0 0 980 492" font-family="system-ui, -apple-system, Segoe UI, sans-serif">
+<rect x="0" y="0" width="980" height="492" fill="#fcfcfb"/>
+<text x="20" y="32" font-size="21" font-weight="700" fill="#0b0b0b">Where PowerWorldHiveMind helps, and where it does not</text>
+<text x="20" y="56" font-size="14.5" fill="#52514e">The same 23 PowerWorld questions, answered two ways.</text>
+<text x="20" y="76" font-size="14.5" fill="#52514e">Each answer marked right or wrong by a grader who did not know which setup produced it.</text>
+<rect x="20" y="95" width="13" height="13" rx="3" fill="#eb6834"/>
+<text x="40" y="106" font-size="14" fill="#0b0b0b">An assistant with this repository</text>
+<rect x="310" y="95" width="13" height="13" rx="3" fill="#1baf7a"/>
+<text x="330" y="106" font-size="14" fill="#0b0b0b">A fresh assistant with a web browser</text>
+<text x="20" y="152" font-size="15.5" font-weight="700" fill="#0b0b0b">Questions PowerWorld answers wrongly without erroring</text>
+<text x="20" y="171" font-size="13" fill="#898781">16 questions</text>
+<text x="318" y="209" font-size="14" fill="#0b0b0b" text-anchor="end">With this repository</text>
+<rect x="330" y="192" width="470" height="24" rx="5" fill="#e9e8e3"/>
+<rect x="330" y="192" width="440.62" height="24" rx="5" fill="#eb6834"/>
+<text x="812" y="209" font-size="15" font-weight="700" fill="#0b0b0b">15 of 16</text>
+<text x="318" y="247" font-size="14" fill="#0b0b0b" text-anchor="end">Fresh assistant + web</text>
+<rect x="330" y="230" width="470" height="24" rx="5" fill="#e9e8e3"/>
+<rect x="330" y="230" width="117.50" height="24" rx="5" fill="#1baf7a"/>
+<text x="812" y="247" font-size="15" font-weight="700" fill="#0b0b0b">4 of 16</text>
+<text x="20" y="310" font-size="15.5" font-weight="700" fill="#0b0b0b">Looking up a command name</text>
+<text x="20" y="329" font-size="13" fill="#898781">7 questions</text>
+<text x="318" y="367" font-size="14" fill="#0b0b0b" text-anchor="end">With this repository</text>
+<rect x="330" y="350" width="470" height="24" rx="5" fill="#e9e8e3"/>
+<rect x="330" y="350" width="268.57" height="24" rx="5" fill="#eb6834"/>
+<text x="812" y="367" font-size="15" font-weight="700" fill="#0b0b0b">4 of 7</text>
+<text x="318" y="405" font-size="14" fill="#0b0b0b" text-anchor="end">Fresh assistant + web</text>
+<rect x="330" y="388" width="470" height="24" rx="5" fill="#e9e8e3"/>
+<rect x="330" y="388" width="134.29" height="24" rx="5" fill="#1baf7a"/>
+<text x="812" y="405" font-size="15" font-weight="700" fill="#0b0b0b">2 of 7</text>
+<text x="20" y="458" font-size="13" fill="#52514e">Bar length is the share of questions answered correctly.</text>
+<text x="20" y="477" font-size="12.5" fill="#898781">Right or wrong only, no partial credit. Same questions, same grader, both setups.</text>
 </svg>
