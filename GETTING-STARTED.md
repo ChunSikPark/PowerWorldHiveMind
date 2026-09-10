@@ -92,48 +92,44 @@ computer. `Code` can. Landing in the wrong one is a common way to get stuck here
 
 ## Step 4 — Install the knowledge base
 
-In the box where you type, enter this line and press Enter:
+In the box where you type, paste this and press Enter. It is a sentence, not a command:
+
+```
+Clone https://github.com/ChunSikPark/PowerWorldHiveMind into
+~/.claude/skills/powerworld-hivemind for me.
+```
+
+Claude downloads it into a folder it already watches. **Restart Claude** and it is loaded.
+That is the whole installation: no folder to pick, no ZIP to unzip, nothing to remember
+where you put.
+
+To update it later, ask Claude to `git pull` in that folder. To remove it, delete the
+folder.
+
+### The slash-command route
+
+If you are using the Claude Code **terminal** version, these two do the same job and keep
+themselves up to date. Enter them **one at a time** — pasting both at once fails, and so
+does pressing Enter in the middle of a line:
 
 ```
 /plugin marketplace add ChunSikPark/PowerWorldHiveMind
 ```
 
-Then this one:
-
 ```
 /plugin install powerworld-hivemind
 ```
-
-**One at a time.** Pasting both at once fails, and so does pressing Enter in the middle of
-a line. Wrapping is fine; a line break is not.
 
 That is the whole installation. Claude downloads the knowledge base itself and knows where
 it lives — there is no folder to pick, no ZIP to unzip, and nothing to keep track of.
 
 **Then start a new session** so the plugin loads. Every session after this one has it.
 
-### If it says "`/plugin` isn't available in this environment"
+**If it says "`/plugin` isn't available in this environment"**, nothing is broken and you
+did nothing wrong — `/plugin` only works in the terminal version. Use the sentence above
+instead, which works in both.
 
-Nothing is broken and you did nothing wrong. `/plugin` only works in the terminal version
-of Claude Code. In the desktop app the same thing is a menu:
-
-1. Click the **+** button next to the box where you type.
-2. Choose **Plugins**, then **Add plugin**.
-3. Find **powerworld-hivemind** and install it.
-
-If it is not listed there, the marketplace has not been added yet, and that step currently
-does need one command. Open a terminal and run these two, then reopen Claude:
-
-```
-claude plugin marketplace add ChunSikPark/PowerWorldHiveMind
-claude plugin install powerworld-hivemind@powerworld-hivemind
-```
-
-`claude plugin list` afterwards should show `powerworld-hivemind`. We are working on
-removing this last terminal step — see [issue
-tracker](https://github.com/ChunSikPark/PowerWorldHiveMind/issues).
-
-**If the first line fails mentioning `git`**, Git is not installed; see the table in Step 1.
+**If Claude cannot run `git`**, Git is not installed; see the table in Step 1.
 
 ---
 

@@ -53,8 +53,22 @@ Hand it a case file and ask a question in plain English:
 
 ## Install
 
-**Claude Code — two lines.** Enter them **one at a time**; pasting both at once fails, and
-so does letting a line break in the middle.
+**Easiest, and it works everywhere.** Paste this sentence to Claude — not a command, just
+ask it:
+
+```
+Clone https://github.com/ChunSikPark/PowerWorldHiveMind into
+~/.claude/skills/powerworld-hivemind for me.
+```
+
+Restart Claude and it is loaded. Anything under `~/.claude/skills/` that carries a
+`.claude-plugin/plugin.json` is picked up automatically, so there is no marketplace to add,
+no `/plugin` command, and no terminal. Works in the desktop app and the CLI alike. To
+update it later, ask Claude to `git pull` in that folder; to remove it, delete the folder.
+
+**Or, in the Claude Code CLI, two slash commands.** These auto-update themselves, which the
+route above does not. Enter them **one at a time** — pasting both at once fails, and so
+does letting a line break in the middle.
 
 ```
 /plugin marketplace add ChunSikPark/PowerWorldHiveMind
