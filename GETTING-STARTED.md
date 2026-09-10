@@ -124,9 +124,8 @@ Type:
 This installs the two Python packages and runs the checks that say whether this machine
 can drive PowerWorld at all. One of three things happens:
 
-**Everything passes.** You are ready. It will print the PowerWorld **build date** — worth
-noting, because PowerWorld's behaviour changes between versions. Skip to [What to ask
-next](#what-to-ask-next).
+**Everything passes.** It prints the PowerWorld **build date**, which is worth noting
+because PowerWorld's behaviour changes between versions. Go on to Step 6.
 
 **It cannot find Python.** The "Add Python to PATH" box in Step 2 was not ticked. Re-run
 the Python installer, choose **Modify**, and turn on "Add Python to environment
@@ -134,6 +133,42 @@ variables". Then run `/powerworld-setup` again.
 
 **It fails on SimAuto or a licence.** Read [About the PowerWorld
 licence](#about-the-powerworld-licence). This one is not fixable in code.
+
+---
+
+## Step 6 — Check that it actually knows PowerWorld
+
+Step 5 checked your machine. This checks that the knowledge reached your agent, which is a
+separate thing and fails separately.
+
+**Open a folder that has nothing to do with PowerWorld** — any project, or an empty one.
+The knowledge should travel with you, and this is the step that proves it does. Then ask:
+
+> Without running any code, tell me what happens if I call `pw.esa.SaveCase("out.pwb")`.
+
+**A right answer says it silently does nothing** — that the call returns success, writes no
+file, and that you have to use the script form `RunScriptCommand('SaveCase("out.pwb", PWB);')`
+and check the file exists afterwards.
+
+**A wrong answer says it saves the case.** That is the sensible guess from the method name,
+and it is what any assistant says when it has not read these pages. If you get it, the
+knowledge did not load. Two usual causes:
+
+- **You did not start a new session after installing.** Plugins load when a session starts.
+  Close it, open a new one, ask again.
+- **The plugin is not installed in this profile.** Run `/plugin` and check
+  `powerworld-hivemind` is listed and enabled.
+
+Ask a second one if you want to be sure:
+
+> Which page in the knowledge base covers reading contingency violations, and what does it
+> warn about?
+
+It should name `methods/reading-violationctg.md` and say the results persist stale inside
+the `.pwb`, so you clear them before solving. If it names a page but cannot open it, tell it
+the pages live under `${CLAUDE_PLUGIN_ROOT}` — and please [open an
+issue](https://github.com/ChunSikPark/PowerWorldHiveMind/issues), because that is a bug in
+the kit rather than in anything you did.
 
 ---
 
