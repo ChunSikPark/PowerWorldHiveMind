@@ -57,8 +57,7 @@ Hand it a case file and ask a question in plain English:
 ask it:
 
 ```
-Clone https://github.com/ChunSikPark/PowerWorldHiveMind into
-~/.claude/skills/powerworld-hivemind for me.
+Install the PowerWorld knowledge base: git clone https://github.com/ChunSikPark/PowerWorldHiveMind ~/.claude/skills/powerworld-hivemind
 ```
 
 Restart Claude and it is loaded. Anything under `~/.claude/skills/` that carries a

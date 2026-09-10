@@ -95,8 +95,7 @@ computer. `Code` can. Landing in the wrong one is a common way to get stuck here
 In the box where you type, paste this and press Enter. It is a sentence, not a command:
 
 ```
-Clone https://github.com/ChunSikPark/PowerWorldHiveMind into
-~/.claude/skills/powerworld-hivemind for me.
+Install the PowerWorld knowledge base: git clone https://github.com/ChunSikPark/PowerWorldHiveMind ~/.claude/skills/powerworld-hivemind
 ```
 
 Claude downloads it into a folder it already watches. **Restart Claude** and it is loaded.
