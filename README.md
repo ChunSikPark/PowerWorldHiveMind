@@ -99,7 +99,27 @@ pip install esapp TeamOverbyeWeather
 
 Then tell it: `Read AGENTS.md and run the preflight.`
 
-New to all of this? [GETTING-STARTED.md](GETTING-STARTED.md) walks it from zero.
+### Never done this before?
+
+The install above assumes Claude Code is already working. From a standing start it is six
+steps, about fifteen minutes:
+
+1. **Install Claude** — [claude.com/download](https://claude.com/download). Needs a paid
+   plan and [Git](https://git-scm.com/downloads/win).
+2. **Install Python** — [python.org/downloads](https://www.python.org/downloads/), and
+   tick **"Add Python to PATH"** on the first screen. Missing that box is the most common
+   way this goes wrong.
+3. **Click `Code`** in Claude, top left. `Chat and Cowork` cannot see your files.
+4. **Paste the install line above**, then `/reload-plugins`.
+5. **Run `/powerworld-hivemind:powerworld-setup`** — it installs the Python packages and
+   checks whether this machine can drive PowerWorld at all.
+6. **Prove it worked** — in a folder unrelated to PowerWorld, ask what
+   `pw.esa.SaveCase("out.pwb")` does. "Silently writes no file" means it worked. "Saves the
+   case" means the knowledge did not load.
+
+**[GETTING-STARTED.md](GETTING-STARTED.md)** is the same six steps with screenshots, what
+each failure looks like, and what to do about it. Written for someone who has never
+installed Python or used an AI coding agent.
 
 ### Which file your agent actually reads
 
@@ -179,14 +199,6 @@ command and still not give you a signature to call it with.
 
 Overall: **19 of 23 against 6 of 23**. The page lists every question, both verdicts, what
 each setup spent, and how an earlier version of this benchmark was scored wrong.
-
----
-
-## Never used this kind of thing before?
-
-**[GETTING-STARTED.md](GETTING-STARTED.md)** walks through it from zero, with screenshots
-of what you should see at each step. It assumes you have never installed Python and have
-never used an AI coding assistant. Budget about twenty minutes.
 
 ---
 
