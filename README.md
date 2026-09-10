@@ -100,22 +100,20 @@ Just say what you want — [the full prompt list](demos/start-here.md):
 
 ## Does it actually help?
 
-**[BENCHMARK.md](BENCHMARK.md)** — 82 agent runs, thresholds committed before any of them started.
+**[BENCHMARK.md](BENCHMARK.md)** — 130 agent runs, thresholds committed before any started.
 
-Sixteen PowerWorld questions, answered by the same model with the kit and without it:
+**Yes, for the failures that do not raise an error.** Eight questions about PowerWorld
+behaviour that quietly returns a wrong answer: the kit got all eight, a model with web search
+got one, a model working from memory got none.
 
-![Accuracy with and without the kit](assets/accuracy-16.svg)
+![Silent-failure traps](assets/traps.svg)
 
-The model without the kit never said "I don't know." It claimed confidence on all 16 and got
-4 right, and its wrong answers were the kind PowerWorld accepts without complaining.
+**No, for looking up a command name.** On seven questions whose answer is a SCRIPT command,
+web search scored 7 of 7 against this kit's 6, and returned argument syntax the kit does not
+publish. If that is your question, read PowerWorld's own manual.
 
-Giving a model web search instead of the kit fixed **one** of the 8 hardest questions, and
-took 8.6 minutes and 8.5 million tokens to do it. The kit got 8 of 8 in 4.6 minutes. Most of
-what it knows was found by running PowerWorld and watching it fail quietly, which is not
-something you can search for.
-
-**The kit also failed one of its eight checks**, and that is in there too: what broke, why,
-the fix, and the re-run showing the fix worked.
+The benchmark also records where the kit failed one of its eight checks, and where the answer
+key itself turned out to be wrong.
 
 ---
 
