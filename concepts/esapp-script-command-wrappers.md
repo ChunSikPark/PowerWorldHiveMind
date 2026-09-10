@@ -98,10 +98,9 @@ largely oneline/GUI actions (`OpenOneline`, `ExportOneline`, `Animate`), dialogs
 (`ATCWriteToExcel`, `SaveDataUsingExportFormat`).
 
 Look the command up in the **SCRIPT command → esapp method index** at the bottom of the
-`esapp` skill's `saw-reference.md` before concluding one is missing. That file is
-generated from source by `regen_reference.py`; regenerate it after every esapp upgrade
-rather than trusting a hand-written table (the previous hand-written one had drifted
-badly — see the log entry for 2026-09-08).
+esapp package's own method list before concluding one is missing — absence from
+[aux-script-commands](../references/aux-script-commands.md) proves nothing, since that
+page is a task-organized working subset rather than a complete index.
 
 Leave a comment saying why whenever you do call `RunScriptCommand`.
 

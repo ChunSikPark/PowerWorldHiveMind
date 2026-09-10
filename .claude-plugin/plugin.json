@@ -14,5 +14,7 @@
     "weather",
     "timestep",
     "contingency-analysis"
-  ]
+  ],
+  "homepage": "https://github.com/ChunSikPark/PowerWorldHiveMind",
+  "repository": "https://github.com/ChunSikPark/PowerWorldHiveMind"
 }

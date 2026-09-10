@@ -51,14 +51,18 @@ The kit is 44 pages — 17 in `concepts/`, 16 in `methods/`, 7 in `demos/`, 4 in
    of five terms on one page is your page; one common word is noise.
 
    Whatever your tool calls it, you want a full-text search across `concepts/`,
-   `methods/`, `demos/` and `references/`:
+   `methods/`, `demos/` and `references/` — **all four relative to the kit root, not to the
+   working directory.** The kit root is `${CLAUDE_PLUGIN_ROOT}` when installed as a plugin,
+   and otherwise the directory holding this file. `$KIT` below means that path: substitute
+   it before running anything, or the search hits the wrong tree and returns nothing.
    - **Claude Code** — the `Grep` tool with `path` set to the kit root and
      `output_mode: "files_with_matches"`, one call per term or an alternation.
-   - **Any shell with ripgrep** — `rg -il "savecase|save the case" concepts methods demos references`
+   - **Any shell with ripgrep** — `rg -il "savecase|save the case" "$KIT/concepts" "$KIT/methods" "$KIT/demos" "$KIT/references"`
    - **Cursor** — project-wide find (Ctrl+Shift+F), or a codebase search scoped to those
      four directories.
    - **Windows with neither `rg` nor `grep`** — PowerShell:
-     `Select-String -Pattern "SaveCase" -Path concepts\*.md,methods\*.md,demos\*.md,references\*.md`
+     `Select-String -Pattern "SaveCase" -Path $KIT\concepts\*.md,$KIT\methods\*.md,$KIT\demos\*.md,$KIT
+eferences\*.md`
 
    Search is step one because it was measured against the alternatives. 48 agents, 16
    questions with human-written answers, 2026-09-07: searching found the right page 10
