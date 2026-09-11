@@ -24,14 +24,21 @@ symbols below were live-verified against the installed package (not guessed).
 
 - **Up:** [esapp](../concepts/esapp.md) · esa pp llm
 - **Across:** [esapp-overview](esapp-overview.md) · [esapp-schema-reference](../references/esapp-schema-reference.md) · [powerworld-simauto](../concepts/powerworld-simauto.md)
-- **Deeper:** esa pp llm backend
+- **Deeper:** [esapp-package-backend](../references/esapp-package-backend.md)
 
 ## Content
 
 ### The write path: `pw.esa.CreateData` (not the bracket writer)
 
-The bracket writer `pw[GType] = df` rejects read-only key/status fields, so for creating objects use
-the SAW script command `CreateData` on `pw.esa`. Wrap creation in EDIT mode:
+For creating objects use the SAW script command `CreateData` on `pw.esa`. Wrap creation in EDIT mode:
+
+> **Why not the bracket writer?** Through esapp 0.1.x it *rejected* read-only key/status fields
+> outright, which settled the question. On **0.2.1 it only warns and writes anyway**, so
+> `pw[GType] = df` can now create objects too (EDIT mode + `CreateIfNotFound=True` + a complete
+> key set). `CreateData` is still preferred here because it states the intent to create, fails
+> loudly on a malformed field list, and does not bury a real problem under a
+> `UserWarning: Read-only field(s)` that is usually a false alarm — see
+> [esapp](../concepts/esapp.md).
 
 ```python
 pw.edit_mode()
@@ -110,9 +117,23 @@ pw.run_mode()
 assert len(pw.esa.GetParametersMultipleElement("Shunt", ["BusNum","ShuntID"])) - n0 == n_expected
 ```
 
-**`SSMinMVR` and `SSMaxMVR` are NOT writable.** They are *derived* from the blocks - pass them and
-the bracket writer raises `Cannot set read-only field(s)`. Size the bank through the block instead
-and read the limits back afterwards.
+**`SSMinMVR` and `SSMaxMVR` are NOT writable.** They are *derived* from the blocks. Pass them and
+esapp 0.1.x raised `Cannot set read-only field(s)`; **0.2.1 only warns, sends the write, and
+PowerWorld discards it** — so on 0.2.1 you get a silent no-op instead of an error. Size the bank
+through the block instead and read the limits back afterwards to confirm.
+
+Unlike the `Branch`/`Gen` false alarms in [esapp](../concepts/esapp.md), this one is a **true**
+read-only: PowerWorld's own `enterable` column is blank for both fields, which is why the write
+vanishes. That is the test to apply whenever you see the warning —
+
+```python
+fl = pw.esa.GetFieldList('shunt')
+fl[fl.internal_field_name.isin(['SSMinMVR','SSMaxMVR'])][['internal_field_name','enterable']]
+```
+
+✅ **Verified live 2026-09-10** (Texas2K, 157 shunts, build 2026-07-22, esapp 0.2.1):
+`enterable` blank for both; `pw[Shunt] = df` with `SSMinMVR = -999.0` raised nothing and left
+the value at `-15.0`.
 
 **The block spelling is `SSBlockMVarPerStep` - capital V, and block 0 carries NO `:0` suffix**
 (`:1` through `:9` are blocks 1-9). Same for `SSBlockNumSteps`. This is settled by esapp's own
@@ -225,8 +246,8 @@ violation counts and convergence; `Branch.LineMaxPercentContingency` gives the w
 
 The `esa_pp_llm` bench wraps all of this as **`run_contingency(pw, method="DC", ...)`** →
 `solve_contingency` (the `SetData`/`CTGSolveAll` above) + `get_contingency_results` (the result
-frames) + an optional summary. For AC, pass `method="AC"` (`DCApprox=NO`). Deeper:
-**esa pp llm backend** · **reactive power planning backend**. A manual snapshot→open→re-solve
+frames) + an optional summary. For AC, pass `method="AC"` (`DCApprox=NO`).
+A manual snapshot→open→re-solve
 loop is unnecessary — it just re-implements, worse, what `CTGSolveAll` already does.
 
 ### Recovering the devices a case already added (diff a modified vs base case)
@@ -279,10 +300,8 @@ filtered subset writes nothing, silently. Live-verified on Synth9k/Synth8k 2031,
   [adding-devices-esapp](adding-devices-esapp.md) (same key-field discipline, and the `CreateData` silent no-op) ·
   [converting-lines-to-transformers](converting-lines-to-transformers.md) (the other place esapp's static whitelist is wrong) ·
   [case-impedance-completeness](../concepts/case-impedance-completeness.md) (**check this before promising anyone AC** — the cases
-  these scenarios are built from are DC-only skeletons) · artifact level validation
+  these scenarios are built from are DC-only skeletons) · artifact-level validation
   (reopen the saved `.pwb` cold; a save that "succeeded" is not evidence)
-- **Deeper:** dispatch backend — `scripts/build_scenario_cases_9k.py` is the worked
-  implementation (`--case`, `--apply`, `--strict`)
 
 ## Content
 
@@ -384,8 +403,7 @@ Five scenarios × two fleets, same loads (143,590.9 MW peak, same 41,465.0 MW fi
 | Synth8k 2031 draft (pre-swap) | 65,313.9 MW | 3 of 5; **Sce2 short 4,283.0 MW, Sce4 short 31,248.5 MW** |
 
 The 8k shortfalls are genuine nameplate deficits — the whole conventional fleet runs flat out
-— consistent with the earlier 2026 07 14 real hour dispatch rebuild finding, larger here
-only because the datacenter block is held at full load while the rest scales down.
+— consistent with an earlier real-hour dispatch rebuild, larger here only because the datacenter block is held at full load while the rest scales down.
 
 **Both base cases are DC-only skeletons** (`LineR ≤ 1e-6` and `LineC == 0` on 97.5% / 100% of
 closed lines; median X/R **100,010** and **113,465**), so every scenario case built from them
@@ -410,9 +428,10 @@ tags: [esapp, powerworld, simauto, branch, transformer, linexfmr, editmode]
 How to reclassify existing `Branch` objects as transformers when a case models every branch as a
 line even where the two ends sit at different nominal kV. Two gotchas, both live-verified on
 Synth8k: **(1)** `BranchDeviceType` is derived and read-only — the real switch is `LineXFMR = "YES"`
-plus `XFNominalKV`/`XFNominalKV:1`; **(2)** esapp's bracket writer rejects every `XF*` field as
-read-only from its own **static whitelist**, which is wrong — the fields are writable in PowerWorld
-EDIT mode, so go around esapp via `pw.esa.ChangeParametersMultipleElement`. With `XFFixedTap = 1.0`
+plus `XFNominalKV`/`XFNominalKV:1`; **(2)** esapp flags every `XF*` field read-only from its own
+**static whitelist**, which is wrong — the fields are writable in PowerWorld EDIT mode. On esapp
+0.2.1 that flag is only a `UserWarning` and `pw[Branch] = df` works; on 0.1.x it raised and you had
+to go around esapp via `pw.esa.ChangeParametersMultipleElement`. With `XFFixedTap = 1.0`
 and `LineC = 0`, the conversion is electrically a **no-op** (verified: max |ΔV| = 0.0 pu,
 max |ΔMW| = 0.0) — pure reclassification, R+jX untouched.
 
@@ -420,7 +439,7 @@ max |ΔMW| = 0.0) — pure reclassification, R+jX untouched.
 
 - **Up:** [esapp](../concepts/esapp.md) · esapp package
 - **Across:** [adding-devices-esapp](adding-devices-esapp.md) · [save-powerworld-case](save-powerworld-case.md) · [powerworld-limitset-setdata](powerworld-limitset-setdata.md) · [esapp-overview](esapp-overview.md)
-- **Deeper:** reactive power planning backend · [esapp-package-backend](../references/esapp-package-backend.md)
+- **Deeper:** [esapp-package-backend](../references/esapp-package-backend.md)
 
 ## Content
 
@@ -439,19 +458,38 @@ before trusting it. On Synth8k the only pairs were 765/345, 345/138, 138/69 (158
 **`BranchDeviceType` is derived.** You cannot set it. It reports `Transformer` once `LineXFMR` is
 `YES`. Setting `LineXFMR` alone is the switch; the `XF*` fields are the transformer's parameters.
 
-**esapp's read-only list is a static whitelist, not PowerWorld truth.** This fails:
+**esapp's read-only list is a static whitelist, not PowerWorld truth.** It marks every `XF*`
+field read-only — `['LineXFMR', 'XFAuto', 'XFNominalKV', 'XFNominalKV:1', 'XFFixedTap',
+'XFMVABase', 'XFTapMin', 'XFTapMax', 'XFStep', 'XFTapDegree', 'XFRegMin', 'XFRegMax',
+'XFRegBus', 'XFUseLineZ', 'XFPhaseType']` — and PowerWorld disagrees. What that costs you
+depends on your esapp version:
+
+| esapp | `pw[Branch] = df` with `XF*` columns |
+|---|---|
+| 0.1.x | **raises** `ValueError: Cannot set read-only field(s) on Branch: [...]` — the bypass below was mandatory |
+| 0.2.1 | **warns** `UserWarning: Read-only field(s) on Branch: [...]` and the write goes through |
+
+✅ **Verified live 2026-09-10** (Texas2K, Simulator build 2026-07-22, esapp 0.2.1): a
+2-row `pw[Branch] = df` carrying `LineXFMR='YES'` raised nothing and flipped
+`BranchDeviceType` from `Line` to `Transformer`.
+
+So **on 0.2.1 the bracket writer is the recipe** — just don't run under
+`-W error::UserWarning`, which turns that harmless warning back into a hard failure.
+
+### The recipe (esapp 0.2.1)
 
 ```python
-pw[Branch] = df   # ValueError: Cannot set read-only field(s) on Branch:
-                  # ['LineXFMR', 'XFAuto', 'XFNominalKV', 'XFNominalKV:1', 'XFFixedTap',
-                  #  'XFMVABase', 'XFTapMin', 'XFTapMax', 'XFStep', 'XFTapDegree',
-                  #  'XFRegMin', 'XFRegMax', 'XFRegBus', 'XFUseLineZ', 'XFPhaseType']
+pw.edit_mode()                     # required — these are EDIT-mode fields
+pw[Branch] = df                    # keys + XF* columns; warns, writes
+pw.run_mode()
 ```
 
-`indexable._bulk_update_from_df` validates against `gtype.is_settable(c)` **before** any COM call, so
-esapp never even asks PowerWorld. The fields write fine in EDIT mode via raw SimAuto.
+`df` must carry the key columns (`BusNum`, `BusNum:1`, `LineCircuit`) — the bracket read
+includes them automatically, so a read-modify-write round-trip is safe. A filtered subset
+is fine: PowerWorld matches rows by key, so writing 1586 of 13523 branches touches only
+those 1586.
 
-### The recipe
+**On 0.1.x**, or any time you want to skip the warning entirely, go around esapp:
 
 ```python
 pw.edit_mode()                     # required — these are EDIT-mode fields
@@ -608,7 +646,16 @@ pw[Load] = loads                      # bulk update; must carry primary keys
 ```
 
 Bulk `pw[Type] = df` can also create new objects — but only in EDIT mode
-(`pw.edit_mode()`) with `CreateIfNotFound=True`. Read-only fields are rejected.
+(`pw.edit_mode()`) with `CreateIfNotFound=True`, and the DataFrame must carry a complete
+key set. A filtered subset is fine: PowerWorld matches rows by key, so writing 3 rows
+touches 3 objects.
+
+On esapp 0.1.x a read-only column made the whole write raise. **On 0.2.1 it only emits
+`UserWarning: Read-only field(s)` and the write is attempted anyway** — and that warning is
+more often wrong than right (112 `Branch` fields, 33 `Bus`, 5 `Gen`, 1 `Load` are enterable
+in PowerWorld but flagged read-only by esapp). Treat it as advisory, check
+`pw.esa.GetFieldList(<type>)`'s `enterable` column for the real answer, and confirm writes
+by reading the field back. See [esapp](../concepts/esapp.md).
 
 ## 4. Solve and inspect
 
@@ -940,10 +987,14 @@ in order, come from these generator fields:
 | `Longitude` | `Longitude` |
 
 Below the header rows, each data row is one UTC hour and each cell is that
-generator's MW for that hour.
+generator's MW for that hour. The conversion has already happened by this point —
+this file is post-conversion, so parse the column as UTC and do **not** shift it
+again. The CST figure under *Timestamps* below describes PowerWorld's raw export,
+not this CSV.
 
 ## How the values get there
-- **Timestamps:** PowerWorld exports Excel-serial timestamps in CST.
+- **Timestamps:** PowerWorld's **raw** export uses Excel-serial timestamps in CST
+  (this is the input to the pipeline, not the CSV described above).
   `time_utils.convert_to_utc` shifts CST→UTC, subtracts an hour during US DST
   (second Sunday in March → first Sunday in November), rounds to the nearest hour,
   and writes ISO-8601 UTC strings. (`time_utils.py` is verified against real runs —
@@ -1208,7 +1259,7 @@ by round-tripping the same case's `LimitSet` values through a CSV export/reimpor
 
 - **Up:** [esapp](../concepts/esapp.md) · esapp package
 - **Across:** [save-powerworld-case](save-powerworld-case.md) · [adding-devices-esapp](adding-devices-esapp.md) · [powerworld-simauto](../concepts/powerworld-simauto.md) · reactive power planning
-- **Deeper:** [esapp-package-backend](../references/esapp-package-backend.md) · reactive power planning backend
+- **Deeper:** [esapp-package-backend](../references/esapp-package-backend.md)
 
 ## Content
 
@@ -1293,8 +1344,7 @@ above (values edited to taste). Useful for a one-off manual test/round-trip chec
 current full row, patch only the target columns, write the full row back. `pw.esa.SetData(...)` and
 `pw.esa.ChangeParametersMultipleElement(...)` are both thin passthroughs to the raw SimAuto call (no
 key-field auto-resolution, no partial-write convenience) — so the same "supply everything" rule
-applies programmatically. Pattern (see `LIMITSET_FIELDS` + `set_ctg_voltage_limits()` in
-reactive power planning backend / `ctg/contingency_esapp.py`):
+applies programmatically. Pattern:
 
 ```python
 LIMITSET_FIELDS = ["LSNum", "LSName", "LSPULow", "LSPUHigh", ...]   # all ~48 fields, PowerWorld's own export order
@@ -1314,11 +1364,12 @@ through unchanged — the read-modify-write shape sidesteps hand-transcribing va
 
 ### Why this matters for N-1 work
 
-reactive power planning's pipeline checks contingency voltage violations in Python
-(`Bus.BusMin/MaxVoltageContingency` against a hardcoded `[0.90, 1.10]` band — see
-`ctg/contingency_esapp.py::n1_voltage_violations`). That Python-side check was never actually tied
+A reactive planning pipeline checked contingency voltage violations in Python
+(`Bus.BusMin/MaxVoltageContingency` against a hardcoded `[0.90, 1.10]` band). That
+Python-side check was never actually tied
 to PowerWorld's own `LimitSet.LSCtgPULow/LSCtgPUHigh` — the case's native limit monitoring could
-silently disagree with the band the Python code assumes. `set_ctg_voltage_limits()` closes that gap:
+silently disagree with the band the Python code assumes. Setting the contingency limits
+explicitly closes that gap:
 call it once after opening/building a case to force the case's own contingency band to match the
 band the rest of the pipeline checks against.
 
@@ -1364,6 +1415,10 @@ of a study and then discovers on the last line that SimAuto was never licensed.
 
 Paste this and run it. It prints a line per check and stops at the first failure.
 
+Checks 1-4 are about the **machine** and need no case file; check 5 opens **your case**.
+Call `preflight_machine()` on its own when you do not have a case yet — during setup, say —
+and `preflight(case_path)` when you do.
+
 ```python
 """PowerWorld preflight. Run before writing any analysis code."""
 
@@ -1373,7 +1428,8 @@ from pathlib import Path
 CASE = r"C:\path\to\your_case.pwb"   # <- change this
 
 
-def preflight(case_path: str) -> bool:
+def preflight_machine() -> bool:
+    """Checks 1-4: can this machine drive PowerWorld? No case file needed."""
     # 1. Platform. SimAuto is a Windows COM server; there is no Linux or macOS path.
     if not sys.platform.startswith("win"):
         print(f"FAIL 1/5  platform is {sys.platform!r}, SimAuto requires Windows")
@@ -1415,7 +1471,11 @@ def preflight(case_path: str) -> bool:
         print("          or 'installed but the SimAuto add-on is not licensed'")
         return False
     print(f"ok   4/5  SimAuto COM server responds{version}")
+    return True
 
+
+def preflight_case(case_path: str) -> bool:
+    """Check 5: this particular case opens. Run preflight_machine() first."""
     # 5. The case itself opens and solves.
     if not Path(case_path).is_file():
         print(f"FAIL 5/5  case not found: {case_path}")
@@ -1430,6 +1490,11 @@ def preflight(case_path: str) -> bool:
         return False
     print(f"ok   5/5  case opens: {info['n_bus']} buses, {info['n_gen']} generators")
     return True
+
+
+def preflight(case_path: str) -> bool:
+    """All five checks, stopping at the first failure."""
+    return preflight_machine() and preflight_case(case_path)
 
 
 if __name__ == "__main__":
@@ -1519,27 +1584,27 @@ device that is new in a planning case — solve it and answer **which new device
 **One file comes out: `devices.csv`, one row per new device, ranked worst first.** It is
 the only file at the top of the output directory; the per-metric sorts and the
 per-violation-row evidence live one level down in `_audit/`. The question it answers is the
-one that gets asked out loud -- *without device X, what does this case experience?* -- so a
+one that gets asked out loud — *without device X, what does this case experience?* — so a
 device that was never tested must still have a row, or "absent" and "harmless" become the
 same thing.
 
 **The single ordering rests on one idea: the FRACTION BEYOND THE LIMIT.** Percent-of-rating
-and per-unit volts genuinely do not share a unit -- but each quantity *divided by the limit
+and per-unit volts genuinely do not share a unit — but each quantity *divided by the limit
 it actually violated* is dimensionless, and those are comparable without inventing an
 exchange rate. That is what makes a 0.80 pu bus (0.158 beyond a 0.95 floor) outrank a 101%
 branch (0.010 beyond its rating), which no per-metric sort does. It still asserts that a 5%
-overload and a 5% voltage excursion are comparably bad -- but that claim is visible and
+overload and a 5% voltage excursion are comparably bad — but that claim is visible and
 checkable, which "percent vs per-unit" never was. The per-metric sorts in `_audit/` keep
 the two apart on their own units; this is the one sanctioned crossing.
 
 Six things here decide whether the ranking means anything, and each fails silently:
 
-1. **Subtract the base case -- AND attribute the magnitude.** A branch already at 105%
+1. **Subtract the base case — AND attribute the magnitude.** A branch already at 105%
    appears under *every* contingency, so without subtraction every device inherits the same
    overloads (**38% of all rows** on one measured run, 464,794 of 1,218,162). But the
    subtraction only decides *whether* a row counts: a branch at 220% nudged to 221% survives
    it legitimately and then reports **221%** for a device that caused **+1%**. Score
-   `min(exceedance, addition)` -- see *Attribution* below. Measured at a 60% threshold:
+   `min(exceedance, addition)` — see *Attribution* below. Measured at a 60% threshold:
    **97.8% of caused thermal rows are on an already-violating branch, the reported
    exceedance is a median 82.6x what the device added, and 883 of 890 devices move.**
 2. **Rank voltage on distance OUTSIDE the band, never on `LimViolPct`.** Low and high volts
@@ -1554,7 +1619,7 @@ Six things here decide whether the ranking means anything, and each fails silent
 5. **Report the bus AS IT SITS, not only its excursion.** `0.037 pu outside the band` and
    `0.913 pu` are the same bus, and only one of them reads as serious. The excursion is
    measured against whichever band the run was configured with, so a reader who forgets the
-   band reads a severe bus as trivial. Carry both -- the score is built from the excursion
+   band reads a severe bus as trivial. Carry both — the score is built from the excursion
    and must stay auditable.
 6. **A device's own area is not the reporting scope.** They routinely differ, and the file
    gives no hint that they do. See *The area trap* below.
@@ -1592,7 +1657,7 @@ set is corrected while the *magnitudes* are not. Score each row as the smaller o
 You can blame a device for neither more damage than exists, nor more than it put there. The
 `min` self-corrects when the base was *below* the limit as well: a branch at 88% taken to
 157% has addition 69 but exceedance 57, and only 57 points of it are a violation at all.
-A row with no base value was clean, so the whole exceedance is the device's -- missing base
+A row with no base value was clean, so the whole exceedance is the device's — missing base
 data must never silently zero a real violation.
 
 | category | exceedance | addition |
@@ -1602,8 +1667,8 @@ data must never silently zero a real violation.
 | `voltage_high` | `(V - limit)/limit` | `(V - base_V)/limit` |
 
 `T` is the run's thermal threshold, so thermal normalizes exactly as voltage does. **Read
-the base value with the SAME key the subtraction uses** -- unordered bus pair plus
-normalized circuit -- or a row is filtered against one baseline and scored against another,
+the base value with the SAME key the subtraction uses** — unordered bus pair plus
+normalized circuit — or a row is filtered against one baseline and scored against another,
 which is worse than either alone.
 
 **`LimViolLimit` on a thermal row is the branch's MVA RATING, not 100.** Measured 21, 46,
@@ -1611,7 +1676,7 @@ which is worse than either alone.
 other's field yields percent-minus-MVA, which is a plausible-looking number.
 
 **Average as well as worst, on the attributed quantity.** The mean over a device's rows
-separates one catastrophic element from twenty mildly-over ones -- which the count only
+separates one catastrophic element from twenty mildly-over ones — which the count only
 half-answers. Computed on absolute percent it would re-inherit the whole base-case
 contamination. Measured: the top devices score ~1.16 on their worst element and average
 ~0.010 across ~190 rows.
@@ -1619,7 +1684,7 @@ contamination. Measured: the top devices score ~1.16 on their worst element and 
 ### The output table: natural units only
 
 **A number the reader cannot interpret is not a result.** The score below is correct,
-dimensionless, and unreadable to someone opening a spreadsheet -- and requiring them to
+dimensionless, and unreadable to someone opening a spreadsheet — and requiring them to
 learn the scoring scheme before they can read the answer is the wrong trade for a file
 whose whole purpose is to be opened by other people. So the file carries **only** percent
 of rating, per unit, and counts; the arithmetic that produced the ordering moves to a
@@ -1640,20 +1705,20 @@ covers TWO ways rows go missing, not one.** It was originally keyed only off the
 mismatch guard, which let a run discard **2,972 unclassified violation rows on one planning model and
 still write `count_verified = True` on all 297 devices** — the audit trail was correct and
 the file people open was not. An unclassified row now taints its device exactly as a count
-mismatch does. See 2026 08 22 branch amp thermal rows discarded. The general rule: a
+mismatch does. The general rule: a
 bucket that means *"rows were dropped"* must reach the summary artifact, because `_audit/`
 is not what gets mailed.
 
 **Worst and average answer different questions**, and the count answers neither. A device
 whose worst overload is 157% and whose average is also 157% overloads exactly one branch;
 one with a high worst and a low average has a single hot spot among many marginal
-violations. Averages must be taken in the SAME natural unit as the worst -- an average of
+violations. Averages must be taken in the SAME natural unit as the worst — an average of
 the dimensionless score reads as noise (`0.064`), and an average of two different units at
 once is meaningless even though it is well-defined.
 
 **`worst_*` means most attributable, not highest number.** The reported rows are the ones
 that drove the rank. Once the base case is attributed those need not be the arithmetic
-maximum -- a 221%-on-a-220%-branch loses to a 150%-from-clean one -- and printing the
+maximum — a 221%-on-a-220%-branch loses to a 150%-from-clean one — and printing the
 maximum beside a rank derived from a different row is how the two disagree in public.
 
 **What was deliberately taken OFF the file**, and the cost: `severity_score`,
@@ -1665,7 +1730,7 @@ was traded for a table anyone can read.
 
 ### The one ordering: fraction beyond the limit
 
-`rank` is dense `1..N` -- no ties, no gaps -- and orders **diverged first**, then
+`rank` is dense `1..N` — no ties, no gaps — and orders **diverged first**, then
 `severity_score` descending, then `CTGLabel` ascending so two runs of the same case agree.
 
 `severity_score` is each violation's fraction beyond the limit it actually violated:
@@ -1677,7 +1742,7 @@ was traded for a table anyone can read.
 | `voltage_high` | `(V - limit)/limit` | 1.10 pu vs a 1.05 ceiling -> `0.048` |
 
 The units cancel, so this is a real dimensionless quantity rather than a fudge factor. **Do
-not collapse it to `abs(pct/100 - 1)`** -- it is arithmetically identical on all three
+not collapse it to `abs(pct/100 - 1)`** — it is arithmetically identical on all three
 categories today, but it gets `voltage_low` right for the wrong reason and would keep
 "working" silently if a polarity were ever redefined.
 
@@ -1687,11 +1752,11 @@ one scores `NaN` and ranks first. **There is deliberately no `status` column**: 
 stay filterable data rather than a string to parse, and `ranked_by` says which in words.
 
 Derive those labels from the COUNTS, never from the score. A silent device carries a real
-`0.0`, not `NaN`, so a test keyed on a missing score never fires for it -- a mistake that
+`0.0`, not `NaN`, so a test keyed on a missing score never fires for it — a mistake that
 leaves the label silently blank on exactly the rows it was written for.
 
 The percentage for voltage is `LimViolPct` **for the row already chosen as worst by
-severity**, never a re-max on pct -- for `voltage_low`, *lower* pct is worse, so re-maxing
+severity**, never a re-max on pct — for `voltage_low`, *lower* pct is worse, so re-maxing
 selects the least severe bus while looking entirely correct.
 
 ### The per-metric sorts, and why they survive in `_audit/`
@@ -1710,19 +1775,19 @@ orders overvoltages exactly backwards. Distance outside the band fixes it: 0.87 
 0.90 floor and 1.13 against a 1.10 ceiling both score 0.03, and are genuinely equally bad.
 
 "Worst single violation" and "broke the most things" are different questions, which is why
-the count is its own axis rather than a tiebreaker -- and why the single `severity_score`
+the count is its own axis rather than a tiebreaker — and why the single `severity_score`
 ordering does not retire these. It answers the first question only.
 
 ### The area trap
 
 A device's own area and the **reporting scope** are different things, and nothing in the
 file says so. Violations are scoped by `Area.BGReportLimits` in the AUX, which monitors
-*violated elements*, not outaged devices -- so a device far outside the monitored region is
+*violated elements*, not outaged devices — so a device far outside the monitored region is
 still solved and still counted, because its outage can violate something inside.
 
 Measured on Synth2k with two of eight areas monitored: **364 of the 531 out-of-area devices
 caused in-region violations.** So `n_violations = 0` on an out-of-area device means "causes
-nothing in the monitored region", never "was not checked" -- and filtering the device table
+nothing in the monitored region", never "was not checked" — and filtering the device table
 on area to "recover the region" silently discards 364 real results while looking like a
 sensible narrowing.
 
@@ -1778,7 +1843,7 @@ An empty result and a clean grid look identical, so each of these is handled exp
 ### The bus's own voltage limit, not the band you configured
 
 `Bus.BusVoltCtgLimHigh` / `BusVoltCtgLimLow` are PowerWorld's **effective** per-bus
-contingency limits -- "Ctg Limit PU Volt presently being used by bus, as specified by its
+contingency limits — "Ctg Limit PU Volt presently being used by bus, as specified by its
 limit group". A bus carrying `BusVoltLim = YES` overrides the `LimitSet` band the tool
 writes, so **the configured band is not necessarily the criterion any given bus was judged
 against**, and a baseline that assumes it is will be blind in exactly one direction.
@@ -1787,7 +1852,7 @@ MEASURED on a planning model: three buses carry a **1.05** ceiling while the run
 **1.10**. Sitting at ~1.053 they are inside the configured band, so the baseline never
 recorded them; their post-contingency rows carried no `base_value`, were read as violations
 the outage CREATED, and survived `--only-new`. **657 of 673 reported rows were those three
-buses under all 219 devices** -- 219 of 220 devices ranked as causing something, off a
+buses under all 219 devices** — 219 of 220 devices ranked as causing something, off a
 base-case condition. Overlap with the base-case high-voltage set: **0 of 3**. A flat band
 cannot detect this; the buses never exceed 1.10 at all.
 
@@ -1804,7 +1869,7 @@ Two traps in the fix itself:
 
 PowerWorld's own `CTG_Options.CTG_WhatToDoWithBC` (0 = do not report base-case violations;
 1 = report all; 2 = change-from-base criteria) and this tool's Python-side `--only-new` are
-**redundant, not conflicting** -- verified rather than assumed. Setting the option to `0` on
+**redundant, not conflicting** — verified rather than assumed. Setting the option to `0` on
 Synth2k case4 and running with `--include-worsened` yields **the identical 36-row set** that
 `--only-new` yields on the unmodified case: same rows, zero difference either way. Two
 independent mechanisms, one inside PowerWorld's contingency engine and one in Python,
@@ -1812,14 +1877,14 @@ agreeing exactly.
 
 Two honest qualifications. The `CTGViol` COUNTS differ (82 vs 153 summed over those 36
 rows), because PowerWorld reports fewer violations per contingency when it is suppressing
-base-case ones -- the row SET is identical, the per-contingency tallies are not. And the two
+base-case ones — the row SET is identical, the per-contingency tallies are not. And the two
 runs were not config-identical: the `= 0` run screened every voltage level while the
 `--only-new` run used a 69 kV floor. The comparison still holds because the kV filter
 dropped nothing on this case (its lowest violated element is 115 kV), but that is a
 property of Synth2k rather than of the equivalence.
 
 `base_case_violations.csv` is unaffected by the option, because it is read from
-`Branch.LinePercent` / `Bus.BusPUVolt` and never from `ViolationCTG` -- a `= 0` run still
+`Branch.LinePercent` / `Bus.BusPUVolt` and never from `ViolationCTG` — a `= 0` run still
 records its 6 base-case violations and simply drops 0 of them as pre-existing.
 
 **So there is no reason to modify and re-save a case for this.** The flag does the same job
@@ -1837,7 +1902,7 @@ and leaves the case untouched, which matters when the cases are CEII and read-on
 case3 is the control: zero base-case violations, so the filter is a proven no-op. On case4
 **87.1% of the WITH rows were already-broken elements**, six pre-existing violations
 inflated the device count **12.6x**, and the thermal median moved `100.125 -> 104.383` while
-the **maximum stayed at 153.647** -- the worst outage survives either way. The 8
+the **maximum stayed at 153.647** — the worst outage survives either way. The 8
 low-voltage rows survive both ways too, which is what shows the filter discriminating
 rather than just cutting.
 
@@ -1924,16 +1989,16 @@ tolerance fix, and what to actually assert:
 - `rank` may differ only among devices whose `severity_score` differs by less than
   `WORSENING_REL_TOL`. Measured: 10 of 890 devices REORDER, by at most 5 positions, all in
   ranks 131-238, none in the material band, with a maximum severity difference among those
-  ten of **8.5e-07**. That is not a suite-wide bound and must not be quoted as one -- 110
+  ten of **8.5e-07**. That is not a suite-wide bound and must not be quoted as one — 110
   devices carry a nonzero severity difference, the largest being **1.1e-06**. They simply
   do not reorder, because the gap to their neighbour is wider than the wobble.
 
 ## Provenance
 
-**2026-08-22 (b)** -- **the baseline was judging buses against the wrong number.** A bus can
+**2026-08-22 (b)** — **the baseline was judging buses against the wrong number.** A bus can
 carry its own contingency voltage limits that override the `LimitSet` band the tool writes,
 and the baseline was testing every bus against the configured `v_min`/`v_max`. On that planning model
-three buses at a 1.05 ceiling, sitting at ~1.053, were therefore invisible to it -- and
+three buses at a 1.05 ceiling, sitting at ~1.053, were therefore invisible to it — and
 **657 of 673 reported rows were those three buses re-reported under all 219 devices**, with
 219 of 220 devices ranked as causing something. `from_case` now reads
 `BusVoltCtgLimHigh`/`Low` and judges each bus against the limit PowerWorld applied,
@@ -1945,13 +2010,13 @@ Separately verified, and it settles a question that had been assumed both ways:
 **`CTG_WhatToDoWithBC = 0` and `--only-new` produce the identical 36-row set** on Synth2k
 case4. Redundant, not conflicting; no case needs modifying or re-saving to get the
 behaviour. `set_limit_monitoring.py`, which sets that option, turned out never to have run
-at all -- its input path pointed at a case that does not exist -- and it verified its own
+at all — its input path pointed at a case that does not exist — and it verified its own
 write from memory BEFORE saving, so a no-op save would have passed. Both fixed.
 
 Suite 292 -> 305 tests.
 
 
-**2026-08-22** -- **two scope filters added, one absolute tolerance replaced, and a
+**2026-08-22** — **two scope filters added, one absolute tolerance replaced, and a
 reproducibility claim retracted.** `MIN_KV` (report only violations above a nominal kV,
 judged on the violated element's higher end) and `ONLY_NEW` (report only elements clean in
 the base case) are now the study defaults at 69.0 / True. Three defects caught by review
@@ -1966,7 +2031,7 @@ filtered and an unfiltered run byte-identical on disk.
 `THERMAL_TOL`/`VOLTAGE_TOL` (absolute 1e-6) replaced by one **relative**
 `WORSENING_REL_TOL = 1e-4` via `baseline.worsened()`, mirroring the fix `limits.py` had
 already made for its own read-back check. An absolute 1e-6 on a percent near 100 asks for
-~1e-8 relative precision -- below one float32 ULP there (7.6e-6) and far below solver
+~1e-8 relative precision — below one float32 ULP there (7.6e-6) and far below solver
 repeatability, so it was not a tolerance, it was `>`. Measured: a branch at 100.072085% in
 the base case read 100.072148% after one outage, 6.3e-5 pp, and the absolute test admitted
 it. Effect on case4: caused rows 460 serial / 459 parallel to **278 / 278, identical row for
@@ -1979,7 +2044,7 @@ must exceed float32 resolution at a base of 100, which is what would have caught
 original.
 
 
-**2026-08-18 (b)** -- **attribution added, and it changes the answer.** Subtracting the base
+**2026-08-18 (b)** — **attribution added, and it changes the answer.** Subtracting the base
 case was only filtering rows, not correcting magnitudes, so a device that nudged an
 already-broken branch outranked one that broke a healthy line. Measured on Synth2k with the
 threshold at 60%: 878 base thermal violations, **97.8% of caused thermal rows on an
@@ -1992,14 +2057,14 @@ and `avg_severity` were both recomputed independently from the raw rows and matc
 
 Two facts found along the way, each of which produces a plausible wrong number rather than
 an error: **`LimViolLimit` on a thermal row is the branch's MVA rating** (21, 46, 57, 4352),
-not 100 -- so thermal must score off `LimViolPct`; and the LimitSet read-back used an
+not 100 — so thermal must score off `LimViolPct`; and the LimitSet read-back used an
 **absolute** `1e-6` tolerance on `LSLinePercent`, which lives near 100 where float32 cannot
 resolve that finely. Wrote 60.0, read back 60.00000238418579, run aborted claiming every
 violation was measured against the wrong limit. The default 100.0 passed **only because 1.0
 is exactly representable in binary**, hiding it for every threshold except the default; the
 tolerance is now relative to the value's magnitude.
 
-**2026-08-18 (a)** -- the three ranked lists were collapsed into a single ranked `devices.csv`
+**2026-08-18 (a)** — the three ranked lists were collapsed into a single ranked `devices.csv`
 with the `relative_severity` ordering, on `Synth2k_case` (890
 new-device contingencies, band squeezed to `[0.95, 1.05]` to force voltage rows). Exit 0 in
 40.5 s across 7 workers. Every number in the file was recomputed independently from the raw
@@ -2011,7 +2076,7 @@ device at `0.0386` outranking a ~103% overload at `0.0310`.
 
 Two paths that case could **not** exercise, and which stay unit-test-only until a planning-model run:
 zero diverged contingencies (so `converged=False` and the NaN-ranks-first rule), and zero
-`voltage_high` rows -- all 4,238 voltage rows were `voltage_low`, leaving the polarity half
+`voltage_high` rows — all 4,238 voltage rows were `voltage_low`, leaving the polarity half
 of the severity function unmeasured on real data.
 
 Measured 2026-08-17 by `C:\path\to\regional-contingency`
@@ -2069,8 +2134,8 @@ read of `ViolationCTG` errors *"interface unknown"* on Synth2k **does not reprod
 - **Up:** [esapp](../concepts/esapp.md) · esapp package
 - **Across:** [new-device-contingency-aux](new-device-contingency-aux.md) (building the set you solve, and scoping
   monitoring to an area) · [powerworld-limitset-setdata](powerworld-limitset-setdata.md) · [parallel-contingency-solve](../concepts/parallel-contingency-solve.md) · [lodf](../concepts/lodf.md) ·
-  [powerworld-simauto](../concepts/powerworld-simauto.md) · reactive power planning · critical branch screening
-- **Deeper:** [esapp-package-backend](../references/esapp-package-backend.md) · reactive power planning backend
+  [powerworld-simauto](../concepts/powerworld-simauto.md) · critical-branch screening
+- **Deeper:** [esapp-package-backend](../references/esapp-package-backend.md)
 
 ## Content
 
@@ -2114,8 +2179,8 @@ to appear, with the note *"treat this as a vocabulary to fail loudly against, no
 exhaustive enum."* **That note was right, and ignoring it cost a wrong answer.** Synth2k
 rates every branch in MVA, so `Branch Amp` was never seen there; a real utility planning
 model rates part of its system in amps and PowerWorld emits **both strings from the same
-solve**, on disjoint sets of branches. See
-2026 08 22 branch amp thermal rows discarded — 2,972 real overloads on a planning model
+solve**, on disjoint sets of branches. In one measured run, 2,972 real overloads on a
+planning model
 (101.7%–240.7% of rating, all 297 contingencies) were classified `unknown` and dropped
 while the run reported 18 violations and looked clean.
 
@@ -2320,6 +2385,140 @@ Numbers quoted here come from a run with the bands deliberately squeezed
 
 ---
 
+# ==== reducing-a-contingency-set.md ====
+
+---
+type: method
+domain: cross-cutting
+aliases: [ctgskip, ctg-skip, reducing-the-ctg-set, contingency-subset, skip-column]
+tags: [powerworld, contingency, ctg, esapp, simauto, n-1]
+---
+
+# Method: Reducing or partitioning a contingency set
+
+## Abstract
+
+`CTGSkip` and `Delete(Contingency, <filter>)` do two different jobs and are
+routinely confused. **`CTGSkip` partitions a set without shrinking it** — every
+contingency stays in the case and the skipped ones are simply not solved this
+pass, which is how the parallel solver gives each worker a slice. **`Delete` with
+a violation filter is the only thing that actually reduces the set**, and it is
+destructive, so it needs a backup first. This page collects the mechanism, the
+three places it is used, and the three silent failures around it; before this,
+`CTGSkip` was mentioned on five pages and owned by none.
+
+## Connections
+
+- **Up:** [Home](../index.md) · contingency remediation
+- **Across:** [parallel-contingency-solve](../concepts/parallel-contingency-solve.md) — the chunking use ·
+  [new-device-contingency-aux](new-device-contingency-aux.md) — writing a subset to `.aux` ·
+  [reading-violationctg](reading-violationctg.md) — where the violation columns the filter uses come from
+
+## Content
+
+### The two mechanisms, and which one you want
+
+| you want | use | destructive? |
+|---|---|---|
+| solve part of the set now, keep all of it | `CTGSkip` = `YES` / `NO` | no |
+| permanently drop contingencies that did nothing | `Delete(Contingency, "<filter>")` | **yes** |
+
+**"Are you reducing the ctg set by setting SKIP to YES?"** — no. Setting
+`CTGSkip="YES"` excludes a contingency from *this* `CTGSolveAll` and leaves it in
+the case. The set is the same size afterwards. That is the right tool for
+partitioning and the wrong tool for reduction.
+
+### `CTGSkip` — partitioning
+
+`CTGSkip` is a field on the `Contingency` object, per contingency. Write it with
+`change_parameters_multiple_element_df`, and **keep the `Contingency` key field
+in the DataFrame** or the write silently no-ops.
+
+Three recorded uses:
+
+1. **Parallel chunking** ([parallel-contingency-solve](../concepts/parallel-contingency-solve.md)). Split the existing
+   `CTGLabel` set with `np.array_split`; each OS process sets `CTGSkip=NO` for
+   only its own chunk's labels and `YES` for everything else, then runs a plain
+   serial `CTGSolveAll`. The full set is intact in every worker's case; each just
+   solves its slice.
+2. **Reactivating everything.** Read the
+   `Contingency` key plus `CTGSkip`, set `CTGSkip="NO"` across the frame, write
+   it back. This is the reset before a full sweep.
+3. **Persisting a subset** ([new-device-contingency-aux](new-device-contingency-aux.md)). `CTGSkip` travels in
+   the `.aux` alongside `CTGLabel`, so a saved subset remembers what was skipped.
+
+### `Delete` — the actual reduction
+
+To shrink the set to what actually violated, filter on the violation counts that
+the previous solve wrote:
+
+```
+Delete(Contingency, "CTGNVoltViol = 0")    # drop those with no voltage violation
+Delete(Contingency, "CTGNBranchViol = 0")  # drop those with no overload
+Delete(Contingency, "CTGViol = 0")         # drop those with neither
+EnterMode(RUN);
+```
+
+**One condition only. `AND` is not supported in this filter.** If you need both,
+delete twice or use `CTGViol`.
+
+**Back up first, because this is destructive:**
+
+```
+CTGWriteAuxUsingOptions("<path>", NO);   # save the full set
+Delete(Contingency);                      # ... work ...
+LoadAux("<path>");                        # restore
+```
+
+### Multi-round: full sweep, then violations only
+
+The pattern of *"first round full CTG, later rounds only the ones that violated"*
+is assembled from the two mechanisms above and is **not** a single built feature:
+
+1. Solve the full set (partition with `CTGSkip` across processes if it is large).
+2. Back up with `CTGWriteAuxUsingOptions`.
+3. `Delete(Contingency, "CTGViol = 0")` — the survivors are the reduced set.
+4. Re-solve the survivors each later round.
+5. `LoadAux` the backup when a round needs the full set again.
+
+Step 3 reads violation counts populated by step 1, so the ordering is not
+optional. [parallel-contingency-solve](../concepts/parallel-contingency-solve.md) explicitly scopes *out* per-contingency
+remediation walks that mutate state between rounds, so do not expect its parallel
+helper to carry this loop for you.
+
+### Three silent failures
+
+- **An unquoted action string in a hand-written `.aux`.** Written bare as
+  `BRANCH 1001 1064 1 OPEN` instead of quoted, a 691-contingency file loads as
+  **one** contingency — and the load **reports success**. Always quote the action.
+- **`SaveContingencies` is not a script command** ("Unknown script command"). Use
+  `SaveData(<path>,AUX,Contingency,[CTGLabel,CTGSkip],[CTGElement],"",[],[],YES);`
+  — the filter argument is a bare string and the sort lists must be bracketed.
+- **A missing key field on the write-back.** `change_parameters_multiple_element_df`
+  needs the object's key field present or the `CTGSkip` change does nothing and
+  says nothing.
+
+### Where the filter's columns come from
+
+`CTGNVoltViol`, `CTGNBranchViol` and `CTGViol` are populated by the solve.
+[reading-violationctg](reading-violationctg.md) covers reading per-contingency violations back;
+`CTGSolved` and `CTGViol` are among the fields the contingency object exposes.
+
+## Provenance
+
+Every fact here was already recorded and is consolidated rather than derived:
+the chunking scheme from [parallel-contingency-solve](../concepts/parallel-contingency-solve.md), the `.aux` shape and its
+quoting trap from [new-device-contingency-aux](new-device-contingency-aux.md), the `Delete` filters, the
+single-condition limit, the backup/restore pair, and the contingency field list.
+
+Written 2026-09-07 because the A/B measurement found `CTGSkip` mentioned on five
+pages and owned by none: asked *"are you reducing the ctg set as well by setting
+the SKIP column to YES?"*, three independent agents each picked a **different**
+wrong page.
+
+
+---
+
 # ==== save-powerworld-case.md ====
 
 ---
@@ -2345,7 +2544,7 @@ against the installed package.
 
 - **Up:** [esapp](../concepts/esapp.md) · esa pp llm
 - **Across:** [adding-devices-esapp](adding-devices-esapp.md) · [esapp-overview](esapp-overview.md) · [powerworld-simauto](../concepts/powerworld-simauto.md) · [powerworld-limitset-setdata](powerworld-limitset-setdata.md) · [converting-lines-to-transformers](converting-lines-to-transformers.md)
-- **Deeper:** esa pp llm backend
+- **Deeper:** [esapp-package-backend](../references/esapp-package-backend.md)
 
 ## Content
 
@@ -2560,7 +2759,7 @@ client.download(
 ) -> list[Path]
 ```
 
-Two flags worth understanding:
+Two flags:
 
 - `local_crop=True` (the default) crops on your machine after downloading. Set it
   `False` only if you want exactly what the server sent.

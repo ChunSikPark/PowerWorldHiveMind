@@ -169,8 +169,18 @@ just a wrong answer or a write that did nothing.
    `GenID` for a generator, bus pair + circuit for a branch. Without them PowerWorld
    cannot tell which row you mean and the write is a no-op that reports success.
 
-2. **`pw[Obj, field] = values` is positional over the whole table.** Assigning to a
-   filtered subset writes nothing. Build the full column and assign that.
+2. **`pw[Obj, field] = values` is positional over the whole table.** The two write forms
+   behave differently, and mixing them up is how a write silently hits the wrong objects:
+
+   - `pw[Obj, field] = values` — **positional, whole table.** A scalar broadcasts to every
+     object of that type; a list must be one value per object, in table order. There is no
+     row matching here, so a list built from a filtered subset lands on the wrong rows.
+     Build the full column and assign that.
+   - `pw[Obj] = df` — **matched by key field.** A filtered subset is fine and correct:
+     writing 3 rows changes exactly those 3 objects, provided the DataFrame carries a
+     complete key set (rule 1).
+
+   So "filter, then write" works — just do it with the DataFrame form, not the field form.
 
 3. **Prefer `esapp` over the standalone `esa` package.** Same SimAuto underneath, better
    documented. Do not mix them.
@@ -183,7 +193,7 @@ just a wrong answer or a write that did nothing.
    ```
 
    esapp 0.2.1 wraps **310 SCRIPT commands** as typed methods across 20 SAW mixins —
-   roughly 300 of the ~345 catalogued actions. Both forms reach the same COM call, so the
+   roughly 300 of the ~370 actions Simulator defines. Both forms reach the same COM call, so the
    win is not runtime validation: it is a Python-side signature check, correct argument
    building (bracket lists, quoting, filter and solver enums), and above all **one place
    the maintainer can patch when PowerWorld changes a command's syntax.** A hand-written
@@ -193,13 +203,17 @@ just a wrong answer or a write that did nothing.
 
    Use `RunScriptCommand` only where no wrapper exists — about 41 actions, mostly
    oneline/GUI (`OpenOneline`, `ExportOneline`), dialogs, and a few writers. Check the
-   command against the esapp reference before concluding one is missing, and leave a
-   comment saying why whenever you do fall back to a string.
+   command against esapp's own method list before concluding a wrapper is missing —
+   absence from `references/aux-script-commands.md` proves nothing, since that page is a
+   working subset. Leave a comment saying why whenever you do fall back to a string.
 
 5. **`SaveCase` is the exception, and it is not one of the 310.** esapp routes it through
    COM, not the script builder, and `pw.esa.SaveCase(...)` is a **silent no-op** — returns
-   success, writes no file. Use the script form, exactly two parameters, and assert the
-   file exists:
+   success, writes no file. **`pw.save(...)` is the same trap**: it is a one-line
+   passthrough to `esa.SaveCase`, so it also writes nothing and says nothing. The no-op is
+   below esapp — the raw `SimAuto.SaveCase(path, "PWB", True)` returns `('',)`, SimAuto's
+   success value, and creates no file. Use the script form, exactly two parameters, and
+   assert the file exists:
 
    ```python
    pw.esa.RunScriptCommand(f'SaveCase("{out}", PWB);')
@@ -217,6 +231,27 @@ just a wrong answer or a write that did nothing.
 
 8. **Clear contingency results before solving.** They persist stale inside the `.pwb`,
    so a fresh-looking read can be from a previous run.
+
+9. **`UserWarning: Read-only field(s)` is usually wrong — do not code around it.** On
+   esapp 0.2.1 a write to a field its generated schema calls read-only **warns and then
+   writes anyway**. The schema keeps only fields Simulator reports as unconditionally
+   `enterable` and drops every conditional one, so it under-reports badly: 112 `Branch`
+   fields, 33 `Bus`, 5 `Gen` (including `GenMVR`), 1 `Load`. `Branch.LineStatus` is the
+   one you will hit first — PowerWorld's own answer is *"Depends: Normally enterable except
+   when field Lockout is YES"*, and `pw[Branch, 'LineStatus'] = 'Open'` works.
+
+   Ask PowerWorld, not esapp:
+
+   ```python
+   fl = pw.esa.GetFieldList('branch')     # 'enterable' is PowerWorld's answer
+   fl[fl.internal_field_name == 'LineStatus'][['enterable']]
+   ```
+
+   A genuinely read-only field has `enterable` blank (e.g. `Shunt.SSMinMVR`) and its write
+   vanishes with no error. Both directions therefore land in the same place: **assert the
+   effect — read the field back and compare — never the absence of an exception** (see
+   *When something goes wrong* below). And never run under `-W error::UserWarning`: it
+   converts these false alarms into hard failures on code that works.
 
 ## When something goes wrong
 

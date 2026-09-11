@@ -72,7 +72,16 @@ pw[Load] = loads                      # bulk update; must carry primary keys
 ```
 
 Bulk `pw[Type] = df` can also create new objects — but only in EDIT mode
-(`pw.edit_mode()`) with `CreateIfNotFound=True`. Read-only fields are rejected.
+(`pw.edit_mode()`) with `CreateIfNotFound=True`, and the DataFrame must carry a complete
+key set. A filtered subset is fine: PowerWorld matches rows by key, so writing 3 rows
+touches 3 objects.
+
+On esapp 0.1.x a read-only column made the whole write raise. **On 0.2.1 it only emits
+`UserWarning: Read-only field(s)` and the write is attempted anyway** — and that warning is
+more often wrong than right (112 `Branch` fields, 33 `Bus`, 5 `Gen`, 1 `Load` are enterable
+in PowerWorld but flagged read-only by esapp). Treat it as advisory, check
+`pw.esa.GetFieldList(<type>)`'s `enterable` column for the real answer, and confirm writes
+by reading the field back. See [esapp](../concepts/esapp.md).
 
 ## 4. Solve and inspect
 

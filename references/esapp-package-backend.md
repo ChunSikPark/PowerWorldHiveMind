@@ -98,21 +98,38 @@ Two dispatch cases:
   normalizes `fields` to a list and calls `_broadcast_update_to_fields(gtype, fields, value)`.
 - Anything else → `TypeError`.
 
-### 2.3 `_bulk_update_from_df` — indexable.py:175–253 (the create path)
+### 2.3 `_bulk_update_from_df` — indexable.py:148–197 (the create path)
 
-This is the load-bearing method. Flow:
+This is the load-bearing method. Flow **as of 0.2.1** (line numbers against the 0.2.1
+`indexable.py`; the 0.1.x layout this section used to describe is noted inline):
 
 1. Reject non-DataFrame `value` with `TypeError`.
-2. **Settable gate:** `non_settable = [c for c in df.columns if not gtype.is_settable(c)]`.
-   If any column is read-only → `ValueError("Cannot set read-only field(s)...")`.
+2. **The write funnel:** `df = self._prepare_write(gtype, df)` (`:212`) — normalizes
+   `GObject`-member columns to field-name strings, calls `_warn_unsettable` (`:199`), then
+   `_serialize_bools` (`:226`). The caller's DataFrame is never mutated.
+
+   > ⚠️ **This is no longer a gate.** Through 0.1.x it was: a read-only column raised
+   > `ValueError("Cannot set read-only field(s)...")` *before* any COM call, so esapp never
+   > asked PowerWorld. In 0.2.1 `_warn_unsettable` only emits `warnings.warn` — once for
+   > unknown fields, once for read-only ones — and **the write proceeds regardless**, on the
+   > stated principle that "PowerWorld is the authority, and the generated schema may lag the
+   > installed Simulator version." Consequences: a field-name typo no longer raises, and the
+   > read-only warning is a false alarm on ~150 fields (§5).
+
    `is_settable` = key ∪ secondary ∪ editable (see §5).
-3. Fast path: `self.esa.ChangeParametersMultipleElementRect(gtype.TYPE(),
-   df.columns.tolist(), df)` — one COM round-trip (data.py:88–121).
+3. Fast path: `self._send_rect(gtype, df)` (`:274`) →
+   `self.esa.ChangeParametersMultipleElementRect(gtype.TYPE(), df.columns.tolist(), df)` —
+   one COM round-trip (data.py:88–121). A `PowerWorldError` here is re-raised through
+   `_raise_with_edit_hint` (`:263`), which appends *"field(s) [...] are only enterable in
+   EDIT mode — call esa.EnterMode('EDIT') first"* when any touched field carries the
+   `EDIT_MODE` flag.
 4. **Create fallback keyed off the exception type:** wrapped in
    `except PowerWorldPrerequisiteError as e:` and `if "not found" in str(e).lower():`
-   - Compute `missing_keys = set(gtype.keys()) - set(df.columns)`. If any primary key
-     is missing → `ValueError` (can't create/identify objects without full keys;
-     secondary keys are *not* required).
+   - Check `gtype.key_sets()` — the primary keys first, then any `ALT_KEY_SETS` alternates
+     registered for the type. If **no** complete key set is a subset of `df.columns` →
+     `ValueError` naming the missing fields and every accepted key set. (0.1.x compared
+     against `gtype.keys()` alone; alternate key sets are new.) Secondary keys are *not*
+     required.
    - Else fall back to `ChangeParametersMultipleElement(type, cols, values)` (the
      row-by-row variant, data.py:54–86), which **creates** objects when
      `CreateIfNotFound=True` **and** PowerWorld is in **EDIT mode**. A second
@@ -296,26 +313,53 @@ Re-exports: `GObject` from `gobject`, `from .grid import *` (all object classes)
 This is why `__getitem__` can read `field.value[1]` for a member (indexable.py:102) —
 index 1 of the tuple is the PowerWorld field-name string.
 
-`FieldPriority(Flag)` (gobject.py:16–27): `PRIMARY`, `SECONDARY`, `REQUIRED`,
-`OPTIONAL`, `EDITABLE` — combinable.
+`FieldPriority(Flag)` (gobject.py:16–28): `PRIMARY`, `SECONDARY`, `REQUIRED`,
+`OPTIONAL`, `EDITABLE`, **`EDIT_MODE`** — combinable. `EDIT_MODE` marks a field only
+enterable while Simulator is in EDIT mode and drives the hint in `_raise_with_edit_hint`
+(§2.3).
 
 ### Classmethod schema accessors (the public extension surface)
 
 | Classmethod | Returns | Source |
 |---|---|---|
-| `TYPE()` | PW object-type string (e.g. `"Bus"`), or `'NO_OBJECT_NAME'` | 149–151 |
-| `keys()` | primary-key field names (`_KEYS`) | 122–124 |
-| `fields()` | all field names (`_FIELDS`) | 126–128 |
-| `secondary()` | secondary-key field names (`_SECONDARY`) | 130–133 |
-| `editable()` | editable field names (`_EDITABLE`) | 135–137 |
-| `identifiers()` | `set(keys) ∪ set(secondary)` | 139–142 |
-| `settable()` | `identifiers() ∪ set(editable)` | 144–147 |
-| `is_editable(f)` | bool — in `_EDITABLE` | 153–156 |
-| `is_settable(f)` | bool — in `settable()` | 158–161 |
+| `TYPE()` | PW object-type string (e.g. `"Bus"`), or `'NO_OBJECT_NAME'` | 220 |
+| `keys()` | primary-key field names (`_KEYS`) | 172 |
+| `fields()` | all field names (`_FIELDS`) | 176 |
+| `secondary()` | secondary-key field names (`_SECONDARY`) | 180 |
+| `editable()` | editable field names (`_EDITABLE`) | 185 |
+| `edit_mode_only()` | fields needing EDIT mode (`_EDIT_MODE`) | 189 |
+| `is_edit_mode_only(f)` | bool — in `_EDIT_MODE` | 194 |
+| `key_sets()` | `[frozenset(keys())]` + `ALT_KEY_SETS[TYPE()]` alternates | 199 |
+| `identifiers()` | `set(keys) ∪ set(secondary)` | 210 |
+| `settable()` | `identifiers() ∪ set(editable)` | 215 |
+| `is_editable(f)` | bool — in `_EDITABLE` | 224 |
+| `is_settable(f)` | bool — in `settable()` | 229 |
 
-`is_settable` is the exact gate used by both bracket-write paths (§2.3, §2.4). `keys()`
-drives the always-included primary keys in reads and the "missing keys → ValueError"
-create check.
+`keys()` drives the always-included primary keys in reads; `key_sets()` (with the
+`ALT_KEY_SETS` table at gobject.py:61) drives the create-path key check in §2.3.
+
+> ⚠️ **`is_settable` is advisory, not a gate, and it is frequently wrong.** Through 0.1.x
+> it *was* the gate — both bracket-write paths refused a read-only column. In 0.2.1 it only
+> selects the text of a `UserWarning`. Worse, it disagrees with PowerWorld: the generator
+> keeps a field as `EDITABLE` only when Simulator reports `enterable` as an unconditional
+> `Yes`, and silently drops every **conditional** one. `Branch.LineStatus` is the canonical
+> case — PowerWorld says *"Depends: Normally enterable except when field Lockout is YES"*,
+> esapp says read-only, and the write succeeds.
+>
+> Counted against Simulator build 2026-07-22 / esapp 0.2.1 — fields PowerWorld reports as
+> enterable but `is_settable()` calls read-only:
+>
+> | Type | known fields | PW enterable | flagged read-only anyway |
+> |---|---|---|---|
+> | `Branch` | 809 | 303 | **112** |
+> | `Bus` | 581 | 144 | **33** |
+> | `Gen` | 598 | 228 | **5** (incl. `GenMVR`) |
+> | `Load` | 277 | 119 | **1** |
+>
+> The authority is PowerWorld: `pw.esa.GetFieldList(<type>)` returns an `enterable` column
+> (and a `key_field` column marking keys `*1*`, `*2*`, …). Genuine read-onlys have it blank —
+> `Shunt.SSMinMVR` for instance, where the write really does vanish. Never promote this
+> warning to an error with `-W error::UserWarning`.
 
 `__str__` returns the PW field string for field members (so a member stringifies to
 its PowerWorld name); `__repr__` shows the type or field for debugging (108–120).

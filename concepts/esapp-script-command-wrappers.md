@@ -141,15 +141,26 @@ the installed Simulator version."*
 Two consequences:
 
 - **A field-name typo no longer raises.** `pw[Gen, "GenMWW"] = 100` emits a warning to
-  stderr and writes nothing useful. Run write-heavy code under
-  `python -W error::UserWarning` so a typo fails loudly. This joins the same silent-no-op
+  stderr and writes nothing useful. This joins the same silent-no-op
   family as dropping an object's key fields ([applying-a-dispatch-to-a-case](../methods/applying-a-dispatch-to-a-case.md)) and as
   the COM `SaveCase` above: the call reports success and the effect never happens.
-- **The `XF*` bypass in [converting-lines-to-transformers](../methods/converting-lines-to-transformers.md) is expected to be
-  unnecessary on 0.2.1.** That page routes around esapp's "wrong static whitelist" via
-  `pw.esa.ChangeParametersMultipleElement` precisely because `pw[Branch] = df` raised.
-  On 0.2.1 that same write should warn and go through. **Unverified — needs a live check
-  against PowerWorld before that page is rewritten.** Source-diffed only.
+  **Do not reach for `python -W error::UserWarning` to fix this** — that was the advice
+  here through 2026-09-09 and it backfires, because the *same* warning fires on ~150
+  fields that write perfectly well (below). Assert the effect instead: read the field back
+  and compare.
+- **`Read-only field(s)` is usually a false alarm.** The flag comes from esapp's generated
+  schema, which keeps only fields whose `enterable` is an unconditional `Yes` and discards
+  every conditional one. PowerWorld's own answer for `LineStatus` is *"Depends: Normally
+  enterable except when field Lockout is YES"* — so esapp calls it read-only and the write
+  works anyway. Counted against build 2026-07-22: **112 Branch fields, 33 Bus, 5 Gen
+  (including `GenMVR`), 1 Load** are enterable in PowerWorld but `is_settable() == False`.
+  The authority is `pw.esa.GetFieldList(<type>)`, whose `enterable` column is PowerWorld's,
+  not esapp's.
+- **The `XF*` bypass in [converting-lines-to-transformers](../methods/converting-lines-to-transformers.md) is now confirmed
+  unnecessary.** ✅ **Verified live 2026-09-10** on Texas2K, Simulator build 2026-07-22,
+  esapp 0.2.1: `pw[Branch] = df` carrying `LineXFMR='YES'` warns and goes through —
+  `BranchDeviceType` flips `Line` → `Transformer`, on a 2-row subset, no exception. That
+  page has been rewritten accordingly.
 
 ### Provenance
 

@@ -94,7 +94,23 @@ Writes use the same brackets:
 pw[Gen, "GenMW"] = 100.0             # broadcast scalar to existing gens
 pw[Gen, "GenMW"] = [100, 150, 200]   # per-element list
 pw[Bus] = df                         # bulk update from a DataFrame (must carry primary keys)
+pw[Gen, "GenStatus"] = True          # bools are serialized -> "Closed" (0.2.1)
 ```
+
+**Status fields accept Python bools** as of 0.2.1 — `_serialize_bools` maps them through
+`BOOL_FIELD_VOCAB` (`components/gobject.py:39`), so you no longer have to remember which
+string a given field wants:
+
+| Field | `True` | `False` |
+|---|---|---|
+| `GenStatus`, `LineStatus`, `LoadStatus`, `SSStatus` | `Closed` | `Open` |
+| `BusStatus` | `Connected` | `Disconnected` |
+| `BusSlack`, `GenAGCAble`, `GenAVRAble` | `YES` | `NO` |
+
+Indexed variants resolve to their base name, so `LineStatus:1` works too. A bool aimed at
+an **unregistered** field raises `ValueError` rather than guessing — pass PowerWorld's
+string, or add the field to `BOOL_FIELD_VOCAB`. The plain strings still work everywhere,
+and most pages in this kit still use them.
 
 `pw[Type] = df` can also **create** objects when the case is in EDIT mode and
 the SAW was opened with `CreateIfNotFound=True`.
@@ -103,23 +119,59 @@ the SAW was opened with `CreateIfNotFound=True`.
 > `ValueError: Cannot set read-only field(s)` (`indexable.py:228`/`:280` in 0.1.x). They
 > now emit a `warnings.warn` and the write is **still attempted** — PowerWorld is treated
 > as the authority so a lagging generated schema can't block a newer Simulator's fields.
-> The cost: a field-name typo no longer raises. Run write-heavy code under
-> `python -W error::UserWarning`. See [esapp-script-command-wrappers](esapp-script-command-wrappers.md).
+> The cost: a field-name typo no longer raises.
+> See [esapp-script-command-wrappers](esapp-script-command-wrappers.md).
+
+> 🚫 **Do not run `python -W error::UserWarning` to get the old strictness back.** That
+> advice was here through 2026-09-09 and it is wrong: esapp's read-only flag is a *stale
+> generated whitelist*, not PowerWorld truth, so promoting the warning to an error breaks
+> writes that work. Measured on Simulator build 2026-07-22, the count of fields PowerWorld
+> reports as enterable but `is_settable()` calls read-only: **112 on Branch, 33 on Bus,
+> 5 on Gen (including `GenMVR`), 1 on Load**. `pw[Branch, 'LineStatus'] = 'Open'` warns,
+> succeeds on all 3950 branches — and dies under `-W error`. PowerWorld's own answer for
+> `LineStatus` is *"Depends: Normally enterable except when field Lockout is YES"*; esapp
+> drops every conditional field. To check settability, ask PowerWorld, not the schema:
+>
+> ```python
+> fl = pw.esa.GetFieldList('branch')          # authoritative
+> fl[fl.internal_field_name == 'LineStatus'][['enterable']]
+> ```
+>
+> Catch typos by asserting the *effect* (read the field back and compare), which is the
+> rule everywhere else in this kit anyway.
 
 > ⚠️ **Key fields are mandatory for writes.** PowerWorld matches each row back to an
 > object by its **key field(s)** (e.g. `BusNum`+`GenID` for a Gen). The bracket read
 > includes the keys automatically, so a read-modify-write round-trip keeps them — but if
 > you build a DataFrame by hand, or drop columns, it **must still carry the key columns**
 > or the write silently does nothing (no error, no change applied). On the raw `esa`/SAW
-> path you must prepend them yourself: `pw.esa.get_key_field_list('gen') + [<fields>]`. Rule
-> of thumb: never strip key columns from a DataFrame you intend to push back.
+> path you must prepend them yourself: `Gen.keys() + [<fields>]` (or read them off
+> PowerWorld with `pw.esa.GetFieldList('gen')`, whose `key_field` column marks them
+> `*1*`, `*2*`, …). Rule of thumb: never strip key columns from a DataFrame you intend
+> to push back.
+>
+> `pw.esa.get_key_field_list(...)` does **not** exist — it was named here in error through
+> 2026-09-09 and raises `AttributeError`.
 
 ## PowerWorld API surface (`pw.*`, from workbench.py)
 
-- **State / case** — `pw.open()`, `pw.save(filename=None)`, `pw.close()`,
-  `pw.edit_mode()`, `pw.run_mode()`, `pw.flatstart()`, `pw.snapshot()`
+- **State / case** — `pw.open()`, `pw.save(filename=None)` ⚠️ **silent no-op, see below**,
+  `pw.close()`, `pw.edit_mode()`, `pw.run_mode()`, `pw.flatstart()`, `pw.snapshot()`
   (context manager: `SaveState` on enter, `LoadState` on exit),
   `pw.log(msg)`, `pw.print_log(...)`.
+
+> 🚫 **`pw.save()` writes nothing and reports success.** It is a one-line passthrough to
+> `self.esa.SaveCase(filename)`, so it inherits the `SaveCase` no-op documented in
+> [save-powerworld-case](../methods/save-powerworld-case.md) — this is the same trap, not
+> a second one. The no-op is below esapp: the raw COM call
+> `SimAuto.SaveCase(path, "PWB", True)` returns `('',)` (SimAuto's success convention) and
+> creates no file. Measured on build 2026-07-22, absolute path, both slash styles.
+> Use the script form and assert the file exists:
+>
+> ```python
+> pw.esa.RunScriptCommand(f'SaveCase("{out}", PWB);')
+> assert os.path.exists(out), "SaveCase reported success but wrote nothing"
+> ```
 - **Solve** — `pw.pflow(getvolts=True, method=SolverMethod.POLARNEWT)` returns a
   complex voltage Series; `pw.ts_solve(ctgs, fields)` runs transient stability
   and returns `(metadata, timeseries)` DataFrames.

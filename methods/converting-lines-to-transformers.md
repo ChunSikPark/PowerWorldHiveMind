@@ -12,9 +12,10 @@ tags: [esapp, powerworld, simauto, branch, transformer, linexfmr, editmode]
 How to reclassify existing `Branch` objects as transformers when a case models every branch as a
 line even where the two ends sit at different nominal kV. Two gotchas, both live-verified on
 Synth8k: **(1)** `BranchDeviceType` is derived and read-only — the real switch is `LineXFMR = "YES"`
-plus `XFNominalKV`/`XFNominalKV:1`; **(2)** esapp's bracket writer rejects every `XF*` field as
-read-only from its own **static whitelist**, which is wrong — the fields are writable in PowerWorld
-EDIT mode, so go around esapp via `pw.esa.ChangeParametersMultipleElement`. With `XFFixedTap = 1.0`
+plus `XFNominalKV`/`XFNominalKV:1`; **(2)** esapp flags every `XF*` field read-only from its own
+**static whitelist**, which is wrong — the fields are writable in PowerWorld EDIT mode. On esapp
+0.2.1 that flag is only a `UserWarning` and `pw[Branch] = df` works; on 0.1.x it raised and you had
+to go around esapp via `pw.esa.ChangeParametersMultipleElement`. With `XFFixedTap = 1.0`
 and `LineC = 0`, the conversion is electrically a **no-op** (verified: max |ΔV| = 0.0 pu,
 max |ΔMW| = 0.0) — pure reclassification, R+jX untouched.
 
@@ -41,19 +42,38 @@ before trusting it. On Synth8k the only pairs were 765/345, 345/138, 138/69 (158
 **`BranchDeviceType` is derived.** You cannot set it. It reports `Transformer` once `LineXFMR` is
 `YES`. Setting `LineXFMR` alone is the switch; the `XF*` fields are the transformer's parameters.
 
-**esapp's read-only list is a static whitelist, not PowerWorld truth.** This fails:
+**esapp's read-only list is a static whitelist, not PowerWorld truth.** It marks every `XF*`
+field read-only — `['LineXFMR', 'XFAuto', 'XFNominalKV', 'XFNominalKV:1', 'XFFixedTap',
+'XFMVABase', 'XFTapMin', 'XFTapMax', 'XFStep', 'XFTapDegree', 'XFRegMin', 'XFRegMax',
+'XFRegBus', 'XFUseLineZ', 'XFPhaseType']` — and PowerWorld disagrees. What that costs you
+depends on your esapp version:
+
+| esapp | `pw[Branch] = df` with `XF*` columns |
+|---|---|
+| 0.1.x | **raises** `ValueError: Cannot set read-only field(s) on Branch: [...]` — the bypass below was mandatory |
+| 0.2.1 | **warns** `UserWarning: Read-only field(s) on Branch: [...]` and the write goes through |
+
+✅ **Verified live 2026-09-10** (Texas2K, Simulator build 2026-07-22, esapp 0.2.1): a
+2-row `pw[Branch] = df` carrying `LineXFMR='YES'` raised nothing and flipped
+`BranchDeviceType` from `Line` to `Transformer`.
+
+So **on 0.2.1 the bracket writer is the recipe** — just don't run under
+`-W error::UserWarning`, which turns that harmless warning back into a hard failure.
+
+### The recipe (esapp 0.2.1)
 
 ```python
-pw[Branch] = df   # ValueError: Cannot set read-only field(s) on Branch:
-                  # ['LineXFMR', 'XFAuto', 'XFNominalKV', 'XFNominalKV:1', 'XFFixedTap',
-                  #  'XFMVABase', 'XFTapMin', 'XFTapMax', 'XFStep', 'XFTapDegree',
-                  #  'XFRegMin', 'XFRegMax', 'XFRegBus', 'XFUseLineZ', 'XFPhaseType']
+pw.edit_mode()                     # required — these are EDIT-mode fields
+pw[Branch] = df                    # keys + XF* columns; warns, writes
+pw.run_mode()
 ```
 
-`indexable._bulk_update_from_df` validates against `gtype.is_settable(c)` **before** any COM call, so
-esapp never even asks PowerWorld. The fields write fine in EDIT mode via raw SimAuto.
+`df` must carry the key columns (`BusNum`, `BusNum:1`, `LineCircuit`) — the bracket read
+includes them automatically, so a read-modify-write round-trip is safe. A filtered subset
+is fine: PowerWorld matches rows by key, so writing 1586 of 13523 branches touches only
+those 1586.
 
-### The recipe
+**On 0.1.x**, or any time you want to skip the warning entirely, go around esapp:
 
 ```python
 pw.edit_mode()                     # required — these are EDIT-mode fields

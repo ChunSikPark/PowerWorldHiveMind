@@ -26,8 +26,15 @@ symbols below were live-verified against the installed package (not guessed).
 
 ### The write path: `pw.esa.CreateData` (not the bracket writer)
 
-The bracket writer `pw[GType] = df` rejects read-only key/status fields, so for creating objects use
-the SAW script command `CreateData` on `pw.esa`. Wrap creation in EDIT mode:
+For creating objects use the SAW script command `CreateData` on `pw.esa`. Wrap creation in EDIT mode:
+
+> **Why not the bracket writer?** Through esapp 0.1.x it *rejected* read-only key/status fields
+> outright, which settled the question. On **0.2.1 it only warns and writes anyway**, so
+> `pw[GType] = df` can now create objects too (EDIT mode + `CreateIfNotFound=True` + a complete
+> key set). `CreateData` is still preferred here because it states the intent to create, fails
+> loudly on a malformed field list, and does not bury a real problem under a
+> `UserWarning: Read-only field(s)` that is usually a false alarm — see
+> [esapp](../concepts/esapp.md).
 
 ```python
 pw.edit_mode()
@@ -106,9 +113,23 @@ pw.run_mode()
 assert len(pw.esa.GetParametersMultipleElement("Shunt", ["BusNum","ShuntID"])) - n0 == n_expected
 ```
 
-**`SSMinMVR` and `SSMaxMVR` are NOT writable.** They are *derived* from the blocks - pass them and
-the bracket writer raises `Cannot set read-only field(s)`. Size the bank through the block instead
-and read the limits back afterwards.
+**`SSMinMVR` and `SSMaxMVR` are NOT writable.** They are *derived* from the blocks. Pass them and
+esapp 0.1.x raised `Cannot set read-only field(s)`; **0.2.1 only warns, sends the write, and
+PowerWorld discards it** — so on 0.2.1 you get a silent no-op instead of an error. Size the bank
+through the block instead and read the limits back afterwards to confirm.
+
+Unlike the `Branch`/`Gen` false alarms in [esapp](../concepts/esapp.md), this one is a **true**
+read-only: PowerWorld's own `enterable` column is blank for both fields, which is why the write
+vanishes. That is the test to apply whenever you see the warning —
+
+```python
+fl = pw.esa.GetFieldList('shunt')
+fl[fl.internal_field_name.isin(['SSMinMVR','SSMaxMVR'])][['internal_field_name','enterable']]
+```
+
+✅ **Verified live 2026-09-10** (Texas2K, 157 shunts, build 2026-07-22, esapp 0.2.1):
+`enterable` blank for both; `pw[Shunt] = df` with `SSMinMVR = -999.0` raised nothing and left
+the value at `-15.0`.
 
 **The block spelling is `SSBlockMVarPerStep` - capital V, and block 0 carries NO `:0` suffix**
 (`:1` through `:9` are blocks 1-9). Same for `SSBlockNumSteps`. This is settled by esapp's own

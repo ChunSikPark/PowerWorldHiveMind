@@ -2,6 +2,56 @@
 
 ## Unreleased
 
+- **The esapp 0.2.1 read-only correction had only reached `concepts/`.** Five pages in
+  `methods/` and `references/` still stated the 0.1.x behaviour — that a read-only column
+  makes `pw[Type] = df` raise `ValueError: Cannot set read-only field(s)` — as current:
+  `adding-devices-esapp.md` (twice), `converting-lines-to-transformers.md`,
+  `esapp-overview.md` and `esapp-package-backend.md`. On 0.2.1 it only warns and the write
+  proceeds. `converting-lines-to-transformers.md` was the costly one: its entire
+  `ChangeParametersMultipleElement` recipe existed to route around a `ValueError` that no
+  longer happens, and the bracket writer is now the recipe. All corrections verified live
+  against Texas2K on Simulator build 2026-07-22 with esapp 0.2.1.
+- **`is_settable()` is wrong far more often than it is right, and the kit told you to trust
+  it harder.** esapp's generated schema keeps a field as editable only when Simulator
+  reports `enterable` as an unconditional `Yes`, silently discarding every conditional one.
+  Measured against build 2026-07-22: **112 `Branch` fields, 33 `Bus`, 5 `Gen` (including
+  `GenMVR`), 1 `Load`** are enterable in PowerWorld but flagged read-only by esapp.
+  `Branch.LineStatus` is the one everyone hits — PowerWorld's own answer is *"Depends:
+  Normally enterable except when field Lockout is YES"*, and the write succeeds.
+  `pw.esa.GetFieldList(<type>)`'s `enterable` column is now documented as the authority.
+- **The kit's own mitigation broke working code.** `concepts/esapp.md` and
+  `concepts/esapp-script-command-wrappers.md` advised running write-heavy code under
+  `python -W error::UserWarning` to make field-name typos fail loudly. That promotes the
+  false-positive read-only warning to a hard error, so it crashes on ~150 fields that write
+  correctly. Removed everywhere and replaced with the rule the rest of the kit already uses:
+  assert the effect, never the absence of an exception. `concepts/lodf.md`'s account of
+  `LineStatus` was corrected in the same pass — it blamed the bracket writer for a bad flag.
+- **`pw.save()` is a silent no-op and nothing said so.** `AGENTS.md` rule 5 has always
+  warned that `pw.esa.SaveCase(...)` writes no file, but `concepts/esapp.md` listed
+  `pw.save(filename=None)` as the case-save API with no warning. It is a one-line
+  passthrough to `esa.SaveCase`, so it inherits the trap. Confirmed at the raw COM layer:
+  `SimAuto.SaveCase(path, "PWB", True)` returns `('',)`, SimAuto's success value, and
+  creates nothing. Both are now flagged together.
+- **`pw.esa.get_key_field_list()` does not exist.** `concepts/esapp.md` named it as the way
+  to prepend key fields on the raw SAW path; it raises `AttributeError`. Replaced with
+  `Type.keys()` and `pw.esa.GetFieldList(<type>)`'s `key_field` column.
+- **`AGENTS.md` rule 2 was true of one write form and wrong about the other.** "Assigning to
+  a filtered subset writes nothing" holds for `pw[Obj, field] = values`, which is positional
+  over the whole table — but `pw[Obj] = df` matches rows by key field, so a filtered subset
+  is correct and writes exactly those rows. Rule 2 now separates the two; a new rule 9
+  covers the read-only false positive. `GEMINI.md` resynced from `AGENTS.md` (it had also
+  drifted to a stale "~345 catalogued actions").
+- **Python bools on status fields were undocumented.** 0.2.1 serializes them through
+  `BOOL_FIELD_VOCAB`, so `pw[Gen, "GenStatus"] = True` writes `"Closed"`. `concepts/esapp.md`
+  now carries the vocabulary table; the plain strings still work and most pages still use them.
+- **`dist/` had no build script and had drifted a day and three pages behind.** The bundles
+  were missing `methods/reducing-a-contingency-set.md`,
+  `concepts/case-to-case-device-transplant.md` and
+  `concepts/esapp-script-command-wrappers.md` — the last being a page whose whole subject is
+  the 0.2.1 change — so chat-tool users got the uncorrected text with no correction page at
+  all. Added `build_dist.py`, which regenerates all five bundles and the skill zip from the
+  source pages; rebuilt output carries 46 sections, up from 43.
+
 - **The plugin's skill could not find its own pages.** `skills/powerworld/SKILL.md` sent the
   agent to `concepts/`, `methods/`, `demos/` and `references/` as bare relative paths, so an
   installed plugin — which lives under `~/.claude/plugins/cache/…` — had the agent searching
