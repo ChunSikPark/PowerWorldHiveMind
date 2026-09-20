@@ -74,6 +74,7 @@ Two rules that cause most first-attempt failures, both documented at
 |---|---|
 | `SetData` | Write field values on existing objects. **Requires the entire key-field row** or it errors — see [powerworld-limitset-setdata](../methods/powerworld-limitset-setdata.md) |
 | `CreateData` | Create new objects (buses, branches, loads, generators) — see [adding-devices-esapp](../methods/adding-devices-esapp.md) |
+| `SetElseCreateData` | Set one object's fields if it exists, else create it from defaults. The aux language's only exists-check — see [aux-only-powerworld](../concepts/aux-only-powerworld.md). Added September 2026; older Simulator 24 builds will not have it |
 | `Delete` | Delete objects of a type matching a filter |
 | `DeleteDevice` | Delete one specific device |
 | `DeleteIncludingContents` | Delete a container and everything inside it |
@@ -262,6 +263,7 @@ so you set `LineXFMR` instead. See [converting-lines-to-transformers](../methods
 | `TSInitialize` | Initialize dynamics from the solved power flow |
 | `TSSolve` | Run one transient stability contingency |
 | `TSSolveAll` | Run all of them |
+| `TSSolveContinue` | Resume a paused contingency from a SnapShot or Restore Time Point. Added December 2025, Simulator 25 |
 | `TSRunUntilSpecifiedTime` | Advance the run to a given time, then stop — manual stepping |
 | `TSGetResults` | Retrieve results into memory |
 | `TSGetVCurveData` | Retrieve V-curve data |
@@ -290,6 +292,7 @@ so you set `LineXFMR` instead. See [converting-lines-to-transformers](../methods
 |---|---|
 | `GICCalculate` | Run the GIC calculation for a uniform field — see [gic](../concepts/gic.md) |
 | `GICClear` | Clear GIC results |
+| `GICSensitivitiesCalculate` | Recalculate GIC sensitivities — Line Amp Input or Transformer Ieffective. Added March 2026, Simulator 25 |
 | `GICLoad3DEfield` | Load a 3-D electric field |
 | `GICTimeVaryingCalculate` | Run GIC over a time-varying field |
 | `GICTimeVaryingEFieldCalculate` | Compute the time-varying E-field itself |

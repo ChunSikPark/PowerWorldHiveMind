@@ -50,7 +50,7 @@ knew.
 
 ## How to find the page — and how much of it to read
 
-The kit is 44 pages — 17 in `concepts/`, 16 in `methods/`, 7 in `demos/`, 4 in
+The kit is 47 pages — 20 in `concepts/`, 16 in `methods/`, 7 in `demos/`, 4 in
 `references/` — and you will need three to five of them. The ladder below is about
 **finding** the right page cheaply. It is not a budget on how much of that page you read.
 
@@ -165,6 +165,7 @@ Say what you tested, what you rejected, and what you did **not** save.
 | Devices ranked by violation severity | [methods/ranking-new-devices-by-severity.md](methods/ranking-new-devices-by-severity.md) |
 | To change limit-monitoring thresholds | [methods/powerworld-limitset-setdata.md](methods/powerworld-limitset-setdata.md) |
 | To reclassify lines as transformers | [methods/converting-lines-to-transformers.md](methods/converting-lines-to-transformers.md) |
+| To drive Simulator without SimAuto, by dropping aux files | [concepts/powerworld-script-transfer.md](concepts/powerworld-script-transfer.md) |
 | A SCRIPT action but does not know its name | [references/aux-script-commands.md](references/aux-script-commands.md) |
 | Exact field names and signatures | [references/esapp-schema-reference.md](references/esapp-schema-reference.md) |
 
@@ -392,6 +393,16 @@ Background. Read when a method references something you do not recognise.
 
 | Page | What it covers |
 |---|---|
+| [pw-manual-map](concepts/pw-manual-map.md) | **Start here for anything in the PowerWorld manual.** The manual is organised by ribbon tab, so a research subject lands in three or four chapters its contents page never shows together. 25 subjects, each with its topic count and the chapter files that hold it; nine have a detail page here. |
+| [powerworld-help-corpus](concepts/powerworld-help-corpus.md) | What the offline manual capture is and what it does **not** document. 164 of 1,670 topics carry no usable body and sit interleaved with real ones; superseded version-9 API pages sit beside current ones and answer confidently with the wrong API; the figures are referenced but were never committed, so every image link is broken. Also: neither PowerWorld manual holds a per-object field catalog. |
+| [pw-power-flow](concepts/pw-power-flow.md) | Solution theory and every control acting during the solve — remote regulation, Mvar sharing, line-drop compensation, droop with deadband, island AGC. Voltage Conditioning moves generator setpoints *and* switched shunts, and its title says neither. |
+| [pw-contingency](concepts/pw-contingency.md) | Defining contingencies, the element dialog per element type, the options that change the answer, RAS, and reading results. Reference-state handling decides what violations are measured against and is easy to skip. |
+| [pw-timestep-sim](concepts/pw-timestep-sim.md) | The quasi-static Time Step Simulation tool. Only a quarter of the story: the script commands that launch a run, the programmatic entry point and the batch engine are three other chapters. |
+| [pw-scripting-automation](concepts/pw-scripting-automation.md) | AUX export formats, script execution, and SimAuto function-by-function. The manual explicitly declines to list field variables — verify names against the live schema. |
+| [pw-data-model](concepts/pw-data-model.md) | The object and field reference: case information displays, filters, expressions, key fields, and object dialogs. Edit mode and run mode document the same object twice with different writability. |
+| [pw-pv-qv](concepts/pw-pv-qv.md) | PV and QV curves — transfer margin and reactive margin at a bus. Most titles here are bare dialog-tab names, so a title search will not find them. |
+| [pw-interfaces](concepts/pw-interfaces.md) | The interface object, flowgates and nomograms — the monitored element behind every transfer study. The manual has no chapter for it; it is scattered across four. |
+| [pw-injection-groups](concepts/pw-injection-groups.md) | Injection groups and participation points — what a transfer is scaled and ramped on. Also has no chapter of its own, and the study chapters depend on it silently. |
 | [case-impedance-completeness](concepts/case-impedance-completeness.md) | A case can solve DC power flow for years while carrying no resistance and no line charging at all. DC reads only `X`, so nothing ever complains. |
 | [case-to-case-device-transplant](concepts/case-to-case-device-transplant.md) | Copy a set of devices from one case into another without rebuilding the chain that produced them, by carving a filtered AUX out of the source case. |
 | [copper-plate](concepts/copper-plate.md) | Strip every branch, load and shunt and leave a single slack bus, so generators dispatch to total system load with no transmission constraints. |
@@ -404,6 +415,7 @@ Background. Read when a method references something you do not recognise.
 | [parallel-contingency-solve](concepts/parallel-contingency-solve.md) | PowerWorld's own distributed `CTGSolveAll` never spawns workers here and silently degrades to serial. Split the contingency set across N processes instead. |
 | [per-unit-basis-discipline](concepts/per-unit-basis-discipline.md) | A per-unit value is meaningless without the base it was normalized against, and it looks like a plain scalar, so it gets copied between sources and summed. |
 | [powerworld-inertia-and-cost-data](concepts/powerworld-inertia-and-cost-data.md) | Four case-data facts to know before touching generator inertia or cost, starting with `Gen.TSH` being H on a 100 MVA system base rather than the unit's own. |
+| [powerworld-script-transfer](concepts/powerworld-script-transfer.md) | Simulator 25 beta watches a directory and executes any `.aux` dropped in it, writing the log back to a text file — a channel into PowerWorld that needs no COM, no SimAuto and no SimAuto licence. Undocumented in the manual. |
 | [powerworld-simauto](concepts/powerworld-simauto.md) | The Windows COM server every PowerWorld Python script ultimately talks to, its SAW mixin architecture, and the verified raw COM calls. |
 | [pww-data](concepts/pww-data.md) | The PWW binary weather format: gridded variables packed as uint8 per timestep and grid point, with 255 as the NaN sentinel. |
 | [timestep-simulation](concepts/timestep-simulation.md) | What a timestep simulation is here: hourly renewable output computed quasi-statically from weather data. It is not a transient-stability study. |
@@ -4812,6 +4824,221 @@ plt.tight_layout()
 
 ---
 
+# ==== concepts/aux-only-powerworld.md ====
+
+---
+type: concept
+domain: tooling
+aliases: [aux-only, aux-without-esapp, aux-without-simauto, headless-aux, pure-aux]
+tags: [powerworld, aux, script, simauto, esapp, provenance, house-rule]
+---
+
+# Driving PowerWorld with aux files alone
+
+## Abstract
+
+A PowerWorld `.aux` file is a complete program, not a fragment: one loaded file can open a
+case, edit it, solve it, export results to CSV, write the message log to a text file and
+exit, with **no Python and no SimAuto call of your own**. Live-verified 2026-09-11 on a
+regional synthetic planning model. This page records what the aux language can do
+unaided, the capabilities it structurally lacks (no return values, almost no control flow,
+no assertions) and the read-back discipline that substitutes for them, the two conditional
+constructs it *does* have — the solve-failure `STOP` slots and, since the September 2026
+patch, `SetElseCreateData`'s exists-check — the syntax traps
+measured the same day, and — most importantly — **the field-name provenance rule**: the
+*Auxiliary File Format* manual is a syntax manual with no per-object field catalog, so
+field names must come from esapp's generated schema or PowerWorld's own field export,
+never from the manual and never from memory. Read before writing any `.aux` by hand.
+
+## Connections
+
+- **Up:** [powerworld-simauto](powerworld-simauto.md) · esapp package · [Home](../index.md)
+- **Across:** aux script catalog (the 344-action name index) ·
+  [esapp-script-command-wrappers](esapp-script-command-wrappers.md) (the inverse house rule for the *Python* side) ·
+  [opf-preconditions](opf-preconditions.md) (the first real study run this way) ·
+  artifact level validation (the "it reported success and wrote nothing" family this
+  page's read-back rule belongs to) · esapp settable vs enterable
+- **Applied in:** [new-device-contingency-aux](../methods/new-device-contingency-aux.md) · [case-to-case-device-transplant](case-to-case-device-transplant.md)
+- **Across:** [powerworld-script-transfer](powerworld-script-transfer.md) (the same aux text, delivered by drop file instead of a launcher)
+- **Deeper:** [esapp-schema-reference](../references/esapp-schema-reference.md) · Simulator's *Auxiliary File Format* manual (Help menu)
+
+## Content
+
+### It works, and the whole loop closes
+
+Verified 2026-09-11, ~9k-bus synthetic planning model, Simulator 24 build 577. A single
+`.aux` loaded through the GUI performed, unattended, in file order:
+
+```
+OpenCase -> EnterMode(RUN) -> SolvePowerFlow(RECTNEWT) -> SaveData x2 -> LogSave
+```
+
+The log recorded `Simulation: Successful Power Flow Solution` and both CSVs landed on
+disk. Nothing in the chain went through `pw.esa`, `RunScriptCommand`, `LoadAux` or
+`ProcessAuxFile` from the caller's side — the file was simply opened.
+
+The self-contained shape is:
+
+```
+SCRIPT
+{
+  LogClear;  LogAdd("start");  LogAddDateTime;
+  OpenCase("<absolute path>.pwb");
+  EnterMode(RUN);
+  SolvePowerFlow(RECTNEWT);
+  SaveData("<absolute path>.csv", CSV, Branch, [<fields>], [], "", [], NO, NO);
+  LogSave("<absolute path>.txt", NO);
+  ExitProgram;                     // omit to leave the GUI open
+}
+```
+
+`LogSave` is the cheapest and only general feedback channel — everything PowerWorld says
+during the run, including warnings you would otherwise never see, lands in that text file.
+
+**Unnamed `SCRIPT { }` blocks auto-execute on load.** The manual never says so in a
+positive sentence, but `StopAuxFile` is documented as suppressing every later SCRIPT and
+DATA block in the file (which presupposes they would otherwise run), and `LoadScript` is
+described as executing only the section it names — a restriction stated against normal
+open-the-file behaviour. Naming a block makes it
+*additionally* addressable via `LoadScript`; it does not gate it. Several `SCRIPT` blocks
+interleaved with `DATA` blocks in one file is the manual's own canonical layout.
+
+### The one branch aux does have: conditional-response slots
+
+Several analysis actions take a pair of optional filename slots that fire on success and
+on failure, and either slot accepts the literal `STOP`, which halts **all** aux execution:
+
+```
+SolvePrimalLP("", STOP);        // succeed: continue.  fail: halt the file.
+```
+
+The manual describes all four parameters as optional, and says they specify what should
+happen conditionally on whether a solution was found. `InitializePrimalLP`,
+`SolveSinglePrimalLPOuterLoop` and `SolveFullSCOPF` carry the same slots.
+
+**Use them on every solve whose failure would invalidate what follows.** The bare form has
+no failure handler, so a solve that does not converge lets every later stage run against
+an unsolved case and write plausible-looking numbers to correctly-named files — the exact
+silent failure this page's read-back rule exists to catch, arriving through the one door a
+read-back does not cover.
+
+### What the aux language cannot do, and what to do instead
+
+Beyond those slots and `SetElseCreateData` below: no return values, no general branching,
+no arithmetic over a table, no assertions. Consequently:
+
+- **A failed edit is indistinguishable from a successful one at runtime.** The same family
+  as [case-to-case-device-transplant](case-to-case-device-transplant.md)'s `ProcessAuxFile` trap — reports success, changes
+  nothing.
+- **Substitute a read-back CSV for every assertion.** After a write, `SaveData` the fields
+  you just wrote, *before* any solve, to a file named for the check. Then read it. A run
+  whose edit silently no-opped otherwise produces the unchanged case under new filenames,
+  with plausible numbers throughout — the failure mode that ruins a study quietly.
+- **Per-object arithmetic is impossible.** `SetData` writes one literal to every object
+  matching a filter, so "set each unit to 80% of its own maximum" cannot be expressed.
+  That is the honest boundary at which to go back to Python.
+
+### The one exists-check: `SetElseCreateData`
+
+Added in the **September 2026 patch of Simulator 24** — older builds do not have it, and
+the aux will fail on a machine running one. PowerWorld's own justification names the gap
+this page describes: *"Because AUX scripts provide no process control to determine if a
+power flow case contains a particular object, this command provides a way to do that."*
+
+```
+SetElseCreateData(objecttype, [fieldlist], [SetValueList], [DefaultValueList]);
+```
+
+If the object exists it is updated; if it does not, it is created, and **Simulator switches
+itself to EDIT mode to do so**. It affects exactly one object — there is no filter form, so
+this is not a way to conditionally update a set.
+
+The two value lists are where it goes wrong quietly:
+
+- `[fieldlist]` must carry the key fields, and `[SetValueList]` must give them non-blank
+  values. Same rule as everywhere else in this kit.
+- **A blank entry (nothing between the commas) means "fall through to the default".** An
+  empty pair of double-quotes `""` does *not* — it is a real value and suppresses the
+  default. PowerWorld's own worked example turns on exactly this distinction: with
+  `Status` written as `""` the command errors when the generator is absent, and with
+  `Status` left blank it creates the generator using the default `"Closed"`.
+- `[DefaultValueList]` is optional; omit it and Simulator's own defaults apply. Key fields
+  in it are ignored.
+- Creation still needs every **required** field to end up non-blank across the two lists.
+  Most object types silently decline to create when a required field is blank.
+
+```
+SetElseCreateData(Bus, [Number, Name, AreaNumber, ZoneNumber, NomkV],
+                       [1,,,3,], [1, "NewBus", 1, 3, 138]);
+```
+
+It does not lift the read-back rule. It tells you nothing about which branch it took, so
+if the distinction matters, `SaveData` the object afterwards and look.
+
+### The field-name provenance rule
+
+**Simulator's own *Auxiliary File Format* manual documents script syntax and contains no
+per-object field catalog.** Measured 2026-09-11: across ~10,300 lines, zero hits for any of
+the Area or generator field names needed for an OPF setup. Re-confirmed 2026-09-12 against
+the **September 1, 2026** edition — same result. **Check the `Last Updated` line on page 1
+before trusting a claim sourced from it**: the manual gains actions between editions, and
+the November 6, 2025 edition is missing four that exist by September 2026,
+`SetElseCreateData` among them. The manual says so itself — it directs
+you to *Window → Export Case Object Fields* in the GUI instead. It therefore cannot confirm
+or refute a field name, ever.
+
+So do not guess field names, and do not take them from prose pages in this vault either —
+one such page in this wiki carried an Area field name that does not exist in the schema.
+
+**Verify against esapp's generated schema first, then emit the aux.** This costs seconds,
+needs no PowerWorld session, and is the correct workflow for authoring aux by hand:
+
+```python
+from esapp.components import Area
+[f for f in Area.fields() if "AGC" in f.upper()]   # does the name exist?
+Area.is_editable("BGAGC")                           # can it be written?
+Area.is_edit_mode_only("BGAGC")                     # does it need EnterMode(EDIT)?
+Area.keys()                                         # what identifies the object?
+```
+
+`is_edit_mode_only` is the one that decides whether an `EnterMode(EDIT)` wrapper is
+required or merely noise. `keys()` matters because a `SetData` with no filter needs the
+full key row (see below). Within a script, `SaveObjectFields` gets the same metadata —
+variable name, field, column header and description — straight from the running program.
+
+### Syntax traps, all measured 2026-09-11 against the manual
+
+| Trap | Correct form |
+|---|---|
+| `SetData`'s "all objects" token is the **bare keyword** `ALL`. `""` is not legal — the quotes make it parse as a filter *named* empty string | `SetData(Area, [Field], ["Value"], ALL);` |
+| With **no** filter, `SetData` requires the object's full key row in the field list | see `Type.keys()` |
+| `SaveObjectFields` takes **three required** arguments; the field list is not optional | `SaveObjectFields("f.csv", Area, [FieldA, FieldB]);` |
+| `SaveData`'s `Transpose` and `Append` are **scalars**, not lists — a `[]` there is wrong even when it appears to work | `..., filter, [SortFieldList], NO, NO);` |
+| `SaveData`'s filter *may* be blank (unlike `SetData`'s) — blank means all objects | `..., [], "", [], NO, NO);` |
+| The `ALL` keyword is documented as usable "instead of a list of fields" on the Save commands, but the manual gives **no worked example anywhere** — bare `ALL` vs `[ALL]` is undocumented | use an explicit field list |
+| Every file path must be **absolute**; a relative path resolves against `pwrworld.exe`'s working directory, not yours | — |
+| **Smart quotes silently break a script.** Straight quotes only | never paste from Word or a PDF |
+| Solver token is `POLARNEWTON`, not the commonly written `POLARNEWT` | `RECTNEWT`, `POLARNEWTON`, `GAUSSSEIDEL`, `FASTDEC`, `ROBUST`, `DC` |
+| `EnterMode(EDIT)` is required only to **create** topology objects. Modifying an existing one is not documented as needing it | keep the wrapper anyway; it costs nothing and the manual never positively blesses modify-in-RUN |
+
+`DATA (Object, [fields]) { rows }` is the legacy header form and is correct; omitting the
+file-type specifier means space-delimited rows. `BusNum:1` is the to-bus (`variablename:location`,
+where `:0` may be omitted). Quoting string values is optional but advisable.
+
+### When to use this, and when not to
+
+Aux-only is right when the logic is declarative and the value is auditability: the whole
+study is one reviewable text file, diffable and version-controllable, with no Python
+environment to reproduce. It is wrong the moment you need to branch on a result, compute
+per-object values, or assert anything beyond "read it back and look".
+
+The middle path costs five lines and keeps both: author the whole study as `.aux` text and
+use Python purely as the launcher via `exec_aux`, which buys back the read-back assertion
+without moving any logic into Python. stochastic model backend already runs this way.
+
+
+---
+
 # ==== concepts/case-impedance-completeness.md ====
 
 ---
@@ -6199,6 +6426,210 @@ Each cost real time; all measured 2026-08-10.
 
 ---
 
+# ==== concepts/opf-preconditions.md ====
+
+---
+type: concept
+domain: tooling
+aliases: [SolvePrimalLP, DCOPF preconditions, OPF constraints, BGAGC, opf-area-control]
+tags: [powerworld, opf, dcopf, scopf, agc, cost-curve, gotcha, synthetic-grid]
+---
+
+# What an OPF needs before `SolvePrimalLP` will run at all
+
+## Abstract
+
+PowerWorld's LP OPF refuses to start unless **three** independent preconditions hold at
+once: some area under OPF control (`Area.BGAGC = "OPF"`), some generators AGC-able
+(`Gen.GenAGCAble = "YES"`), and those generators carrying a cost model that is not NONE.
+Miss any one and you get a fatal error, not a degraded solve — which is the good news,
+because the third condition is *data* and cannot be switched on honestly. Synthetic cases
+routinely ship with all three off, so this is the first wall any OPF work on that case
+family hits. This page records the three conditions, the confirmed field names and how
+they were confirmed, the integrity trap in "just set a cost model", and the DC power flow
+fallback that answers a thermal question without needing any of it. Verified 2026-09-11
+on a regional synthetic planning model, Simulator 24.
+
+## Connections
+
+- **Up:** [powerworld-simauto](powerworld-simauto.md) · esapp package · [Home](../index.md)
+- **Across:** [aux-only-powerworld](aux-only-powerworld.md) (how this was driven, and the provenance rule that
+  settled the field names) · [powerworld-inertia-and-cost-data](powerworld-inertia-and-cost-data.md) (the cost-curve
+  silent-zero traps) · [applying-a-dispatch-to-a-case](../methods/applying-a-dispatch-to-a-case.md) (same case family, AGC off) ·
+  artifact level validation
+- **Deeper:** [esapp-schema-reference](../references/esapp-schema-reference.md) · esa pp llm backend (the SCOPF call sequence)
+
+## Content
+
+### The error, and what it actually means
+
+```
+Fatal Error: No Areas or Super Areas set as OPF Constraints
+  To correct, on the OPF Area Records (or OPF Super Area Records) display
+  toggle the AGC Status field to "OPF" for some areas/super areas
+  Also, make sure some generators are set to AGC = YES and have a Cost Model
+  that is not NONE.
+```
+
+The headline names one condition; the message body names two more. All three are
+required. The OPF is not a solver you point at a case — it is a solver that optimises
+*specific controls under specific constraints*, and with none declared it has nothing to
+do and says so.
+
+| # | Condition | Field | Nature |
+|---|---|---|---|
+| 1 | an area (or super area) under OPF control | `Area.BGAGC` = `"OPF"` | switch |
+| 2 | generators the OPF may move | `Gen.GenAGCAble` = `"YES"` | switch |
+| 3 | those generators priced | `Gen.GenCostModel` ≠ NONE | **data** |
+
+### The field names, and how they were confirmed
+
+`BGAGC` is **not** in the *Auxiliary File Format* manual — nor is any other field name,
+because that manual carries no per-object catalog (see [aux-only-powerworld](aux-only-powerworld.md)). It was
+confirmed instead against esapp 0.2.1's generated schema, offline, without a PowerWorld
+session:
+
+```python
+from esapp.components import Area
+"BGAGC" in Area.fields()          # True  -- one of Area's 444 fields
+Area.is_editable("BGAGC")         # True
+Area.is_edit_mode_only("BGAGC")   # False -- writable in RUN mode, no EnterMode(EDIT)
+```
+
+`Gen.GenAGCAble`, `Gen.GenCostModel`, `Gen.GenCostCurvePoints` and `Gen.GenMCost` all
+confirm the same way: real, editable, not edit-mode-only.
+
+⚠ **`AGC_AGCStatus` is not an Area field.** It appears in this vault's prose
+([applying-a-dispatch-to-a-case](../methods/applying-a-dispatch-to-a-case.md)) as the area AGC-status field name and does not exist in
+esapp's schema. Do not use it. A field name read out of a prose page is a lead, not a fact
+— check it against the schema before writing it into a script.
+
+esapp declares no value vocabulary for `BGAGC`, so the literal `"OPF"` rests on
+PowerWorld's own error text. If a write does not take, read the field's current value back
+and match the spelling you see.
+
+In aux, with `ALL` as the filter keyword (`""` is not legal — see [aux-only-powerworld](aux-only-powerworld.md)):
+
+```
+SetData(Area, [BGAGC], ["OPF"], ALL);
+SetData(Gen, [GenAGCAble], ["YES"], ALL);
+```
+
+Then read both back before believing either. `SetData` reports success on writes that
+change nothing.
+
+### Condition 3 is data, and forcing it is a research-integrity failure
+
+Conditions 1 and 2 are switches and may be flipped freely — they change what the OPF is
+*allowed* to do, not what the answer is. Condition 3 is different. Setting `GenCostModel`
+to something non-NONE without real cost curves means inventing fuel costs, and the
+resulting dispatch is then driven entirely by fabricated numbers. It will look like an
+economic dispatch, produce a cost column, and mean nothing. **Check whether the case
+carries cost data; do not manufacture it.**
+
+Per [powerworld-inertia-and-cost-data](powerworld-inertia-and-cost-data.md), the guard is
+`GenCostCurvePoints > 0 AND GenMCost > 0`. `GenCostCurvePoints == 0` means no curve was
+ever fit and the cost fields read `0` — which is *no data*, never *free*. A handful of
+units can also report `GenMCost == 0` with curve points defined.
+
+Synthetic cases are the live hazard here. A generation pipeline may assign piecewise cost
+curves at build time, but whether they survived into the dated case you are holding is a
+question about that file, not about the pipeline — so measure it.
+
+**And the measurement can come back unsatisfiable.** On a ~9k-bus synthetic planning model,
+2026-09-11:
+
+| Field | Reading |
+|---|---|
+| `GenCostModel` | `"None"` on **every** unit |
+| `GenCostCurvePoints` | `0` on every unit |
+| `GenMCost` | zero nonzero values |
+| `GenAGCAble` | `"NO"` on all but one |
+| `Area.BGAGC` | one area, `"Off AGC"` |
+
+Conditions 1 and 2 were one `SetData` each. Condition 3 had nothing to switch on: the case
+simply carries no cost data. **DC OPF is therefore not available on that case at all** until
+cost models are populated upstream — not a tuning problem, not a settings problem, an
+absent-data problem. Budget for discovering this *before* designing a study around an OPF,
+because the recon that answers it costs seconds and the alternative is discovering it at the
+solve.
+
+This also fixes the shape of the value vocabulary: `BGAGC` reads back as the
+human-readable string `"Off AGC"`, spaces included, which makes `"OPF"` from PowerWorld's
+error text the right shape to write.
+
+### `Sim_Solution_Options` is the lowest-priority place to set a solve mode
+
+`SetData(Sim_Solution_Options, [DCApprox], [YES]);` is how the DC approximation gets set in
+an aux, and it works — but note the manual documents `Sim_Solution_Options` only as a
+SUBDATA section nested inside `Contingency`, `CTG_Options` and `QVCurve_Options`, never as a
+standalone `SetData` target. The shape is an analogy to the sibling `Equiv_Options` (which
+the manual explicitly says may be set "using the SetData action, or a DATA section"), not a
+citation.
+
+What the manual does settle is **precedence**, and it bites the moment OPF meets
+contingency analysis:
+
+The manual states that contingency analysis reads power flow solution options from three
+places, and applies them in this order of precedence:
+
+1. options stored on the individual contingency record
+2. options stored on the contingency tool (`CTG_Options`)
+3. the global solution options
+
+**Global solution options rank last.** Setting DC once at the top of an aux does not make it
+true during contingency analysis — anything the contingency record or `CTG_Options` carries
+overrides it. This is why esa pp llm backend's SCOPF sequence sets both
+`Sim_Solution_Options.DCApprox` *and* `CTG_Options.CTG_CalculationMethod`.
+
+### Always give the solve a failure handler
+
+`SolvePrimalLP` takes four optional arguments — a success slot, a failure slot, and two
+create-if-not-found flags — and either filename slot accepts the literal `STOP`, meaning
+halt all aux execution:
+
+```
+InitializePrimalLP("", STOP);
+SolvePrimalLP("", STOP);
+```
+
+Bare `SolvePrimalLP;` has no failure handler. A refused or non-converged OPF then becomes
+one line in the log while every later stage runs against an **unsolved case** and writes
+plausible numbers into correctly-named files. `SolveSinglePrimalLPOuterLoop` and
+`SolveFullSCOPF` carry the same slots. See [aux-only-powerworld](aux-only-powerworld.md).
+
+### Flipping condition 2 globally is blunt
+
+`GenAGCAble = "YES"` on every unit lets the OPF redispatch the entire fleet, including
+units that would never move in operation. Acceptable for a first look; narrow it before
+any result is reported.
+
+### The fallback that needs none of this
+
+If the question is *thermal* — what happens to branch loadings when an element is removed —
+a **DC power flow** answers it and requires no area control, no AGC flags and no cost data:
+
+```
+SetData(Sim_Solution_Options, [DCApprox], [YES]);
+SolvePowerFlow(DC);
+```
+
+What is lost versus a DC OPF is economic redispatch. On a case whose areas are off AGC
+and whose units are almost entirely not AGC-able, very little was being redispatched
+anyway, so the gap between the two is far smaller than it sounds.
+
+Two things to carry into the comparison:
+
+- **A DC solve pins every bus to exactly 1.0 pu** ([lodf](lodf.md)). So neither DC OPF nor DC
+  power flow yields any voltage answer — a before/after voltage table from a DC run is
+  identically zero change. Voltage requires an AC re-solve at the post-change dispatch,
+  compared against an AC baseline.
+- `pw.dc_mode` is effectively one-way ([lodf](lodf.md)); prefer the explicit script form above and
+  verify by checking that the bus voltages really did go to 1.0.
+
+
+---
+
 # ==== concepts/parallel-contingency-solve.md ====
 
 ---
@@ -6450,6 +6881,179 @@ a wrong number reaches a document.
 
 ---
 
+# ==== concepts/powerworld-help-corpus.md ====
+
+---
+type: dataset
+domain: tooling
+aliases: [powerworld-webhelp, webhelp, simulator-help, PowerWorld-Help, help-corpus]
+tags: [powerworld, documentation, retrieval, agent-workflow, knowledge-base, simauto]
+---
+
+# PowerWorld help corpus
+
+## Abstract
+
+**The PowerWorld Simulator WebHelp, captured as 80 offline Markdown chapter files holding 1,670 topics —
+and the reason you cannot navigate it by its own table of contents.** The manual is organised the
+way the *program* is organised (ribbon tabs, dialogs, add-ons), so every research subject is split
+across chapters that the contents page never puts side by side. Three splits bite repeatedly:
+time-step work, switched-shunt/reactive work, and anything that has both a dialog and a script
+command. A topic-level index that re-cuts the corpus by research domain lives outside the wiki;
+this page is the *why*, the retrieval gotchas, and the one provenance rule the help system itself
+states.
+
+Read this before searching the help for anything. It costs less than one wrong grep.
+
+## Connections
+
+**Up:** [Home](../index.md) ·
+**Across:** [aux-only-powerworld](aux-only-powerworld.md) (the field-name provenance rule this page confirms from a second
+source), [aux-script-catalog](../references/aux-script-commands.md) (the SCRIPT action catalog, condensed from the *other* manual),
+[esapp](esapp.md), [powerworld-simauto](powerworld-simauto.md), what-drives-hop-count (why chapter size, not chapter count,
+is what made this corpus cheap to search), benchmarking-a-knowledge-base ·
+**Technique:** routing-layer-over-immutable-docs — the general pattern this corpus is the
+worked case of, and the evidence for what to do about a corpus you must not edit ·
+**Deeper:** [timestep-simulation](timestep-simulation.md), [gic](gic.md)
+
+## Content
+
+### What it is
+
+An offline Markdown capture of `powerworld.com/WebHelp`, the Simulator manual. As captured
+2026-09-18: **1,670 topics in 80 chapter files (~6.6 MB) and 3 PDFs.** Internal links are in good
+order — measured on the pinned commit, **zero broken anchors**.
+
+**But the figures are missing.** The chapters carry 1,120 `images/*.gif` references and the
+repository contains no `images/` directory, so every figure reference is broken in a clone. The
+corpus's own README describes 1,097 figures at 273 MB; they were never committed. Where a topic
+explains itself with a block diagram — most of the dynamic-model catalog — the offline copy does
+not carry the explanation. It ships a `manifest.json` (chapter list, sizes,
+cross-reference graph) and a `toc.json` (the help system's own contents tree).
+
+It is **the program's documentation, not a textbook.** It describes dialogs, fields and options.
+Where it states theory it is brief and worth reading — the power-flow solution chapter is the
+main place it does ([pw-power-flow](pw-power-flow.md) lists what) — but the bulk is reference material for a UI.
+
+### Why its own categories cut the wrong way
+
+The corpus groups its chapters into the manual's parts: *Getting Started*, *Viewing Case Data*,
+*Contingency Analysis*, *Add-Ons*, *Transient Models*, and so on. Those are the program's
+divisions. A research question crosses them:
+
+- **Running a time-step study** spans four chapters — tool, script commands, programmatic entry
+  point and batch engine ([pw-timestep-sim](pw-timestep-sim.md) names them).
+- **Reactive support** — switched-shunt material is spread over the power-flow chapter, *both*
+  object-property chapters (edit mode and run mode have separate pages for the same object), the
+  contingency-options chapter (post-contingency shunt behaviour), the time-step chapter (shunt
+  control time-step options) and the SVC control-mode topics, which sit in the appendix described
+  below.
+- **Anything with both a dialog and a command** — the dialog is documented in its feature chapter,
+  the command that does the same thing is in the scripting chapter, and neither page is obliged
+  to mention the other.
+
+The practical consequence: **finding the feature chapter is not finding the answer.** Expect a
+subject to live in three or four files and plan the read accordingly.
+
+### The appendix that is not in the table of contents
+
+Roughly 4% of topics — 67 in this capture — are reachable **only by cross-link**, never by the
+contents tree. In the capture they are swept into a trailing "additional linked topics" chapter,
+which is consequently a grab bag spanning half a dozen unrelated subjects under no useful
+heading — each subject page flags its own stranded topics. This is real content, not scraps:
+several of those pages are the only description of their mechanism anywhere in the manual.
+
+**So a table-of-contents-shaped search misses them.** Grep the whole corpus, not the contents.
+
+### The legacy-duplicate trap
+
+The help ships current API pages *and* the version-9 pages for the same functions, with nearly
+identical titles. A grep for a SimAuto function name returns both, and the old page will look
+plausible. **Check the title for a version marker before trusting an automation page** — and
+prefer the current chapter, which documents the typed and flat-output variants the legacy pages
+predate.
+
+### The field-name provenance rule, confirmed twice
+
+[aux-only-powerworld](aux-only-powerworld.md) established that the Auxiliary File Format manual contains **no per-object
+field catalog**. The WebHelp says the same thing about itself, explicitly: it names field variables
+as the basis of every automation call, gives `GenMW` and `BusNum` as examples, and then states that
+rather than list them, Simulator will **generate the list on demand from its Help menu**.
+
+So there are two manuals and neither one holds the field names. The rule stands and now has two
+sources: **verify a field name against the live schema — `esapp`'s field metadata, or
+`GetFieldList` — never against prose in a manual.** A page that names a field is illustrating a
+concept, not publishing a catalog.
+
+### Roughly a tenth of the topics say nothing
+
+**164 of the 1,670 topics (9.8%) carry no usable body.** 76 hold the capture's own marker
+*"This topic has no body text in the source help file"* — the vendor's table of contents lists a
+topic the vendor never wrote. The other 88 are under 150 characters, usually nothing but an
+auto-correction block reading *"To be documented."*
+
+They are concentrated in the dynamic-model chapters and **interleaved with fully-documented
+models in the same file**, so nothing about a topic's position or title tells you which kind it
+is. Every one costs a read to discover it is empty. A model name appearing in the manual is
+therefore **not** evidence that the model is documented.
+
+### Six copies of the release notes are 6% of the corpus
+
+The manual's *"What's New"* topic appears **six times** in the capture and together those six
+hold about **92k tokens — 6.2% of all body text in the corpus**, making them the largest topics
+in it by a wide margin. They are version history, not reference material.
+
+This generalises past this one corpus: **in a converted vendor manual, the largest topics are
+usually the least useful ones.** Release notes, licence text and "what's new" pages are long,
+highly duplicated, and answer no question anyone asks. Check a topic's size before opening it and
+treat the big ones with suspicion rather than deference.
+
+### What its AI-readiness scores actually measure
+
+Scored with the `ai-readiness-audit` rubric (measured 2026-09-20, all chapter files), the corpus
+lands around 60/100 overall, and **most of that gap is genre, not defect**. The heuristics flagged
+*"instructions read as descriptive, not actionable"* on **every** file and *"no gotchas section"* on
+every file; median imperative ratio across the corpus is **0.00**. That is what a reference manual
+is. Its "undefined terminology" signal is also largely artefact — the detector counts `AND`, `NOT`,
+`YES`, `ACOS` and model parameter names among hundreds of "undefined acronyms", of which only a
+couple of dozen are real domain terms.
+
+The lesson is about the measurement, not the manual, and it generalises to any scored corpus:
+**a readiness rubric built for instruction docs will mark a reference corpus down for being a
+reference corpus.** Three findings survive that correction and are real — oversized sections
+(282 across the chapter files, the worst a single ~19.7k-token section), heavy duplication, and
+the stub topics above. Those are worth acting on; the actionability score is not.
+writing-ai-ready-claude-md already states the principle as a house rule — *"actionability is
+genre-capped… respect the genre"* and *"don't score-game"* — and this is what it looks like at
+corpus scale.
+
+### Why this corpus is cheap to search
+
+what-drives-hop-count measured that hop count tracks the **number of candidate pages** a search
+works through, not total bytes — so splitting a long page in two can make retrieval *more*
+expensive. This capture was built the same way round: chapters are cut at roughly 150 KB, each
+sized to fit in one context window, and a chapter is split only when it exceeds that. 1,670 topics
+compressed into 80 files is the shape that measurement predicts will retrieve cheaply, which is
+consistent with the hop counts the kit posted in that benchmark.
+
+The corollary for anyone tempted to "improve" it: **do not explode it into one file per topic.**
+That is 1,670 candidates for the same bytes.
+
+### What an index over it buys
+
+Chapter-level categories already ship in the corpus manifest, so the value of re-indexing is
+entirely at **topic level**: tagging each of the 1,670 topics with the research domain it serves,
+plus cross-cutting tags that ignore chapter boundaries, so a domain question resolves to the two
+or three files that actually hold it. That artifact is a repo index, not wiki content — the wiki
+carries the reasoning, the repo carries the 1,670 rows.
+
+---
+
+*Ported from the research vault. Describes and routes over the PowerWorld Simulator help corpus; reproduces no manual text.*
+
+
+---
+
 # ==== concepts/powerworld-inertia-and-cost-data.md ====
 
 ---
@@ -6617,6 +7221,148 @@ classification code, never the category's plain-English name.
 
 ---
 
+# ==== concepts/powerworld-script-transfer.md ====
+
+---
+type: concept
+domain: tooling
+aliases: [script-transfer, drop-file-aux, SimulatorScriptInput, SimulatorScriptOutput, external-script-control, sced]
+tags: [powerworld, aux, script, external-program, llm, simulator-25, undocumented]
+---
+
+# Drop-file script transfer: driving Simulator without SimAuto
+
+## Abstract
+
+Simulator 25 beta can watch a directory and execute any `.aux` dropped into it, writing
+back the message-log slice produced by that load. Write a file, read a file — **no COM, no
+SimAuto call, and therefore no SimAuto licence.** This is the cheapest channel an external
+program (an LLM among them) has ever had into PowerWorld, and it is the first one that
+needs nothing installed on the caller's side.
+
+**It is not in the *Auxiliary File Format* manual.** Searched 2026-09-12 against the
+September 1, 2026 edition: zero hits for `ScriptTransfer`, `SimulatorScriptInput`,
+`SimulatorScriptOutput`, `ScriptInputOutputPollSec` and "drop file". The only source is
+Overbye's September 2026 slide deck *Recent Modifications to PowerWorld Simulator to Allow
+for More Interaction with External Programs*, which describes the functionality as new and
+"probably evolving". Everything below is from that deck; nothing here is measured yet.
+
+## Connections
+
+- **Up:** [powerworld-simauto](powerworld-simauto.md) · [Home](../index.md)
+- **Across:** [aux-only-powerworld](aux-only-powerworld.md) (what to write *inside* the dropped file — every trap
+  and the read-back rule apply unchanged) · [aux-script-commands](../references/aux-script-commands.md) ·
+  [esapp-script-command-wrappers](esapp-script-command-wrappers.md) (the Python-side channel this one bypasses)
+- **Deeper:** [esapp-schema-reference](../references/esapp-schema-reference.md) (field-name provenance — still mandatory here)
+
+## Content
+
+### What it does
+
+With the feature enabled, every `ScriptInputOutputPollSec` Simulator checks the configured
+directory for a file named exactly **`SimulatorScriptInput.aux`**. If it is there:
+
+1. the aux file is **loaded** (i.e. executed — unnamed `SCRIPT{}` blocks auto-run, see
+   [aux-only-powerworld](aux-only-powerworld.md)),
+2. the input file is **deleted**,
+3. **`SimulatorScriptOutput.txt`** is written into the same directory, containing the new
+   message-log entries associated with that load.
+
+That is the whole protocol. Request is a file appearing; response is a file appearing; the
+deletion of the request is the acknowledgement.
+
+### Turning it on
+
+Two preconditions the deck states explicitly, and both are real constraints rather than
+setup steps: **a case must already be loaded**, and **the Script Command Execution Dialog
+(SCED) must be visible**. Tools → Script opens it.
+
+In the SCED:
+
+| Field | Registry name (PowerWorld section) |
+|---|---|
+| Enabled External Script Control | `ScriptTransferFileEnabled` |
+| ScriptTransferFileDirectory | `ScriptTransferFileDirectory` |
+| Script File Poll Interval | `ScriptInputOutputPollSec` |
+
+Settings persist in the registry, so this is configurable ahead of a session rather than
+only through the dialog.
+
+### The shape of a request
+
+From the deck's worked example, on PowerWorld's own shipped `B7Flat` case:
+
+```
+// First change the generator status
+DATA (Gen [ObjectID, STATUS])
+{
+"Gen 1 '1'" "Open"
+}
+// Then solve the power flow
+SCRIPT{SolvePowerFlow;}
+```
+
+Two things to copy from this rather than invent:
+
+- **`DATA` + `ObjectID` is a compact one-field key.** `"Gen 1 '1'"` identifies the unit
+  without a separate `BusNum`/`GenID` pair. The manual documents `ObjectID` as an
+  identifier form on several commands, so this is not deck-only syntax.
+- **A single dropped file mixes `DATA` and `SCRIPT` blocks and they run in file order.**
+  The edit lands, then the solve runs against it.
+
+The corresponding `SimulatorScriptOutput.txt` is the raw log slice — `1 records read from
+file.`, the AGC adjustments, the mismatch iterations, `Simulation: Successful Power Flow
+Solution`, bracketed by `Starting load of auxiliary file:` and `Finished load of auxiliary
+file:` lines.
+
+### Write it elsewhere, then copy it in
+
+The deck says to create `SimulatorScriptInput.aux` and "store it somewhere other than in
+this directory", then copy it into the watched directory. Treat that as mandatory. The
+poller has no way to tell a finished file from one still being written, so authoring in
+place races the poll interval and can feed Simulator half an aux — which, given that a
+truncated script is still a *valid* script up to the truncation point, is the silent
+failure this whole vault exists to prevent.
+
+An atomic move within the same volume is the safer version of the same idea.
+
+### What it does not give you
+
+The output is a **log transcript, not a return value.** `SolvePowerFlow` succeeding or
+failing shows up as English in a text file, not as a status your caller can branch on
+without parsing. So:
+
+- **The read-back discipline from [aux-only-powerworld](aux-only-powerworld.md) applies unchanged.** If the
+  answer matters, `SaveData` it to a CSV and read the CSV. Do not infer success from the
+  output file merely existing.
+- `Simulation: Successful Power Flow Solution` is the string worth grepping for, but its
+  absence is not the same as a specific diagnosis.
+- This is **not headless**. A visible GUI dialog is required, so it does not replace
+  [esapp](esapp.md) for batch or parallel work — see [parallel-contingency-solve](parallel-contingency-solve.md).
+
+### Open questions to settle by experiment
+
+None of these are answered by the deck, and each one changes how a caller must be written:
+
+- Is `SimulatorScriptOutput.txt` **overwritten or appended** on each cycle?
+- Is there any signal that the output file is **complete**, or must the caller poll for
+  size stability?
+- What happens when the aux **fails to parse** — is an output file written at all, and does
+  the input file still get deleted?
+- Does `StopAuxFile` or `ExitProgram` inside a dropped file behave sanely here?
+- What is the **minimum usable poll interval**, and does a short one cost anything?
+- Does a second `SimulatorScriptInput.aux` dropped mid-execution get picked up, queued, or
+  lost?
+
+### Version floor
+
+**Simulator 25 beta, build date on or after September 12, 2026.** Earlier builds do not
+have it, including every Simulator 24 build regardless of patch date. See
+[version-requirements](version-requirements.md).
+
+
+---
+
 # ==== concepts/powerworld-simauto.md ====
 
 ---
@@ -6716,6 +7462,644 @@ new objects.
 
 - Wrapped by [esapp](esapp.md) · used by esapp package
 - How-to: [esapp-overview](../methods/esapp-overview.md) · feeds esa pp llm
+
+
+---
+
+# ==== concepts/pw-contingency.md ====
+
+---
+type: concept
+domain: tooling
+aliases: [pw-ctg, contingency-analysis, pw-contingency-analysis]
+tags: [powerworld, manual, contingency, ras, limits]
+---
+
+# PowerWorld: Contingency analysis
+
+## Abstract
+
+Contingency analysis end to end: how contingencies are defined, what an element can do, every option that changes the result, and how results are read back. The largest single analysis subject in the manual after dynamics.
+
+**96 topics across 7 chapter files.**
+
+## Connections
+
+**Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
+
+**Across:** [pw-interfaces](pw-interfaces.md) · pw-sensitivities · pw-topology · [pw-scripting-automation](pw-scripting-automation.md)
+
+## Content
+
+### What it covers
+
+- Defining contingencies: auto-generation, PSS/E and PSLF list formats, the concise RAS format
+- The contingency element dialog — one topic per element type, from branch to script
+- Options that change the answer: DC and screening, post-contingency AGC, load throw-over, switched-shunt post-CTG behaviour, limit monitoring and monitoring exceptions
+- Remedial action schemes and global actions
+- Running, results by element, violation notes, report writing, comparing two runs
+- CTG combination analysis
+
+### Where it lives
+
+| Chapter file | Topics | Holds |
+|---|--:|---|
+| `22-contingency-analysis-options.md` | 26 | The Contingency Analysis dialog: Contingencies tab and the full Options tab. |
+| `24-contingency-element-dialog.md` | 24 | The Contingency Element dialog and every element action type. |
+| `21-contingency-analysis-overview-and-records.md` | 19 | What contingency analysis does, available contingency actions, case references and contingency records. |
+| `23-contingency-analysis-running-and-results.md` | 16 | Running contingency analysis, file formats, sensitivity analysis, results and comparing runs. |
+| `52-additional-linked-topics-part1.md` | 7 | Topics reachable from links inside the manual but not listed in the help system's table of contents. |
+| `25-ctg-combo-analysis.md` | 3 | Contingency combination analysis and the combination element dialog. |
+| `05-case-information-displays-by-object-part1.md` | 1 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
+
+Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`.
+
+### What bites
+
+- Reference-state handling is its own set of topics and is easy to skip; it decides what the violations are measured *against*.
+- Several contingency options live one link away in the appendix chapter — stuck-breaker creation, legacy definitions, and the relationship between contingencies, model conditions and model filters.
+
+---
+
+*Subject page over the PowerWorld Simulator help corpus. Describes and routes; reproduces
+no manual text. Topic-level detail is in `powerworld-help-index/ROUTING.md`.*
+
+---
+
+*Ported from the research vault. Describes and routes over the PowerWorld Simulator help corpus; reproduces no manual text.*
+
+
+---
+
+# ==== concepts/pw-data-model.md ====
+
+---
+type: concept
+domain: tooling
+aliases: [pw-fields, pw-case-information, object-field-reference]
+tags: [powerworld, manual, fields, case-information, object-properties, filters]
+---
+
+# PowerWorld: Objects and fields
+
+## Abstract
+
+The object and field reference: every case-information display, every object property dialog, and the filtering and expression machinery that selects rows. This is where you find out what a field is called and whether you can write to it.
+
+**177 topics across 15 chapter files.**
+
+## Connections
+
+**Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
+
+**Across:** [pw-scripting-automation](pw-scripting-automation.md) · [pw-power-flow](pw-power-flow.md) · [pw-interfaces](pw-interfaces.md) · pw-case-data-io
+
+**Research pages that use this:** esapp-settable-vs-enterable · [esapp](esapp.md)
+
+## Content
+
+### What it covers
+
+- Model Explorer and case information display mechanics: columns, sorting, formats, custom fields
+- Filtering: the filterbar, area/zone/owner filters, advanced filters, model conditions and filters
+- Expressions, model expressions, string expressions, functions and operators
+- Key fields and required fields
+- Displays by object: bus, generator, load, line, transformer, DC line, shunt, island, owner
+- Object property dialogs in both edit mode and run mode — the same object documented twice
+- Generator cost models and economic curves; data checks and the difference case
+
+### Where it lives
+
+| Chapter file | Topics | Holds |
+|---|--:|---|
+| `04-model-explorer-and-case-information-part3.md` | 26 | Model Explorer and the mechanics of case information displays: filtering, sorting, columns, formats. |
+| `04-model-explorer-and-case-information-part1.md` | 24 | Model Explorer and the mechanics of case information displays: filtering, sorting, columns, formats. |
+| `06-object-properties-edit-mode-part3.md` | 16 | Edit-mode property dialogs for every Simulator object type. |
+| `05-case-information-displays-by-object-part2.md` | 15 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
+| `06-object-properties-edit-mode-part1.md` | 14 | Edit-mode property dialogs for every Simulator object type. |
+| `07-object-properties-run-mode-and-general-part2.md` | 14 | Run-mode and general property dialogs, object groups, supplemental data and data maintainers. |
+| `04-model-explorer-and-case-information-part2.md` | 13 | Model Explorer and the mechanics of case information displays: filtering, sorting, columns, formats. |
+| `05-case-information-displays-by-object-part1.md` | 13 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
+| `05-case-information-displays-by-object-part3.md` | 12 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
+| `07-object-properties-run-mode-and-general-part1.md` | 11 | Run-mode and general property dialogs, object groups, supplemental data and data maintainers. |
+| `06-object-properties-edit-mode-part2.md` | 8 | Edit-mode property dialogs for every Simulator object type. |
+| `08-view-case-data-tools.md` | 7 | Data View, Data Check, Bus View, Substation View, Spatial View, labels, difference case and fixed-number buses. |
+| `52-additional-linked-topics-part1.md` | 2 | Topics reachable from links inside the manual but not listed in the help system's table of contents. |
+| `10-power-flow-solution-and-options-part2.md` | 1 | Power flow solution theory, simulator options, and solution and control settings. |
+| `18-general-tools.md` | 1 | Limit monitoring, difference case, scale case, connections tools and other general-purpose tools. |
+
+Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`, `weather-pipelines`.
+
+### What bites
+
+- Edit mode and run mode have **separate pages for the same object**; the field sets differ and so does what is writable.
+- Key fields are the load-bearing concept for any automation. **A write that omits them silently does nothing** — no error, no change ([esapp](esapp.md), [adding-devices-esapp](../methods/adding-devices-esapp.md)). Landing on the *wrong rows* is a different bug entirely, from the positional setter form; see esapp-settable-vs-enterable.
+
+---
+
+*Subject page over the PowerWorld Simulator help corpus. Describes and routes; reproduces
+no manual text. Topic-level detail is in `powerworld-help-index/ROUTING.md`.*
+
+---
+
+*Ported from the research vault. Describes and routes over the PowerWorld Simulator help corpus; reproduces no manual text.*
+
+
+---
+
+# ==== concepts/pw-injection-groups.md ====
+
+---
+type: concept
+domain: tooling
+aliases: [pw-injection-group, participation-points]
+tags: [powerworld, manual, injection-group, participation-point, transfer]
+---
+
+# PowerWorld: Injection groups
+
+## Abstract
+
+Injection groups and participation points — the object that says *which* generators and loads move, and in what proportion, when a transfer is scaled or ramped. The input side of every PV, QV and ATC study.
+
+**10 topics across 3 chapter files.**
+
+## Connections
+
+**Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
+
+**Across:** pw-atc · [pw-pv-qv](pw-pv-qv.md) · [pw-interfaces](pw-interfaces.md) · [pw-power-flow](pw-power-flow.md)
+
+## Content
+
+### What it covers
+
+- Injection group overview, creation, deletion and auto-insertion
+- The injection group display and dialog
+- Participation points: overview, records display, add dialog
+- The injection group file format
+
+### Where it lives
+
+| Chapter file | Topics | Holds |
+|---|--:|---|
+| `07-object-properties-run-mode-and-general-part2.md` | 6 | Run-mode and general property dialogs, object groups, supplemental data and data maintainers. |
+| `05-case-information-displays-by-object-part3.md` | 3 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
+| `03-cases-files-and-formats.md` | 1 | Opening, creating, closing and saving cases; every supported file format; project files. |
+
+Serves: `esapp-automation`, `reactive-power-planning`, `transfer-and-dispatch`.
+
+### What bites
+
+- Like interfaces, this has no chapter of its own and is gathered here.
+- An ATC or PV run silently depends on how these are defined; the study chapters reference the object without documenting it.
+
+---
+
+*Subject page over the PowerWorld Simulator help corpus. Describes and routes; reproduces
+no manual text. Topic-level detail is in `powerworld-help-index/ROUTING.md`.*
+
+---
+
+*Ported from the research vault. Describes and routes over the PowerWorld Simulator help corpus; reproduces no manual text.*
+
+
+---
+
+# ==== concepts/pw-interfaces.md ====
+
+---
+type: concept
+domain: tooling
+aliases: [pw-interface, flowgates, nomograms]
+tags: [powerworld, manual, interface, flowgate, nomogram]
+---
+
+# PowerWorld: Interfaces and flowgates
+
+## Abstract
+
+The interface object — a named group of monitored branches — plus flowgates and nomograms. Small subject, disproportionate importance: the interface is the monitored element for every transfer, flowgate and nomogram study.
+
+**11 topics across 4 chapter files.**
+
+## Connections
+
+**Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
+
+**Across:** pw-atc · [pw-contingency](pw-contingency.md) · [pw-injection-groups](pw-injection-groups.md) · [pw-data-model](pw-data-model.md)
+
+## Content
+
+### What it covers
+
+- Interface records, element, field and pie-chart information
+- Auto-inserting interfaces into a case
+- Nomogram records and dialog
+- The interface data file format
+- Loading and saving NERC flowgates as Excel
+
+### Where it lives
+
+| Chapter file | Topics | Holds |
+|---|--:|---|
+| `07-object-properties-run-mode-and-general-part2.md` | 6 | Run-mode and general property dialogs, object groups, supplemental data and data maintainers. |
+| `05-case-information-displays-by-object-part3.md` | 2 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
+| `12-building-onelines-branches-and-devices.md` | 2 | Inserting transmission lines, transformers, series capacitors, switched shunts, interfaces, injection groups and oneline links. |
+| `03-cases-files-and-formats.md` | 1 | Opening, creating, closing and saving cases; every supported file format; project files. |
+
+Serves: `contingency-work`, `esapp-automation`, `transfer-and-dispatch`.
+
+### What bites
+
+- This subject has no chapter of its own in the manual — it is scattered across the case-information, object-property, oneline and file-format chapters, which is why it is gathered into one page here.
+- The NERC flowgate load/save topics sit in the oneline-drawing chapter despite having nothing to do with onelines: they read and write interface records via Excel.
+
+---
+
+*Subject page over the PowerWorld Simulator help corpus. Describes and routes; reproduces
+no manual text. Topic-level detail is in `powerworld-help-index/ROUTING.md`.*
+
+---
+
+*Ported from the research vault. Describes and routes over the PowerWorld Simulator help corpus; reproduces no manual text.*
+
+
+---
+
+# ==== concepts/pw-manual-map.md ====
+
+---
+type: concept
+domain: tooling
+aliases: [pw-manual, powerworld-manual-map, pw-subjects, simulator-manual-map]
+tags: [powerworld, manual, navigation, moc, documentation]
+---
+
+# PowerWorld manual — subject map
+
+## Abstract
+
+**Twenty-five subject pages over the PowerWorld Simulator manual, cut by what you are trying to
+do rather than by how the program is organised.** The manual groups its 1670 topics by ribbon tab
+and dialog, so a research subject lands in three or four chapters its contents page never shows
+together. Start here, pick the subject, and the page names the chapter files to open.
+
+These pages describe and route. They reproduce no manual text — the corpus itself lives in
+[powerworld-help-corpus](powerworld-help-corpus.md), and topic-level detail in the routing index beside it.
+
+## Connections
+
+**Up:** [Home](../index.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md) ·
+**Method:** routing-layer-over-immutable-docs (why this exists as a layer beside the manual
+rather than as edits to it) · **Research:** [esapp](esapp.md) · [powerworld-simauto](powerworld-simauto.md)
+
+## Content
+
+### Start here
+
+| If you want to… | Open |
+|---|---|
+| solve a case, or understand a control acting during the solve | [pw-power-flow](pw-power-flow.md) |
+| run or interpret contingencies | [pw-contingency](pw-contingency.md) |
+| run a quasi-static study across time | [pw-timestep-sim](pw-timestep-sim.md) |
+| find a field name, or work out if it is writable | [pw-data-model](pw-data-model.md) |
+| automate anything from Python | [pw-scripting-automation](pw-scripting-automation.md) |
+| work on reactive support or voltage margin | [pw-pv-qv](pw-pv-qv.md) · [pw-power-flow](pw-power-flow.md) |
+| look up a dynamic model | `38-ts-models-machine` … `46-ts-models-other` (21 files) |
+| find out what a chapter file contains | the routing index, not these pages |
+
+### Studies you run
+
+| Subject | Topics | Files | Note |
+|---|--:|--:|---|
+| [Power flow](pw-power-flow.md) | 49 | 14 |  |
+| [Contingency analysis](pw-contingency.md) | 96 | 7 |  |
+| [Time Step Simulation](pw-timestep-sim.md) | 32 | 2 |  |
+| [PV and QV curves](pw-pv-qv.md) | 25 | 1 |  |
+| Optimal power flow | 44 | 7 | `30-optimal-power-flow-part1`, `30-optimal-power-flow-part2`, `06-object-properties-edit-mode-part1`, +4 more |
+| SCOPF and OPF reserves | 29 | 1 | `31-scopf-and-opf-reserves` |
+| Available Transfer Capability | 22 | 1 | `32-available-transfer-capability` |
+| Fault analysis | 13 | 4 | `27-fault-analysis`, `52-additional-linked-topics-part1`, `03-cases-files-and-formats`, +1 more |
+| GIC analysis | 7 | 2 | `47-geomagnetically-induced-currents`, `52-additional-linked-topics-part1` |
+
+### Objects a study consumes
+
+| Subject | Topics | Files | Note |
+|---|--:|--:|---|
+| [Interfaces and flowgates](pw-interfaces.md) | 11 | 4 |  |
+| [Injection groups](pw-injection-groups.md) | 10 | 3 |  |
+| Weather-dependent ratings | 14 | 2 | `28-weather`, `52-additional-linked-topics-part2` |
+| Sensitivities | 27 | 4 | `20-sensitivities`, `23-contingency-analysis-running-and-results`, `22-contingency-analysis-options`, +1 more |
+| Topology processing | 28 | 5 | `35-integrated-topology-processing`, `18-general-tools`, `52-additional-linked-topics-part1`, +2 more |
+
+### Dynamics
+
+| Subject | Topics | Files | Note |
+|---|--:|--:|---|
+| Transient stability | 90 | 9 | `36-transient-stability-overview-and-data-part1`, `37-transient-stability-analysis-dialog-part2`, `52-additional-linked-topics-part2`, +6 more |
+| Dynamic model catalog | 580 | 21 | **155 say nothing** |
+
+### Driving it from code
+
+| Subject | Topics | Files | Note |
+|---|--:|--:|---|
+| [AUX files and SimAuto](pw-scripting-automation.md) | 99 | 8 |  |
+| [Objects and fields](pw-data-model.md) | 177 | 15 |  |
+| Cases and file formats | 30 | 7 | `03-cases-files-and-formats`, `08-view-case-data-tools`, `07-object-properties-run-mode-and-general-part2`, +4 more |
+| Cruncher and distributed computing | 24 | 7 | `50-cruncher`, `10-power-flow-solution-and-options-part2`, `22-contingency-analysis-options`, +4 more |
+| Scheduled actions | 5 | 1 | `48-scheduled-actions` |
+
+### Editing and drawing
+
+| Subject | Topics | Files | Note |
+|---|--:|--:|---|
+| Network tools | 30 | 5 | `19-edit-mode-tools`, `18-general-tools`, `06-object-properties-edit-mode-part2`, +2 more |
+| Oneline diagrams | 175 | 14 | `13-building-onelines-graphics-and-insertion`, `11-building-onelines-network-objects`, `12-building-onelines-branches-and-devices`, +11 more |
+| The Simulator interface | 39 | 4 | `02-simulator-ribbon`, `01-getting-started`, `10-power-flow-solution-and-options-part2`, +1 more |
+| Licences and release notes | 14 | 3 | **8 say nothing** |
+
+**Nine subjects have a detail page in this kit** — the ones linked above. The rest are
+listed with the chapter files that hold them, which is the routing you actually need; their
+detail pages live in the research vault this kit was extracted from.
+
+### Before you trust anything in it
+
+Four properties of this corpus decide whether an answer you find is real. They are stated once,
+in [powerworld-help-corpus](powerworld-help-corpus.md), and not repeated here: **a subject is never one chapter**, **164
+topics carry no usable body**, **superseded API pages sit beside current ones**, and **the manual
+holds no per-object field catalog**. Read that page before your first serious search; each subject
+page below carries only its own local traps.
+
+### What these pages are not
+
+They route; they do not teach. For the engineering, follow the **Research** links on each subject
+page back into the vault. For topic-level detail — every one of the 1,670 topics with its anchor,
+tags and size — use the routing index in `powerworld-help-index`, not these pages.
+
+---
+
+*Ported from the research vault. Describes and routes over the PowerWorld Simulator help corpus; reproduces no manual text.*
+
+
+---
+
+# ==== concepts/pw-power-flow.md ====
+
+---
+type: concept
+domain: tooling
+aliases: [pw-powerflow, powerflow-solution, simulator-power-flow]
+tags: [powerworld, manual, power-flow, solver, voltage-control]
+---
+
+# PowerWorld: Power flow
+
+## Abstract
+
+How Simulator solves the AC and DC power flow, and every control that acts during the solve — remote regulation, Mvar sharing, line-drop compensation, droop with deadband, island AGC. Read it before touching solver options or asking why a case converged differently than expected.
+
+**49 topics across 14 chapter files.**
+
+## Connections
+
+**Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
+
+**Across:** pw-opf · [pw-pv-qv](pw-pv-qv.md) · pw-topology · [pw-timestep-sim](pw-timestep-sim.md)
+
+**Research pages that use this:** [esapp](esapp.md) · [powerworld-simauto](powerworld-simauto.md)
+
+## Content
+
+### What it covers
+
+- Solution theory: bus equations, bus categories, the voltage/reactive equation choice
+- Solver options — common, advanced, DC, island creation, post-solution actions
+- Voltage and reactive control: remote regulation, Mvar sharing, setpoint tolerance, droop with deadband
+- Transformer control, AVR and Mvar control dialogs; generator Q capability curves
+- Ybus, Jacobian and admittance-matrix export; bus mismatches
+- Governor power flow and island-based AGC
+
+### Where it lives
+
+| Chapter file | Topics | Holds |
+|---|--:|---|
+| `10-power-flow-solution-and-options-part2.md` | 10 | Power flow solution theory, simulator options, and solution and control settings. |
+| `10-power-flow-solution-and-options-part1.md` | 9 | Power flow solution theory, simulator options, and solution and control settings. |
+| `05-case-information-displays-by-object-part3.md` | 5 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
+| `05-case-information-displays-by-object-part1.md` | 4 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
+| `06-object-properties-edit-mode-part1.md` | 4 | Edit-mode property dialogs for every Simulator object type. |
+| `10-power-flow-solution-and-options-part3.md` | 4 | Power flow solution theory, simulator options, and solution and control settings. |
+| `18-general-tools.md` | 4 | Limit monitoring, difference case, scale case, connections tools and other general-purpose tools. |
+| `06-object-properties-edit-mode-part2.md` | 2 | Edit-mode property dialogs for every Simulator object type. |
+| `52-additional-linked-topics-part2.md` | 2 | Topics reachable from links inside the manual but not listed in the help system's table of contents. |
+| `03-cases-files-and-formats.md` | 1 | Opening, creating, closing and saving cases; every supported file format; project files. |
+| `05-case-information-displays-by-object-part2.md` | 1 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
+| `06-object-properties-edit-mode-part3.md` | 1 | Edit-mode property dialogs for every Simulator object type. |
+| `07-object-properties-run-mode-and-general-part2.md` | 1 | Run-mode and general property dialogs, object groups, supplemental data and data maintainers. |
+| `52-additional-linked-topics-part1.md` | 1 | Topics reachable from links inside the manual but not listed in the help system's table of contents. |
+
+Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`, `time-step-simulation`, `transfer-and-dispatch`.
+
+### What bites
+
+- The chapter mixes real solver content with generic application options — Environment, File Management and Message Log Options sit in the same file and are filed elsewhere here.
+- Voltage Conditioning is the tool that moves generator setpoints *and* switched shunts to hit bus targets; it is easy to miss because its title names neither.
+
+---
+
+*Subject page over the PowerWorld Simulator help corpus. Describes and routes; reproduces
+no manual text. Topic-level detail is in `powerworld-help-index/ROUTING.md`.*
+
+---
+
+*Ported from the research vault. Describes and routes over the PowerWorld Simulator help corpus; reproduces no manual text.*
+
+
+---
+
+# ==== concepts/pw-pv-qv.md ====
+
+---
+type: concept
+domain: tooling
+aliases: [pw-pvqv, pv-curves, qv-curves, voltage-stability-curves]
+tags: [powerworld, manual, voltage-stability, pv-curve, qv-curve, reactive]
+---
+
+# PowerWorld: PV and QV curves
+
+## Abstract
+
+PV and QV curve analysis — real-power transfer margin and reactive margin at a bus. One chapter, and the most directly reactive-planning-relevant subject in the manual.
+
+**25 topics across 1 chapter file.**
+
+## Connections
+
+**Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
+
+**Across:** [pw-power-flow](pw-power-flow.md) · [pw-injection-groups](pw-injection-groups.md) · pw-atc · pw-sensitivities
+
+## Content
+
+### What it covers
+
+- PV curves: setup, injection-group and interface ramping, quantities to track, limit violations
+- QV curves: bus selection, solution options, contingencies sub-tab, results and listing
+- Output, plotting and tracked limits for both
+- PV/QV refine model
+
+### Where it lives
+
+| Chapter file | Topics | Holds |
+|---|--:|---|
+| `29-pv-and-qv-curves.md` | 25 | PV curves, QV curves and the PV/QV refine model. |
+
+Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`.
+
+### What bites
+
+- Many topic titles here are bare dialog-tab names — Setup, Options, Results, Plot, Output — so a title search will not find them. Search by the curve type, or use the index.
+- The Contingencies sub-tab is part of QV, not contingency analysis; it decides which outages the margin is computed against.
+
+---
+
+*Subject page over the PowerWorld Simulator help corpus. Describes and routes; reproduces
+no manual text. Topic-level detail is in `powerworld-help-index/ROUTING.md`.*
+
+---
+
+*Ported from the research vault. Describes and routes over the PowerWorld Simulator help corpus; reproduces no manual text.*
+
+
+---
+
+# ==== concepts/pw-scripting-automation.md ====
+
+---
+type: concept
+domain: tooling
+aliases: [pw-simauto, pw-aux, auxiliary-files-and-script]
+tags: [powerworld, manual, aux, script, simauto, automation]
+---
+
+# PowerWorld: AUX files and SimAuto
+
+## Abstract
+
+Driving Simulator from outside: the auxiliary file format, script command execution, and the SimAuto automation server with one topic per function. The chapter to open before writing any PowerWorld automation.
+
+**99 topics across 8 chapter files.**
+
+## Connections
+
+**Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
+
+**Across:** [pw-data-model](pw-data-model.md) · pw-case-data-io · [pw-timestep-sim](pw-timestep-sim.md) · pw-distributed-compute
+
+**Research pages that use this:** [esapp](esapp.md) · [powerworld-simauto](powerworld-simauto.md) · [aux-only-powerworld](aux-only-powerworld.md) · [aux-script-catalog](../references/aux-script-commands.md)
+
+## Content
+
+### What it covers
+
+- Auxiliary file export formats — display, power system, complete case, network model
+- Object field variable names and the ObjectID field
+- Script command execution dialog and quick auxiliary files
+- SimAuto setup: installing, connecting, passing and getting data, ExcelApp, ProcessID
+- SimAuto functions with sample code: Get/ChangeParameters in all their variants, ListOfDevices, OpenCase, SaveCase, SaveState/LoadState, ProcessAuxFile, RunScriptCommand, WriteAuxFile, TSGetContingencyResults
+
+### Where it lives
+
+| Chapter file | Topics | Holds |
+|---|--:|---|
+| `34-simauto-functions.md` | 55 | Every SimAuto function, with signature, parameters and examples. |
+| `33-simauto-overview-and-setup.md` | 16 | Starting SimAuto, accessing data, properties and object variables. |
+| `52-additional-linked-topics-part1.md` | 15 | Topics reachable from links inside the manual but not listed in the help system's table of contents. |
+| `09-auxiliary-files-and-script-commands.md` | 8 | Auxiliary file format, script commands, export format descriptions and object field variable names. |
+| `03-cases-files-and-formats.md` | 2 | Opening, creating, closing and saving cases; every supported file format; project files. |
+| `22-contingency-analysis-options.md` | 1 | The Contingency Analysis dialog: Contingencies tab and the full Options tab. |
+| `23-contingency-analysis-running-and-results.md` | 1 | Running contingency analysis, file formats, sensitivity analysis, results and comparing runs. |
+| `52-additional-linked-topics-part3.md` | 1 | Topics reachable from links inside the manual but not listed in the help system's table of contents. |
+
+Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`.
+
+### What bites
+
+- **Field names are not in this manual, and never were in the other one.** The provenance rule and what to verify against are in [aux-only-powerworld](aux-only-powerworld.md); that the WebHelp declines too is recorded in [powerworld-help-corpus](powerworld-help-corpus.md). Do not look for a field catalog here.
+- **This is the subject the legacy-duplicate trap actually bites.** Version-9 pages for these same functions sit in the appendix with near-identical titles; the rule is in [powerworld-help-corpus](powerworld-help-corpus.md).
+- The core AUX format spec is a bundled PDF, not inline markdown.
+
+---
+
+*Subject page over the PowerWorld Simulator help corpus. Describes and routes; reproduces
+no manual text. Topic-level detail is in `powerworld-help-index/ROUTING.md`.*
+
+---
+
+*Ported from the research vault. Describes and routes over the PowerWorld Simulator help corpus; reproduces no manual text.*
+
+
+---
+
+# ==== concepts/pw-timestep-sim.md ====
+
+---
+type: concept
+domain: tooling
+aliases: [pw-timestep, time-step-simulation-manual, pw-tsb]
+tags: [powerworld, manual, timestep, schedules, quasi-static]
+---
+
+# PowerWorld: Time Step Simulation
+
+## Abstract
+
+Time Step Simulation: the quasi-static tool that solves a case repeatedly across a list of timepoints with scheduled inputs. Two chapter files hold all of it, but the commands that drive it and the batch engine that scales it are elsewhere.
+
+**32 topics across 2 chapter files.**
+
+## Connections
+
+**Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
+
+**Across:** [pw-scripting-automation](pw-scripting-automation.md) · pw-distributed-compute · pw-weather-ratings · pw-scheduled-actions
+
+**Research pages that use this:** [timestep-simulation](timestep-simulation.md) · [pww-data](pww-data.md)
+
+## Content
+
+### What it covers
+
+- The dialog, its pages and toolbar; timepoint lists and scheduled input data
+- Schedules, schedule subscriptions and controller time delays
+- Switched-shunt and transformer control options specific to time step
+- Results: hourly summary, constraints, binding elements, custom result selection
+- Running a timed simulation; storing input data and results
+
+### Where it lives
+
+| Chapter file | Topics | Holds |
+|---|--:|---|
+| `26-time-step-simulation-part1.md` | 22 | Time step simulation setup, schedules, controller time delays and running the simulation. |
+| `26-time-step-simulation-part2.md` | 10 | Time step simulation setup, schedules, controller time delays and running the simulation. |
+
+Serves: `contingency-work`, `reactive-power-planning`, `time-step-simulation`.
+
+### What bites
+
+- The tool is only a quarter of the story — the script commands that launch a run are in the auxiliary-file chapter, the programmatic entry point in SimAuto, and unattended batch runs in the Cruncher. Opening only this subject will not get a run automated.
+- Controller time delays and the per-device time-step control options are what make results differ from a plain repeated solve.
+
+---
+
+*Subject page over the PowerWorld Simulator help corpus. Describes and routes; reproduces
+no manual text. Topic-level detail is in `powerworld-help-index/ROUTING.md`.*
+
+---
+
+*Ported from the research vault. Describes and routes over the PowerWorld Simulator help corpus; reproduces no manual text.*
 
 
 ---
@@ -7246,6 +8630,7 @@ Two rules that cause most first-attempt failures, both documented at
 |---|---|
 | `SetData` | Write field values on existing objects. **Requires the entire key-field row** or it errors — see [powerworld-limitset-setdata](../methods/powerworld-limitset-setdata.md) |
 | `CreateData` | Create new objects (buses, branches, loads, generators) — see [adding-devices-esapp](../methods/adding-devices-esapp.md) |
+| `SetElseCreateData` | Set one object's fields if it exists, else create it from defaults. The aux language's only exists-check — see [aux-only-powerworld](../concepts/aux-only-powerworld.md). Added September 2026; older Simulator 24 builds will not have it |
 | `Delete` | Delete objects of a type matching a filter |
 | `DeleteDevice` | Delete one specific device |
 | `DeleteIncludingContents` | Delete a container and everything inside it |
@@ -7434,6 +8819,7 @@ so you set `LineXFMR` instead. See [converting-lines-to-transformers](../methods
 | `TSInitialize` | Initialize dynamics from the solved power flow |
 | `TSSolve` | Run one transient stability contingency |
 | `TSSolveAll` | Run all of them |
+| `TSSolveContinue` | Resume a paused contingency from a SnapShot or Restore Time Point. Added December 2025, Simulator 25 |
 | `TSRunUntilSpecifiedTime` | Advance the run to a given time, then stop — manual stepping |
 | `TSGetResults` | Retrieve results into memory |
 | `TSGetVCurveData` | Retrieve V-curve data |
@@ -7462,6 +8848,7 @@ so you set `LineXFMR` instead. See [converting-lines-to-transformers](../methods
 |---|---|
 | `GICCalculate` | Run the GIC calculation for a uniform field — see [gic](../concepts/gic.md) |
 | `GICClear` | Clear GIC results |
+| `GICSensitivitiesCalculate` | Recalculate GIC sensitivities — Line Amp Input or Transformer Ieffective. Added March 2026, Simulator 25 |
 | `GICLoad3DEfield` | Load a 3-D electric field |
 | `GICTimeVaryingCalculate` | Run GIC over a time-varying field |
 | `GICTimeVaryingEFieldCalculate` | Compute the time-varying E-field itself |

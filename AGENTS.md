@@ -38,7 +38,7 @@ knew.
 
 ## How to find the page — and how much of it to read
 
-The kit is 44 pages — 17 in `concepts/`, 16 in `methods/`, 7 in `demos/`, 4 in
+The kit is 47 pages — 20 in `concepts/`, 16 in `methods/`, 7 in `demos/`, 4 in
 `references/` — and you will need three to five of them. The ladder below is about
 **finding** the right page cheaply. It is not a budget on how much of that page you read.
 
@@ -153,6 +153,7 @@ Say what you tested, what you rejected, and what you did **not** save.
 | Devices ranked by violation severity | [methods/ranking-new-devices-by-severity.md](methods/ranking-new-devices-by-severity.md) |
 | To change limit-monitoring thresholds | [methods/powerworld-limitset-setdata.md](methods/powerworld-limitset-setdata.md) |
 | To reclassify lines as transformers | [methods/converting-lines-to-transformers.md](methods/converting-lines-to-transformers.md) |
+| To drive Simulator without SimAuto, by dropping aux files | [concepts/powerworld-script-transfer.md](concepts/powerworld-script-transfer.md) |
 | A SCRIPT action but does not know its name | [references/aux-script-commands.md](references/aux-script-commands.md) |
 | Exact field names and signatures | [references/esapp-schema-reference.md](references/esapp-schema-reference.md) |
 
