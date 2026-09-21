@@ -1,6 +1,6 @@
 ---
 name: knowledge-base-page
-description: Write a new page into this knowledge base, or fix one that does not conform. Use when the user wants to record something they learned - a PowerWorld behaviour, a method that worked, a failure mode, a decision - as a page in concepts/, methods/, references/ or demos/. Also use when a page write was refused and needs fixing, or when asked to check, audit or lint pages.
+description: Write something up as a page in this knowledge base, or edit a page already here. Use when the user wants to record, save, document, write up or keep what they just worked out - a PowerWorld behaviour, a procedure that worked, a failure mode, a gotcha - so it is not lost when the session ends. Also use when asked to add a page, fix a page, or check whether the pages still hang together (missing index rows, links pointing nowhere).
 ---
 
 # Writing a page into this knowledge base

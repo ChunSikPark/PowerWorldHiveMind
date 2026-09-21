@@ -123,6 +123,10 @@ work.
 This installs the two Python packages and runs four quick checks. One of three things
 happens.
 
+> The other command the plugin registers is `/powerworld-hivemind:kb-page`, which
+> writes what you learn back into the kit as a new page. You do not need it yet —
+> see **Add to it** in [README.md](README.md) when you do.
+
 **Everything passes.** It prints your PowerWorld **build date** — worth noting, because
 PowerWorld's behaviour changes between versions. Go to Step 6.
 

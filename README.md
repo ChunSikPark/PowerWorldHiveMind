@@ -260,6 +260,50 @@ moment it is about to make the mistake.
 
 ---
 
+## Add to it
+
+The kit is a knowledge base you are meant to **grow**, not just read. Anything you
+work out in a session and leave in the chat is gone when the session ends.
+
+**Just say so in plain English.** The agent loads the page-writing skill on its own:
+
+> *write that up as a page*
+> *save what we just worked out*
+> *add a page about how the filter expression language handles nested groups*
+> *document this gotcha before I forget it*
+
+**Or call it directly:**
+
+```
+/powerworld-hivemind:kb-page
+```
+
+The `powerworld-hivemind:` prefix is part of the name, same as the setup command.
+
+**Not using the plugin?** Tell your agent to read
+[skills/knowledge-base-page/SKILL.md](skills/knowledge-base-page/SKILL.md). It is
+one self-contained markdown file with no dependencies — nothing to install and no
+script to run.
+
+### What it will do
+
+1. **Search first.** If a page already covers the topic it edits that page rather
+   than adding a second one. Two pages on one subject is the failure this base
+   exists to avoid.
+2. **File it** in `concepts/` (what a thing is), `methods/` (how to do a thing),
+   `references/` (a code or API surface) or `demos/` (a worked run).
+3. **Write the house shape** — frontmatter, then `## Abstract`, `## Connections`,
+   `## Content`, with relative markdown links to related pages.
+4. **Add the `index.md` row**, so the page is findable. A page nobody can find is a
+   page nobody reads.
+
+Ask it to *check the base* instead and it runs two one-line checks — which pages
+have no `index.md` row, and which links point at a file that does not exist.
+
+Your copy is yours. A clone does not sync back here, so pages you add stay in your
+repo and nothing you write is published anywhere. If you do want a page upstream,
+open a pull request.
+
 ## Credits and contributing
 
 Built on [`esapp` (ESA++)](https://github.com/lukelowry/ESApp), the Apache-2.0 PowerWorld
