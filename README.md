@@ -310,6 +310,31 @@ Your copy is yours. A clone does not sync back here, so pages you add stay in yo
 repo and nothing you write is published anywhere. If you do want a page upstream,
 open a pull request.
 
+## See the shape of it
+
+The kit is 87 pages wired together by about 360 links. To look at that as a graph,
+open the repository folder as a vault in [Obsidian](https://obsidian.md) — *Open
+folder as vault*, pick the clone, then **Ctrl/Cmd+G** for Graph view. Nothing to
+convert and nothing to install; Obsidian reads the markdown links already in the
+pages.
+
+The repository ships `.obsidian/graph.json`, so the graph arrives already coloured
+by folder:
+
+| Colour | Folder | What it is |
+|---|---|---|
+| orange | `demos/` | worked runs with real output — the places to start reading |
+| green | `methods/` | how to do a thing |
+| blue | `concepts/` | what a thing is |
+| purple | `references/` | the heavy code layer |
+
+`index.md` and the top-level files are filtered out, because `index.md` links to
+every page and would swamp the picture. Clear the filter box in the graph settings
+if you want them back.
+
+Useful for spotting what the catalogue cannot show you: a page nothing links to, a
+cluster that has grown big enough to split, or a method with no concept behind it.
+
 ## Credits and contributing
 
 Built on [`esapp` (ESA++)](https://github.com/lukelowry/ESApp), the Apache-2.0 PowerWorld
