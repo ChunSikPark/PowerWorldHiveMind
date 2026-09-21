@@ -230,11 +230,12 @@ copies its own scripts in and reads its own results, and your job shrinks to the
 recipe 1. Simulator behaves the same either way: it polls the folder and picks up whatever it
 finds.
 
-Pick the folder now. Anything empty will do:
+You choose the folder. Any empty one will do, on any drive you can write to — and if
+Simulator already has a transfer folder configured from an earlier session, use that one
+rather than making a second. Decide now and tell Claude the full path; it should ask rather
+than assume, and it has no way to see your filesystem layout.
 
-```
-C:\PowerWorldTransfer
-```
+Everything below writes `<your transfer folder>` where that path goes.
 
 ---
 
@@ -256,7 +257,9 @@ Do not skip it and assume a script can switch modes for you later.
 
 ![The Script button under the Tools tab](../assets/aux-step-script.png)
 
-**5. Set ScriptTransferFileDirectory.** Click **Browse...** and pick your folder.
+**5. Set ScriptTransferFileDirectory.** Click **Browse...** and pick your folder. The
+screenshot below shows one machine's path; yours will differ, and that box is the
+authoritative answer to "which folder is Simulator actually watching".
 
 ![The External Script Control panel with Browse highlighted](../assets/aux-step-browse.png)
 
@@ -293,7 +296,7 @@ waiting:
 
 Then tell Claude, in these words or your own:
 
-> *"Aux-file mode. My transfer folder is `C:\PowerWorldTransfer` and I have my case loaded."*
+> *"Aux-file mode. My transfer folder is `<your transfer folder>` and I have my case loaded."*
 
 Steps 5 and 6 are once per machine; the registry keeps them across restarts. Steps 1, 2, 3,
 7 and 8 are every session.
@@ -321,7 +324,7 @@ SCRIPT
 }
 ```
 
-Now copy it into `C:\PowerWorldTransfer` and rename it to exactly `SimulatorScriptInput.aux`.
+Now copy it into your transfer folder and rename it to exactly `SimulatorScriptInput.aux`.
 
 > Copy it in finished. Do not save into the folder from an editor. Simulator cannot tell a
 > finished file from one you are still writing, and a half-written script is still valid up
@@ -394,7 +397,8 @@ repeats:
 //--- STAGE A: where the CSVs go -------------------------------------------
 SCRIPT
 {
-  SetCurrentDirectory("C:\PowerWorldTransfer\scan", YES);   // YES = create it
+  // <<< EDIT: your transfer folder. YES = create the subfolder if absent.
+  SetCurrentDirectory("<your transfer folder>\scan", YES);
   CaseSummaryGet("", "SCAN_00_case_identity.txt", 3);
 }
 

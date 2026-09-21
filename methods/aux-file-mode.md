@@ -95,8 +95,8 @@ filled in, before you write a single line of aux:
 1. Open Simulator.
 2. **Load the case by hand.** Do not script this; see the `OpenCase` warning below.
 3. **Switch to Run Mode**, then Tools → Script. Set *ScriptTransferFileDirectory* by
-   browsing to your transfer folder, e.g. `C:\PowerWorldTransfer`. Run Mode at this step is
-   specified by the source deck.
+   browsing to the folder **they chose**. Run Mode at this step is specified by the source
+   deck.
 4. Tick **Enabled External Script Control**, and leave that dialog open.
 5. **Click Show Log** in that dialog, and keep the log window visible.
 
@@ -127,6 +127,12 @@ asked, **then stop and wait for an answer:**
 
 > *"Channel is live. I cannot see your case from here. Do you want me to scan it first and
 > list what devices are in it? It is read-only, it writes CSVs and changes nothing."*
+
+**Ask which folder. Do not pick one.** The transfer folder is the user's choice — they may
+already have one configured from a previous session, they may want it on a particular drive,
+and on a shared or managed machine the obvious location may not be writable. Ask, and use the
+answer verbatim. `<your transfer folder>` below stands for whatever they tell you; it is a
+placeholder, not a suggestion.
 
 **Two turns, never one.**
 
@@ -270,8 +276,8 @@ two marked lines to match your own case and it runs.
 //--- A: output folder --------------------------------------------------------
 SCRIPT
 {
-  // <<< EDIT: where the CSVs go. YES = create it if absent.
-  SetCurrentDirectory("C:\PowerWorldTransfer\out", YES);
+  // <<< EDIT: where the CSVs go, under the folder you chose. YES = create it if absent.
+  SetCurrentDirectory("<your transfer folder>\out", YES);
   LogAdd("A1 output dir set");
   LogAddDateTime;
 }
@@ -294,7 +300,8 @@ SCRIPT
 SCRIPT
 {
   // Reads .pwb files WITHOUT opening them -- identify a case with no OpenCase.
-  CaseDirectorySummaryGet("C:\PowerWorldTransfer", NO,
+  // <<< EDIT: the folder to survey.
+  CaseDirectorySummaryGet("<your transfer folder>", NO,
                           "00_directory_survey.txt", 1);   // NO = skip subfolders
   LogAdd("C1 00_directory_survey.txt");
 }

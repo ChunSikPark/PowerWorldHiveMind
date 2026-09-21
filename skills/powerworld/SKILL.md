@@ -123,6 +123,12 @@ what it will do, and **wait for an answer before dropping anything** — includi
 scan. After they say yes once, read-only follow-ups need no further permission, but anything
 that modifies the case gets its own yes.
 
+**Ask which folder. Do not pick one.** The transfer folder is the user's choice — they may
+already have one configured from a previous session, they may want it on a particular drive,
+and on a shared or managed machine the obvious location may not be writable. Ask, and use the
+answer verbatim. `<your transfer folder>` below stands for whatever they tell you; it is a
+placeholder, not a suggestion.
+
 **Two turns, never one.**
 
 **Turn 1 — activation only.** List the setup steps, name the transfer folder, and **end the
