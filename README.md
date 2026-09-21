@@ -37,10 +37,15 @@ reject. In [the remediation demo](demos/violation-remediation.md), two of five p
 reinforcements made the system worse, including the one an engineer would pick first.
 You only find that out by measuring it.
 
-This repository is a knowledge base: 44 linked markdown files about driving PowerWorld
+This repository is a knowledge base: 87 linked markdown files about driving PowerWorld
 Simulator from Python. The kit itself is markdown, with nothing to build or run. It needs
 two Python packages, which your agent installs. Point your assistant at it and it starts
 writing PowerWorld code that works instead of code that looks plausible.
+
+It writes back, too. Say *"write that up as a page"* and your agent files what you
+worked out into your own copy, in the same shape as every page here. Your clone does
+not sync back to this repository, so what you add stays yours. See
+[Add to it](#add-to-it).
 
 Hand it a case file and ask a question in plain English:
 
@@ -231,6 +236,7 @@ see [methods/teamoverbyeweather-client.md](methods/teamoverbyeweather-client.md)
 | PowerWorld weather features | The PWW format, and fetching `.pww` files with the TeamOverbyeWeather client |
 | Timestep simulation | Driving PowerWorld's TimeStep feature for hourly renewable output, and reading the result CSVs |
 | Script actions | 198 PowerWorld SCRIPT commands, organized by task |
+| **Writing it down** | **Adding what you worked out as a new page, in the shape the rest of the kit uses** |
 
 Full catalogue: **[index.md](index.md)**
 
