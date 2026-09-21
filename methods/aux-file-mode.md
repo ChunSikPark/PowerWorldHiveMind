@@ -72,8 +72,8 @@ Code on your side, files across the boundary. What you give up is an automation 
 Simulator, not automation.
 
 Use [esapp](../concepts/esapp.md) when you want speed and automation: it returns real values,
-branches on them, runs headless and in parallel, and can be tested without a human dropping
-files.
+branches on them, runs headless and in parallel, and needs nobody to move a file between
+steps.
 
 Pick one and stay in it. An aux deliverable that was secretly debugged through the Python
 path is no longer a self-contained script, and nobody finds that out until someone else runs
@@ -183,11 +183,13 @@ results and no record of what produced them.
   at random", say the language has no RNG and no variables, and expose the choice as an edit
   point instead of hardcoding a pick and calling it random.
 - Run headless, batched or in parallel. A visible dialog is required.
-- **Execute your own work.** Running an aux means asking a human to drop it, and reaching for
-  the Python channel "just to check" has left the mode. The limit is execution; checking is
-  still open to you. Validate the script statically before it drops (object types, field
-  names, full keys on every `DATA` block), because that is the only verification available
-  before a human spends a run on it.
+- **Make Simulator run anything.** An agent writes a file; Simulator picks it up on its own
+  poll interval. Whether the agent can *trigger* a run depends on access, not on the mode: if
+  it can write to the watched folder it drops its own scripts and reads its own results, and
+  if it cannot, every run waits on a human. Either way, reaching for the Python channel "just
+  to check" has left the mode. Validate statically before dropping (object types, field names,
+  full keys on every `DATA` block), because a bad name costs a re-execution loop whoever
+  drops it.
 
 ### Knowing whether it worked
 

@@ -34,7 +34,13 @@ each other directly. They pass files through one folder you nominate.
 
 Claude writes a script. You copy it into the folder. Simulator notices it, runs it, deletes
 it, and writes back a log plus whatever CSVs the script asked for. Claude reads those. That
-is the whole loop, and you are the part that moves the file.
+is the whole loop.
+
+This page assumes you are the one moving the file, which is the case when Claude is somewhere
+it cannot reach that folder. If Claude is running on the same machine and can write there, it
+copies its own scripts in and reads its own results, and your job shrinks to the setup in
+recipe 1. Simulator behaves the same either way: it polls the folder and picks up whatever it
+finds.
 
 Pick the folder now. Anything empty will do:
 
@@ -303,11 +309,14 @@ That run produced a 75-byte CSV with the key column and nothing else, and report
 
 ### What this mode costs you
 
-- **You are the transport.** Every run needs you to copy a file. There is no unattended
-  operation.
 - **It is not headless.** A dialog has to stay open, so nothing batches or runs in parallel.
-- **Claude cannot test its own work.** It can check a script's object types and field names
-  before handing it over, but it cannot run it. The first execution is always yours.
+- **Something has to move the file.** Whoever can write to the watched folder triggers the
+  run. If Claude is running on the same machine and can write there, it drops its own scripts
+  and reads its own results, and you only supply the GUI setup. If it cannot reach the folder,
+  which is the hand-off case this mode exists for, every run waits on you.
+- **Claude never makes Simulator do anything.** It writes a file. Simulator decides, on its
+  own poll interval, to pick it up. That is the whole extent of the control it has, and it is
+  why a dropped script cannot leave your case somewhere you did not ask for.
 
 In exchange, every script is reviewable before it touches your case, every artifact is a file
 you can read and keep, and you end up with a script you own rather than a session that
