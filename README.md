@@ -224,6 +224,34 @@ Simulator. The exception is fetching and inspecting weather data, which is pure 
 see [methods/teamoverbyeweather-client.md](methods/teamoverbyeweather-client.md). But
 *applying* that weather requires PowerWorld, since TimeStep runs inside Simulator.
 
+### Missing the SimAuto add-on? There is now a second way in
+
+The SimAuto licence is the one that catches people out, and it is the one you are most
+likely to be missing. Recent Simulator builds can get around it.
+
+Turn on one setting and Simulator starts watching a folder. Drop a `.aux` script into that
+folder and it runs it, then writes the log back out as a text file. That is the entire
+protocol: **write a file, read a file.** No COM, no automation server, no SimAuto licence,
+and nothing to install on the calling side.
+
+Your agent can work this way. It writes the script, you drop it in, and the results come
+back as CSV files you can both read. It is slower than the Python path and it cannot test
+its own work — but it runs on a machine where the Python path is simply closed.
+
+**[methods/aux-file-mode.md](methods/aux-file-mode.md)** is the whole thing: the four
+setup clicks, the rules, and a working template that opens a bus and measures what that
+did to the system.
+
+Two costs to know before you count on it. It is **not headless** — a dialog has to stay
+open, so it will not batch or run in parallel. And a script that fails the wrong way is
+never cleaned up, so Simulator re-runs it every poll interval until you delete the file
+yourself. Both are covered on the page, along with the three commands that will silently
+ruin a run.
+
+You still need Simulator installed and licensed. This gets you past the *automation*
+licence, not past PowerWorld itself. Check
+[concepts/version-requirements.md](concepts/version-requirements.md) for the build floor.
+
 ## What it covers
 
 | Area | Pages |
@@ -236,6 +264,7 @@ see [methods/teamoverbyeweather-client.md](methods/teamoverbyeweather-client.md)
 | PowerWorld weather features | The PWW format, and fetching `.pww` files with the TeamOverbyeWeather client |
 | Timestep simulation | Driving PowerWorld's TimeStep feature for hourly renewable output, and reading the result CSVs |
 | Script actions | 198 PowerWorld SCRIPT commands, organized by task |
+| **Working without a SimAuto licence** | **Driving Simulator by dropping `.aux` files into a watched folder: the setup, the rules, and a template** |
 | **Writing it down** | **Adding what you worked out as a new page, in the shape the rest of the kit uses** |
 
 Full catalogue: **[index.md](index.md)**
