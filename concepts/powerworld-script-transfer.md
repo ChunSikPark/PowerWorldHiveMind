@@ -10,10 +10,17 @@ tags: [powerworld, aux, script, external-program, llm, simulator-25, undocumente
 ## Abstract
 
 Simulator 25 beta can watch a directory and execute any `.aux` dropped into it, writing
-back the message-log slice produced by that load. Write a file, read a file — **no COM, no
-SimAuto call, and therefore no SimAuto licence.** This is the cheapest channel an external
-program (an LLM among them) has ever had into PowerWorld, and it is the first one that
-needs nothing installed on the caller's side.
+back the message-log slice produced by that load. Write a file, read a file — **no COM and
+no SimAuto call of your own.** This is the cheapest channel an external program (an LLM
+among them) has ever had into PowerWorld, and it needs nothing installed on the caller's
+side.
+
+**The deck goes further and says it therefore needs no SimAuto licence. That is the deck's
+claim, and it is untested.** Every run behind this page was made on a machine that *has*
+the add-on, so nothing measured here could have falsified it. The script actions a dropped
+file executes are the same action set SimAuto invokes, so where the licence check actually
+sits is an open question. **Do not repeat it as a benefit** until someone has run a drop on
+a Simulator without the add-on installed.
 
 **It is not in the *Auxiliary File Format* manual.** Searched 2026-09-12 against the
 September 1, 2026 edition: zero hits for `ScriptTransfer`, `SimulatorScriptInput`,
