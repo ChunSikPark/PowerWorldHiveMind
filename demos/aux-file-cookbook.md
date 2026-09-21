@@ -58,13 +58,27 @@ Do this in Simulator. Claude cannot do any of it, and will ask you to.
 6. **Leave the dialog open.** This is the step people skip. Closing it stops Simulator
    watching the folder, while the setting still reads as enabled — so everything looks
    configured and nothing happens.
+7. **Open Simulator's message log and keep it where you can see it.** Every script writes
+   its progress there as it runs.
+
+**Watch that log.** The output file is only written once a run finishes, so while something
+is wrong the file tells you nothing — the log is the only place you can see what is actually
+happening. It is how you catch the two failures that otherwise look like waiting:
+
+- **A run that is looping** shows the same block of lines appearing again and again, every
+  poll interval. Nothing in the folder tells you that; the log makes it obvious in seconds.
+- **A run that failed** prints its error there, in full, even in the cases where no output
+  file is ever written.
+
+Keeping it visible turns "nothing is happening" into a readable answer, and it is the
+difference between fixing a script in one attempt and guessing at it.
 
 Then tell Claude, in these words or your own:
 
 > *"Aux-file mode. My transfer folder is `C:\PowerWorldTransfer` and I have my case loaded."*
 
-**You only do steps 4 and 5 once per machine** — they are stored in the registry and survive a
-restart. Steps 1, 2 and 6 are every session.
+**You only do steps 4 and 5 once per machine** — they are stored in the registry and survive
+a restart. Steps 1, 2, 6 and 7 are every session, and 6 and 7 are the two that get forgotten.
 
 ---
 
@@ -111,8 +125,8 @@ Automatic loading of file finished successfully in 0.083 seconds
 ```
 
 **`finished successfully in N seconds` is the completion signal.** On a small case a run
-takes 0.08–0.5 s; a large one takes longer, but the line is the same. If you see that line, the channel is working and every later problem is in
-your script, not your setup.
+takes 0.08–0.5 s; a large one takes longer, but the line is the same. If you see it, the
+channel works, and every later problem is in your script rather than your setup.
 
 **If the file does not disappear**, the channel is not running. In order of likelihood: the
 Script dialog got closed, the checkbox is not ticked, or the folder in the dialog is not the

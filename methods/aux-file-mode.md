@@ -90,8 +90,8 @@ longer a self-contained script, and you will not find that out until someone els
 
 ### Step 1 — the setup handshake
 
-Four things have to happen in the GUI, and **an agent cannot do any of them.** If you are an
-agent entering this mode, your first output is these four steps with the real folder path
+Five things have to happen in the GUI, and **an agent cannot do any of them.** If you are an
+agent entering this mode, your first output is these five steps with the real folder path
 filled in, before you write a single line of aux:
 
 1. Open Simulator.
@@ -99,9 +99,16 @@ filled in, before you write a single line of aux:
 3. Tools → Script. Set *ScriptTransferFileDirectory* by browsing to your transfer folder,
    e.g. `C:\PowerWorldTransfer`.
 4. Tick **Enabled External Script Control**, and leave that dialog open.
+5. **Open Simulator's message log and keep it visible.**
 
 After that, any file copied into the folder as `SimulatorScriptInput.aux` runs automatically,
 one poll interval later.
+
+Step 5 is not optional in practice. The output file appears only once a run *finishes*, so
+for every failure that never finishes — an abort, a loop, a poller that is not running — the
+folder stays silent and the log is the only thing that can tell you which one you have. A
+looping run is unmistakable there: the same block of lines, over and over, once per poll
+interval.
 
 Two things about this cost real time when you do not know them:
 
