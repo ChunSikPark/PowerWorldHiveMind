@@ -12,19 +12,19 @@ tags: [powerworld, aux, script-transfer, llm, agent, operating-mode, template]
 
 A working mode where the exchange between an agent and Simulator is files, not function
 calls: the agent writes a `.aux`, drops it in a folder Simulator watches, and reads the
-results back out of CSVs. **No code of yours talks to PowerWorld** — but plenty of code runs
-on your side, parsing the log and the CSVs, because that is the only way to find out what
+results back out of CSVs. No code of yours talks to PowerWorld, but plenty of code runs on
+your side, parsing the log and the CSVs, because that is the only way to find out what
 happened. It costs you return values, branching, headless operation and the ability to test
 your own work. This page is the setup handshake, the rules, and a working template to copy.
 
 ## Connections
 
 - **Up:** [Home](../index.md)
-- **The channel:** [powerworld-script-transfer](../concepts/powerworld-script-transfer.md) —
+- **The channel:** [powerworld-script-transfer](../concepts/powerworld-script-transfer.md),
   how the drop folder works
-- **The language:** [aux-only-powerworld](../concepts/aux-only-powerworld.md) — what a `.aux`
+- **The language:** [aux-only-powerworld](../concepts/aux-only-powerworld.md), what a `.aux`
   can do unaided, and the syntax traps
-- **The alternative:** [esapp](../concepts/esapp.md) — the Python mode this one replaces
+- **The alternative:** [esapp](../concepts/esapp.md), the Python mode this one replaces
 - **Command names:** [aux-script-commands](../references/aux-script-commands.md)
 - **Build floor:** [version-requirements](../concepts/version-requirements.md)
 
@@ -36,7 +36,7 @@ This is **PowerWorld and LLM interaction programming**: the unit of exchange bet
 agent and Simulator is a file, not a function call. The agent writes a script, you drop it
 in, Simulator runs it and writes back. Both sides read the same artifacts.
 
-That shape is worth having for its own sake, independently of tooling:
+That shape has its own advantages, independent of tooling:
 
 - **Everything is inspectable.** The script, the log and the results are all files on disk
   that you can read, diff, archive and send to someone. There is no opaque call whose
@@ -48,54 +48,52 @@ That shape is worth having for its own sake, independently of tooling:
 - **No code of yours touches PowerWorld.** Nothing imports a COM library, nothing holds a
   handle on Simulator, nothing can leave it in a state you did not ask for.
 
-That last point is about the *boundary*, not about writing no code at all. See below.
+That last point draws a boundary around PowerWorld, not around code in general.
 
-### You still write code — it just runs on your side
+### You still write code, it just runs on your side
 
-**Do not read this mode as "no scripting".** The log is English prose and the answers are in
-CSVs, so the caller has to do real work to find out what happened, and an agent working this
-way will be writing and running that code constantly. In practice it is:
+This mode is not "no scripting". The log is English prose and the answers are in CSVs, so
+the caller does real work to find out what happened, and an agent working this way writes and
+runs that code constantly. Four jobs:
 
-- **Delivery** — copy the file in, poll for the input file to disappear, and *pull your own
-  file on a timeout*. A run that fails the wrong way is never cleaned up, so without a
-  timeout you wait forever while Simulator re-executes it.
-- **Reading the outcome** — grep the output for the trailing
-  `finished successfully in N seconds`, then for `Successful Power Flow Solution`, then for
-  `Warning:` lines. Warnings matter more here than anywhere else: an unknown field name is a
-  **warning**, not an error, so the column is silently missing from the CSV and the run still
-  reports success.
-- **Getting the answer** — load the CSVs and diff them. The log never contains the answer.
-- **Validating before you drop.** Cheapest and most valuable of the four. Check the object
-  types and field names against PowerWorld's field export, and check that every `DATA` block
-  carries its full key, *before* the file goes in. A bad name costs a re-execution loop and a
-  manual recovery; catching it costs a lookup.
+- **Delivery.** Copy the file in, poll for the input file to disappear, and pull your own
+  file on a timeout. A run that fails the wrong way is never cleaned up, so without a timeout
+  you wait forever while Simulator re-executes it.
+- **Reading the outcome.** Grep the output for the trailing `finished successfully in N
+  seconds`, then for `Successful Power Flow Solution`, then for `Warning:` lines. An unknown
+  field name is a warning rather than an error, so the column goes missing from the CSV while
+  the run reports success.
+- **Getting the answer.** Load the CSVs and diff them. The log never contains the answer.
+- **Validating before you drop.** Check the object types and field names against PowerWorld's
+  field export, and check that every `DATA` block carries its full key, before the file goes
+  in. A bad name costs a re-execution loop and a manual recovery; catching it costs a lookup.
 
-The division is the point: **code on your side, files across the boundary.** What you avoid
-is an automation surface into Simulator, not automation itself.
+Code on your side, files across the boundary. What you give up is an automation surface into
+Simulator, not automation.
 
 Use [esapp](../concepts/esapp.md) when you want speed and automation: it returns real values,
 branches on them, runs headless and in parallel, and can be tested without a human dropping
 files.
 
-**Pick one and stay in it.** Mixing them produces work that cannot be reproduced the way it
-was asked for — an aux deliverable that was secretly debugged through the Python path is no
-longer a self-contained script, and you will not find that out until someone else runs it.
+Pick one and stay in it. An aux deliverable that was secretly debugged through the Python
+path is no longer a self-contained script, and nobody finds that out until someone else runs
+it.
 
 > **On licensing, be careful what you claim.** Published material describes this channel as
 > needing no COM and no SimAuto call. What has *not* been established here is whether a
-> Simulator install lacking the SimAuto add-on will run dropped scripts — the script actions
+> Simulator install lacking the SimAuto add-on will run dropped scripts. The script actions
 > are the same action set SimAuto invokes, and where the licence check sits is an open
-> question. **Do not sell this mode as a licence workaround until someone has tested it on a
-> machine without the add-on.** Treat it as an interaction pattern, which is what it is.
+> question. Do not sell this mode as a licence workaround until someone has tested it on a
+> machine without the add-on. Treat it as an interaction pattern.
 
 ### Step 1 — the setup handshake
 
-Five things have to happen in the GUI, and **an agent cannot do any of them.** If you are an
+Five things have to happen in the GUI, and an agent cannot do any of them. If you are an
 agent entering this mode, your first output is these five steps with the real folder path
 filled in, before you write a single line of aux:
 
 1. Open Simulator.
-2. **Load the case by hand.** Do not script this — see the `OpenCase` warning below.
+2. **Load the case by hand.** Do not script this; see the `OpenCase` warning below.
 3. **Switch to Run Mode**, then Tools → Script. Set *ScriptTransferFileDirectory* by
    browsing to your transfer folder, e.g. `C:\PowerWorldTransfer`. Run Mode at this step is
    specified by the source deck.
@@ -105,43 +103,42 @@ filled in, before you write a single line of aux:
 After that, any file copied into the folder as `SimulatorScriptInput.aux` runs automatically,
 one poll interval later.
 
-Step 5 is not optional in practice. The output file appears only once a run *finishes*, so
-for every failure that never finishes — an abort, a loop, a poller that is not running — the
-folder stays silent and the log is the only thing that can tell you which one you have. A
-looping run is unmistakable there: the same block of lines, over and over, once per poll
-interval.
+Step 5 earns its place. The output file appears only once a run finishes, so for every
+failure that never finishes (an abort, a loop, a poller that is not running) the folder stays
+silent and the log is the only thing that says which one you have. A looping run shows the
+same block of lines once per poll interval.
 
-Two things about this cost real time when you do not know them:
+Two things here cost time when you do not know them:
 
 - **The settings persist in the registry, the dialog does not.** `ScriptTransferFileEnabled`,
   `ScriptTransferFileDirectory` and `ScriptInputOutputPollSec` survive a restart, so the
   browsing step is once per machine. The dialog still has to be open every session.
-- **Closing the dialog stops the poller while the flag still reads enabled.** The dropped file
-  just sits there — which looks exactly like a crash, a failed run, and a run still in
+- **Closing the dialog stops the poller while the flag still reads enabled.** The dropped
+  file sits there, which looks exactly like a crash, a failed run, and a run still in
   progress. If a drop is not picked up, check the dialog before you debug the aux.
 
-Once the user confirms the setup, **the agent's next move is to offer a device scan, not to
-wait for instructions**:
+Once the user confirms the setup, the agent should offer a device scan rather than wait for
+instructions:
 
 > *"Channel is live. I cannot see your case from here. Do you want me to scan it first and
-> list what devices are in it? It is read-only — it writes CSVs and changes nothing."*
+> list what devices are in it? It is read-only, it writes CSVs and changes nothing."*
 
-Until that runs the agent knows nothing about the case — not the bus numbers, not whether
-there are transformers, not whether a contingency set already exists — so anything it
-proposes beforehand is a guess. One read-only drop replaces the guessing. See
+Until that runs the agent knows nothing about the case: not the bus numbers, not whether
+there are transformers, not whether a contingency set already exists. Anything it proposes
+beforehand is a guess, and one read-only drop replaces all of it. See
 [aux-file-cookbook](../demos/aux-file-cookbook.md) for the script and how to read what comes
 back.
 
 ### Step 2 — deliver by copy, never by authoring in place
 
-Write the aux somewhere else, then copy it in as `SimulatorScriptInput.aux`. The poller cannot
-tell a finished file from one still being written, and **a truncated aux is still a valid aux
-up to the truncation point** — so authoring in place races the poll interval and can feed
-Simulator half a script that runs and reports success.
+Write the aux somewhere else, then copy it in as `SimulatorScriptInput.aux`. The poller
+cannot tell a finished file from one still being written, and a truncated aux stays valid up
+to the cut, so authoring in place races the poll interval and can feed Simulator half a
+script that runs and reports success.
 
-Simulator deletes the input file once it has read it. That deletion **is** the acknowledgement,
-and it means the script destroys itself — archive a copy before you drop it or you will end up
-with results and no record of what produced them.
+Simulator deletes the input file once it has read it. That deletion is the acknowledgement,
+which means the script destroys itself. Archive a copy before you drop it, or you end up with
+results and no record of what produced them.
 
 ### The rules
 
@@ -149,11 +146,11 @@ with results and no record of what produced them.
 
 - **`OpenCase`.** It raises an access violation, aborts the file, and the poller then re-runs
   it every interval *forever*. Measured 2026-09-21 with a file containing nothing but
-  `OpenCase` and three log markers, on a freshly started Simulator with no case loaded — so
+  `OpenCase` and three log markers, on a freshly started Simulator with no case loaded, so
   this is not a case-swap problem. Load the case by hand. `CaseSummaryGet` on a named `.pwb`
-  works fine, so you can still *read* a case file, just not load one.
+  works fine, so you can read a case file, just not load one.
 - **`LogClear`.** Anywhere in a dropped file it suppresses `SimulatorScriptOutput.txt`
-  entirely — the script runs and the channel returns nothing at all.
+  entirely: the script runs and the channel returns nothing.
 - **A `("", STOP)` failure slot**, unless you mean it. A file that stops early is never
   consumed, so it loops.
 - **Writing a derived field to cause a state.** A status field that *reports* a condition
@@ -166,12 +163,12 @@ with results and no record of what produced them.
 - **Read back.** The channel returns a log transcript, not a return value. If the answer
   matters, `SaveData` it to CSV and read the CSV. `Simulation: Successful Power Flow Solution`
   is worth grepping for, but its absence is not a diagnosis.
-- **Carry the key fields** in every table you write or intend to write back — `BusNum`+`GenID`,
+- **Carry the key fields** in every table you write or intend to write back: `BusNum`+`GenID`,
   `BusNum`+`BusNum:1`+`LineCircuit`, `BusNum`+`ShuntID`. Drop one and PowerWorld cannot tell
   which row you mean; the write no-ops and reports success.
 - **Get field names from PowerWorld's own field export**, never from the manual and never from
   memory. The *Auxiliary File Format* manual has no per-object field catalog. The vocabularies
-  also differ between the Python and aux sides — a Python class name is not always the aux
+  also differ between the Python and aux sides: a Python class name is not always the aux
   object type, and using one for the other is a hard validation error.
 
 **Cannot, and say so rather than fake it:**
@@ -179,13 +176,13 @@ with results and no record of what produced them.
 - Return a value, or branch on a result. There is no query-then-act, so a choice that depends
   on the case is made by a human reading an exported CSV between two runs. Asked to "pick one
   at random", say the language has no RNG and no variables, and expose the choice as an edit
-  point — do not hardcode a pick and call it random.
+  point instead of hardcoding a pick and calling it random.
 - Run headless, batched or in parallel. A visible dialog is required.
-- **Execute your own work.** Running an aux means asking a human to drop it. Reaching for
-  the Python channel "just to check" has left the mode. Note the limit is *execution*, not
-  checking: validate the script statically before it drops — object types, field names, full
-  keys on every `DATA` block — because that is the only verification available before a human
-  spends a run on it.
+- **Execute your own work.** Running an aux means asking a human to drop it, and reaching for
+  the Python channel "just to check" has left the mode. The limit is execution; checking is
+  still open to you. Validate the script statically before it drops (object types, field
+  names, full keys on every `DATA` block), because that is the only verification available
+  before a human spends a run on it.
 
 ### Knowing whether it worked
 
@@ -199,22 +196,22 @@ Finished load of auxiliary file: ...\SimulatorScriptInput.Aux
 Automatic loading of file finished successfully in 0.083 seconds
 ```
 
-**That trailing line is the completion signal** and it is parseable. Typical round trips are
+That trailing line is the completion signal, and it is parseable. Typical round trips are
 0.08–0.5 s for a small case.
 
 The failure shape is the input file still sitting there with no output file written. That
-happens on an abort — and, measured 2026-09-21, it also happens on a **fully successful** run
-that called `OpenCase`: all stages ran, both solves converged, every output file was correct,
-zero errors logged, and the poller still re-ran the whole thing five times. Any harness must
-pull its own input file on a timeout rather than wait for a signal that is not coming.
+happens on an abort, and, measured 2026-09-21, it also happens on a fully successful run that
+called `OpenCase`: all stages ran, both solves converged, every output file was correct, zero
+errors logged, and the poller still re-ran the whole thing five times. Any harness must pull
+its own input file on a timeout rather than wait for a signal that is not coming.
 
-### A trap worth knowing before you trust a summary
+### CaseSummaryGet describes the file, not your edits
 
-`CaseSummaryGet` with a blank first argument describes **the `.pwb` file behind the current
-case, not the case as you have edited it.** The spec says "the pwb file for the current case"
-and means it literally. Unsaved in-memory changes are invisible to it, so diffing two summaries
-across an unsaved edit shows no difference at all — which reads exactly like a change that
-never happened. Read the CSVs.
+`CaseSummaryGet` with a blank first argument describes the `.pwb` file behind the current
+case rather than the case as you have edited it. The spec says "the pwb file for the current
+case" and means it literally. Unsaved in-memory changes are invisible to it, so diffing two
+summaries across an unsaved edit shows no difference at all, which reads exactly like a
+change that never happened. Read the CSVs.
 
 ### Template
 
@@ -365,8 +362,7 @@ SCRIPT
 ### What that template produces
 
 On the 7-bus sample this was measured on, the outaged bus carried 93.71 MW of generation and
-80 MW of load. Your numbers will differ; the shape of the answer will not. The result is
-visible in one diff:
+80 MW of load. Your numbers will differ. The result is visible in one diff:
 
 | | base | post-outage |
 |---|---|---|
@@ -380,6 +376,6 @@ Only one surviving bus moves, because it was the one leaning on the outaged bus'
 generation. The five voltage-controlled buses hold their setpoints exactly.
 
 The restore returns every bus to `Connected` with voltage magnitudes identical to six decimals.
-Angles differ in the fifth decimal and the slack by about a kilowatt — Newton–Raphson
+Angles differ in the fifth decimal and the slack by about a kilowatt: Newton–Raphson
 converging from the outaged solution rather than the loaded state. **That is solver tolerance,
 not a failed restore**, and expecting an exact match will make a correct run look broken.

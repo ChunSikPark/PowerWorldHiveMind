@@ -226,35 +226,32 @@ see [methods/teamoverbyeweather-client.md](methods/teamoverbyeweather-client.md)
 
 ### Talking to PowerWorld in files instead of function calls
 
-There is a second way to work, and it changes the shape of the conversation rather than the
+There is a second way to work. It changes the shape of the conversation rather than the
 speed of it.
 
 Turn on one setting and Simulator starts watching a folder. Drop a `.aux` script into that
-folder and it runs it, then writes the log back out as a text file. That is the entire
-protocol: **write a file, read a file.** Nothing of yours talks to PowerWorld.
+folder and it runs it, then writes the log back out as a text file. Write a file, read a
+file. Nothing of yours talks to PowerWorld.
 
-That is a boundary, not an absence of code. Your agent still writes and runs plenty of it —
-checking the script before it drops it, watching for the run to finish, and reading the
-result CSVs — because the log is prose and the answers are in the CSVs. **Code on your
-side, files across the boundary.**
+That draws a boundary around PowerWorld, not around code. Your agent still writes and runs
+plenty of it: checking the script before it drops it, watching for the run to finish, and
+reading the result CSVs, because the log is prose and the answers are in the CSVs. Code on
+your side, files across the boundary.
 
 Your agent can work this way. It writes the script, you drop it in, and the results come
-back as CSV files you both read. The useful part is what that does to the working
-relationship: **you see every script before it runs**, everything either side produces is a
-file you can read, diff and archive, and what you are left with at the end is a script you
-own and can re-run — not a transcript of an API session that happened once.
+back as CSV files you both read. You see every script before it runs, everything either side
+produces is a file you can read, diff and archive, and you end up with a script you own and
+can re-run rather than a transcript of an API session that happened once.
 
-**[methods/aux-file-mode.md](methods/aux-file-mode.md)** is the whole thing: the four setup
-clicks, the rules, and a working template that opens a bus and measures what that did to
-the system.
+[methods/aux-file-mode.md](methods/aux-file-mode.md) has the setup steps, the rules, and a
+working template that opens a bus and measures what that did to the system.
 
-It is the slower path, and two costs are worth knowing up front. It is **not headless** — a
-dialog has to stay open, so it will not batch or run in parallel. And a script that fails
-the wrong way is never cleaned up, so Simulator re-runs it every poll interval until you
-delete the file yourself. Both are on the page, along with the three commands that will
-silently ruin a run.
+It is the slower path, and it costs you two things. It is not headless: a dialog has to stay
+open, so it will not batch or run in parallel. And a script that fails the wrong way is never
+cleaned up, so Simulator re-runs it every poll interval until you delete the file yourself.
+Both are on the page, along with the three commands that will silently ruin a run.
 
-Recent builds only — see
+Recent builds only; see
 [concepts/version-requirements.md](concepts/version-requirements.md).
 
 ## What it covers
