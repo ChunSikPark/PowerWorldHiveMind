@@ -153,7 +153,7 @@ Say what you tested, what you rejected, and what you did **not** save.
 | Devices ranked by violation severity | [methods/ranking-new-devices-by-severity.md](methods/ranking-new-devices-by-severity.md) |
 | To change limit-monitoring thresholds | [methods/powerworld-limitset-setdata.md](methods/powerworld-limitset-setdata.md) |
 | To reclassify lines as transformers | [methods/converting-lines-to-transformers.md](methods/converting-lines-to-transformers.md) |
-| To drive Simulator without SimAuto, by dropping aux files | [concepts/powerworld-script-transfer.md](concepts/powerworld-script-transfer.md) |
+| To drive Simulator without SimAuto, by dropping aux files | [methods/aux-file-mode.md](methods/aux-file-mode.md) for the rules and a working template; [concepts/powerworld-script-transfer.md](concepts/powerworld-script-transfer.md) for how the channel itself works. Read the first one before writing a script |
 | A SCRIPT action but does not know its name | [references/aux-script-commands.md](references/aux-script-commands.md) |
 | Exact field names and signatures | [references/esapp-schema-reference.md](references/esapp-schema-reference.md) |
 

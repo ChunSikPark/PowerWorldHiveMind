@@ -166,6 +166,14 @@ Script dialog got closed, the checkbox is not ticked, or the folder in the dialo
 folder you copied into. Delete `SimulatorScriptInput.aux` before you retry, or it will run
 the moment you fix the setting.
 
+**Read the folder back to each other.** Nothing on the file side can tell you whether
+Simulator is watching the folder you are writing to: there is no heartbeat file and no echo
+of the setting. So when a drop goes unanswered, the first move is for whoever is at the GUI
+to read the **ScriptTransferFileDirectory** box out loud, character for character, and
+compare it to the path the script is being copied into. A trailing space, a different drive
+letter or a near-identical folder name all produce exactly the silence you are looking at,
+and the file side cannot distinguish any of them from a closed dialog.
+
 ---
 
 ### Recipe 3 — Let it scan the case first
@@ -221,6 +229,49 @@ SCRIPT
   LogAdd("SCAN COMPLETE");
 }
 ```
+
+The remaining classes follow the same shape. Field names below were read out of
+PowerWorld's own object-field export, which is the only authority; do not invent names or
+take them from the *Auxiliary File Format* manual, which has no per-object field catalog.
+
+```
+  // KEY: BusNum, LoadID
+  SaveData("SCAN_load.csv", CSV, Load,
+           [BusNum,LoadID,BusName_NomVolt,LoadStatus,LoadMW,LoadMVR,LoadSMW,LoadSMVR,
+            AreaNum,ZoneNum],
+           [], "", [], NO, NO);
+
+  // KEY: BusNum, ShuntID
+  SaveData("SCAN_shunt.csv", CSV, Shunt,
+           [BusNum,ShuntID,BusName_NomVolt,SSStatus,SSNMVR,SSCMode,AreaNum,ZoneNum],
+           [], "", [], NO, NO);
+
+  // KEY: SubNum
+  SaveData("SCAN_substation.csv", CSV, Substation,
+           [SubNum,SubName,Latitude,Longitude,AreaNum,ZoneNum],
+           [], "", [], NO, NO);
+
+  // KEY: AreaNum   -- note the MW fields are BG-prefixed, NOT AreaLoadMW
+  SaveData("SCAN_area.csv", CSV, Area,
+           [AreaNum,AreaName,BGLoadMW,BGGenMW,BGLossMW,BusLoadNum],
+           [], "", [], NO, NO);
+
+  // KEY: ZoneNum   -- same BG prefix here
+  SaveData("SCAN_zone.csv", CSV, Zone,
+           [ZoneNum,ZoneName,BGLoadMW,BGGenMW,BGLossMW,BusLoadNum],
+           [], "", [], NO, NO);
+
+  // KEY: CTGLabel  -- empty file just means no contingency set is defined
+  SaveData("SCAN_contingency.csv", CSV, Contingency,
+           [CTGLabel,CTGSkip,CTGSolved,CTGViol,CTGProc],
+           [], "", [], NO, NO);
+```
+
+The Area and Zone lines are worth a second look, because guessing here is exactly what the
+warning trap catches. Their MW totals are **`BGLoadMW` / `BGGenMW` / `BGLossMW`**, on a
+balancing-group prefix. The names you would reach for by analogy, `AreaLoadMW` and
+`ZoneLoadMW`, do not exist. Asking for them produces a `Warning:`, not an error, and a CSV
+holding the key column and nothing else while the run reports success.
 
 Every table leads with its key fields. A bus row is keyed by `BusNum`, a generator by
 `BusNum` + `GenID`, a branch by `BusNum` + `BusNum:1` + `LineCircuit`. Drop the key and you
@@ -285,6 +336,12 @@ Three failure shapes, all of which look similar from your side of the folder.
 
 **The file sits there and nothing happens.** A setup problem: dialog closed, checkbox
 unticked, or wrong folder. Delete the file, fix the setting, drop again.
+
+How long to wait before calling it dead: **30 seconds on a small case, a couple of minutes on
+a large one.** Successful round trips here run 0.08-0.5 s on a seven-bus case, so anything
+past a few seconds is already abnormal; the extra margin is only for a case big enough that
+the solve itself is slow. If the input file has not been touched in 30 seconds, stop waiting.
+It is not slow, it is not running.
 
 **The file sits there but files keep being written.** The script failed partway and Simulator
 is re-running it every poll interval, forever. Output timestamps advance while the input file
