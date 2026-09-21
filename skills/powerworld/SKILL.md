@@ -121,7 +121,23 @@ Simulator yourself: the user is sitting in front of a live GUI with their own ca
 and every file you drop executes against it. Show them the script you propose to run, say
 what it will do, and **wait for an answer before dropping anything** — including a read-only
 scan. After they say yes once, read-only follow-ups need no further permission, but anything
-that modifies the case gets its own yes. See `methods/aux-file-mode.md`.
+that modifies the case gets its own yes.
+
+**Two turns, never one.**
+
+**Turn 1 — activation only.** List the setup steps, name the transfer folder, and **end the
+message there.** Do not propose a script, do not name a file you would like to drop, do not
+say "say the word and I will run X". The user has not opened the dialog yet; there is nothing
+to consent to, and bundling the two makes them approve a drop before the channel exists.
+Close with nothing more than: *tell me when the dialog is up.*
+
+**Turn 2 — only after they say it is ready.** Now propose the first script, say what it
+writes and that it is read-only, and wait again.
+
+Collapsing these into one message is the most common way this goes wrong, and it reads as
+pressure to skip the setup.
+
+See `methods/aux-file-mode.md`.
 
 ## When this base is wrong or missing, report it
 

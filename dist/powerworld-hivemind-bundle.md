@@ -806,6 +806,12 @@ It should not drop anything until you reply. Your Simulator is live and your cas
 so the first file that lands runs against your session — that decision is yours, even for a
 read-only scan. If an agent scans without asking, it is not following this page.
 
+It should also not raise this **until you have said the setup is done**. Recipe 1's steps and
+this proposal belong in two separate messages: activation first, ending there, and the scan
+offered only after you confirm the dialog is up. An agent that hands you the setup steps and a
+script to approve in the same breath is asking you to consent to a drop on a channel that does
+not exist yet.
+
 Say yes. Until it runs, the agent knows nothing about your case: not the bus numbers, not
 whether there are transformers, not whether a contingency set already exists. One drop
 replaces all of that guessing.
@@ -2682,6 +2688,20 @@ asked, **then stop and wait for an answer:**
 
 > *"Channel is live. I cannot see your case from here. Do you want me to scan it first and
 > list what devices are in it? It is read-only, it writes CSVs and changes nothing."*
+
+**Two turns, never one.**
+
+**Turn 1 — activation only.** List the setup steps, name the transfer folder, and **end the
+message there.** Do not propose a script, do not name a file you would like to drop, do not
+say "say the word and I will run X". The user has not opened the dialog yet; there is nothing
+to consent to, and bundling the two makes them approve a drop before the channel exists.
+Close with nothing more than: *tell me when the dialog is up.*
+
+**Turn 2 — only after they say it is ready.** Now propose the first script, say what it
+writes and that it is read-only, and wait again.
+
+Collapsing these into one message is the most common way this goes wrong, and it reads as
+pressure to skip the setup.
 
 **Propose, then wait. Do not drop the file until they answer.** Volunteering the idea is the
 helpful part; running it unasked is not. The user is sitting in front of a live Simulator

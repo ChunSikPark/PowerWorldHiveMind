@@ -188,6 +188,12 @@ It should not drop anything until you reply. Your Simulator is live and your cas
 so the first file that lands runs against your session — that decision is yours, even for a
 read-only scan. If an agent scans without asking, it is not following this page.
 
+It should also not raise this **until you have said the setup is done**. Recipe 1's steps and
+this proposal belong in two separate messages: activation first, ending there, and the scan
+offered only after you confirm the dialog is up. An agent that hands you the setup steps and a
+script to approve in the same breath is asking you to consent to a drop on a channel that does
+not exist yet.
+
 Say yes. Until it runs, the agent knows nothing about your case: not the bus numbers, not
 whether there are transformers, not whether a contingency set already exists. One drop
 replaces all of that guessing.

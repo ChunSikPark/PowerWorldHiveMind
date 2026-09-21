@@ -544,6 +544,20 @@ asked, **then stop and wait for an answer:**
 > *"Channel is live. I cannot see your case from here. Do you want me to scan it first and
 > list what devices are in it? It is read-only, it writes CSVs and changes nothing."*
 
+**Two turns, never one.**
+
+**Turn 1 — activation only.** List the setup steps, name the transfer folder, and **end the
+message there.** Do not propose a script, do not name a file you would like to drop, do not
+say "say the word and I will run X". The user has not opened the dialog yet; there is nothing
+to consent to, and bundling the two makes them approve a drop before the channel exists.
+Close with nothing more than: *tell me when the dialog is up.*
+
+**Turn 2 — only after they say it is ready.** Now propose the first script, say what it
+writes and that it is read-only, and wait again.
+
+Collapsing these into one message is the most common way this goes wrong, and it reads as
+pressure to skip the setup.
+
 **Propose, then wait. Do not drop the file until they answer.** Volunteering the idea is the
 helpful part; running it unasked is not. The user is sitting in front of a live Simulator
 with their own case loaded, and a dropped script executes against it the moment it lands —
