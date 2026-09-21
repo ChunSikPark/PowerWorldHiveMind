@@ -224,33 +224,33 @@ Simulator. The exception is fetching and inspecting weather data, which is pure 
 see [methods/teamoverbyeweather-client.md](methods/teamoverbyeweather-client.md). But
 *applying* that weather requires PowerWorld, since TimeStep runs inside Simulator.
 
-### Missing the SimAuto add-on? There is now a second way in
+### Talking to PowerWorld in files instead of function calls
 
-The SimAuto licence is the one that catches people out, and it is the one you are most
-likely to be missing. Recent Simulator builds can get around it.
+There is a second way to work, and it changes the shape of the conversation rather than the
+speed of it.
 
 Turn on one setting and Simulator starts watching a folder. Drop a `.aux` script into that
 folder and it runs it, then writes the log back out as a text file. That is the entire
-protocol: **write a file, read a file.** No COM, no automation server, no SimAuto licence,
-and nothing to install on the calling side.
+protocol: **write a file, read a file.** No Python is written or run.
 
 Your agent can work this way. It writes the script, you drop it in, and the results come
-back as CSV files you can both read. It is slower than the Python path and it cannot test
-its own work — but it runs on a machine where the Python path is simply closed.
+back as CSV files you both read. The useful part is what that does to the working
+relationship: **you see every script before it runs**, everything either side produces is a
+file you can read, diff and archive, and what you are left with at the end is a script you
+own and can re-run — not a transcript of an API session that happened once.
 
-**[methods/aux-file-mode.md](methods/aux-file-mode.md)** is the whole thing: the four
-setup clicks, the rules, and a working template that opens a bus and measures what that
-did to the system.
+**[methods/aux-file-mode.md](methods/aux-file-mode.md)** is the whole thing: the four setup
+clicks, the rules, and a working template that opens a bus and measures what that did to
+the system.
 
-Two costs to know before you count on it. It is **not headless** — a dialog has to stay
-open, so it will not batch or run in parallel. And a script that fails the wrong way is
-never cleaned up, so Simulator re-runs it every poll interval until you delete the file
-yourself. Both are covered on the page, along with the three commands that will silently
-ruin a run.
+It is the slower path, and two costs are worth knowing up front. It is **not headless** — a
+dialog has to stay open, so it will not batch or run in parallel. And a script that fails
+the wrong way is never cleaned up, so Simulator re-runs it every poll interval until you
+delete the file yourself. Both are on the page, along with the three commands that will
+silently ruin a run.
 
-You still need Simulator installed and licensed. This gets you past the *automation*
-licence, not past PowerWorld itself. Check
-[concepts/version-requirements.md](concepts/version-requirements.md) for the build floor.
+Recent builds only — see
+[concepts/version-requirements.md](concepts/version-requirements.md).
 
 ## What it covers
 

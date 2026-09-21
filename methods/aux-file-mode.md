@@ -1,20 +1,20 @@
 ---
 type: method
 domain: tooling
-aliases: [aux-file-mode, aux-mode, no-python-mode, driving-powerworld-without-python,
-  no-simauto-licence, agent-operating-mode]
-tags: [powerworld, aux, script-transfer, no-licence, agent, operating-mode, template]
+aliases: [aux-file-mode, aux-mode, no-python-mode, powerworld-llm-interaction,
+  llm-interaction-programming, drop-file-mode, agent-operating-mode]
+tags: [powerworld, aux, script-transfer, llm, agent, operating-mode, template]
 ---
 
-# Aux-file mode: driving PowerWorld with no Python and no licence
+# Aux-file mode: PowerWorld and LLM interaction through files
 
 ## Abstract
 
-A working mode for when the Python path is closed — no SimAuto licence, nothing installable
-on the caller's side, or a machine you do not control. The agent writes `.aux` only, delivers
-it by copying a file into a watched folder, and reads results back out of CSVs. It costs you
-return values, branching, headless operation and the ability to test your own work. This page
-is the setup handshake, the rules, and a working template to copy.
+A working mode where the exchange between an agent and Simulator is files, not function
+calls: the agent writes a `.aux`, drops it in a folder Simulator watches, and reads the
+results back out of CSVs. No Python is written or run. It costs you return values,
+branching, headless operation and the ability to test your own work. This page is the setup
+handshake, the rules, and a working template to copy.
 
 ## Connections
 
@@ -29,18 +29,38 @@ is the setup handshake, the rules, and a working template to copy.
 
 ## Content
 
-### When to use it
+### What this mode is for
 
-Use aux-file mode when the work has to run somewhere the Python stack will not be: a machine
-with no SimAuto licence, a colleague's desk, a hand-off where the recipient should not have to
-install anything. That portability is the whole point of the mode.
+This is **PowerWorld and LLM interaction programming**: the unit of exchange between the
+agent and Simulator is a file, not a function call. The agent writes a script, you drop it
+in, Simulator runs it and writes back. Both sides read the same artifacts.
 
-Use [esapp](../concepts/esapp.md) otherwise. It is faster, it returns real values, and it can
-be tested without a human in the loop.
+That shape is worth having for its own sake, independently of tooling:
 
-**Pick one and stay in it.** Mixing them produces work that cannot be rerun in the environment
-it was asked for — an aux deliverable that was secretly debugged in Python still fails on the
-machine that has no Python.
+- **Everything is inspectable.** The script, the log and the results are all files on disk
+  that you can read, diff, archive and send to someone. There is no opaque call whose
+  behaviour you have to take on trust.
+- **The human is in the loop by construction.** You see every script before it runs. For work
+  that edits a case, that is a feature rather than friction.
+- **The deliverable is the script.** What the agent produces is a `.aux` you keep and re-run
+  yourself, not a transcript of an API session that only existed once.
+- **No Python is written or run**, so nothing needs installing on the side that authors the
+  script.
+
+Use [esapp](../concepts/esapp.md) when you want speed and automation: it returns real values,
+branches on them, runs headless and in parallel, and can be tested without a human dropping
+files.
+
+**Pick one and stay in it.** Mixing them produces work that cannot be reproduced the way it
+was asked for — an aux deliverable that was secretly debugged through the Python path is no
+longer a self-contained script, and you will not find that out until someone else runs it.
+
+> **On licensing, be careful what you claim.** Published material describes this channel as
+> needing no COM and no SimAuto call. What has *not* been established here is whether a
+> Simulator install lacking the SimAuto add-on will run dropped scripts — the script actions
+> are the same action set SimAuto invokes, and where the licence check sits is an open
+> question. **Do not sell this mode as a licence workaround until someone has tested it on a
+> machine without the add-on.** Treat it as an interaction pattern, which is what it is.
 
 ### Step 1 — the setup handshake
 
