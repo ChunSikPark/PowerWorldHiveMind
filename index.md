@@ -8,6 +8,7 @@ Complete runs on a real 37-bus case, including what goes wrong and how it was fi
 
 | Page | What it covers |
 |---|---|
+| [aux-file-cookbook](demos/aux-file-cookbook.md) | Claude in one window, Simulator in the other. Four recipes in order: turn the channel on, prove it with a four-line script, inventory a case, then take a bus out and measure it. Start here if you are working through files rather than Python. |
 | [adding-a-device](demos/adding-a-device.md) | Three attempts that reported success and created nothing, then the fix. `CreateData` accepts a malformed call and builds nothing. If you read one demo, read this one. |
 | [comparing-planning-cases](demos/comparing-planning-cases.md) | Diff a 2016 and a 2024 case to find what the plan builds — 691 new branches, 199 new generators — then solve a contingency set for only the new devices. Includes the scoping trap that makes the naive answer 87% wrong. |
 | [contingency-and-aux](demos/contingency-and-aux.md) | Run N-1 from nothing, then write a filter and contingency `.aux` from the result and load it back. 89 auto-inserted contingencies, 12 violations, 5 targeted ones merged. |
