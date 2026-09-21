@@ -231,7 +231,12 @@ speed of it.
 
 Turn on one setting and Simulator starts watching a folder. Drop a `.aux` script into that
 folder and it runs it, then writes the log back out as a text file. That is the entire
-protocol: **write a file, read a file.** No Python is written or run.
+protocol: **write a file, read a file.** Nothing of yours talks to PowerWorld.
+
+That is a boundary, not an absence of code. Your agent still writes and runs plenty of it —
+checking the script before it drops it, watching for the run to finish, and reading the
+result CSVs — because the log is prose and the answers are in the CSVs. **Code on your
+side, files across the boundary.**
 
 Your agent can work this way. It writes the script, you drop it in, and the results come
 back as CSV files you both read. The useful part is what that does to the working

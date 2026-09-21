@@ -12,9 +12,10 @@ tags: [powerworld, aux, script-transfer, llm, agent, operating-mode, template]
 
 A working mode where the exchange between an agent and Simulator is files, not function
 calls: the agent writes a `.aux`, drops it in a folder Simulator watches, and reads the
-results back out of CSVs. No Python is written or run. It costs you return values,
-branching, headless operation and the ability to test your own work. This page is the setup
-handshake, the rules, and a working template to copy.
+results back out of CSVs. **No code of yours talks to PowerWorld** — but plenty of code runs
+on your side, parsing the log and the CSVs, because that is the only way to find out what
+happened. It costs you return values, branching, headless operation and the ability to test
+your own work. This page is the setup handshake, the rules, and a working template to copy.
 
 ## Connections
 
@@ -44,8 +45,33 @@ That shape is worth having for its own sake, independently of tooling:
   that edits a case, that is a feature rather than friction.
 - **The deliverable is the script.** What the agent produces is a `.aux` you keep and re-run
   yourself, not a transcript of an API session that only existed once.
-- **No Python is written or run**, so nothing needs installing on the side that authors the
-  script.
+- **No code of yours touches PowerWorld.** Nothing imports a COM library, nothing holds a
+  handle on Simulator, nothing can leave it in a state you did not ask for.
+
+That last point is about the *boundary*, not about writing no code at all. See below.
+
+### You still write code — it just runs on your side
+
+**Do not read this mode as "no scripting".** The log is English prose and the answers are in
+CSVs, so the caller has to do real work to find out what happened, and an agent working this
+way will be writing and running that code constantly. In practice it is:
+
+- **Delivery** — copy the file in, poll for the input file to disappear, and *pull your own
+  file on a timeout*. A run that fails the wrong way is never cleaned up, so without a
+  timeout you wait forever while Simulator re-executes it.
+- **Reading the outcome** — grep the output for the trailing
+  `finished successfully in N seconds`, then for `Successful Power Flow Solution`, then for
+  `Warning:` lines. Warnings matter more here than anywhere else: an unknown field name is a
+  **warning**, not an error, so the column is silently missing from the CSV and the run still
+  reports success.
+- **Getting the answer** — load the CSVs and diff them. The log never contains the answer.
+- **Validating before you drop.** Cheapest and most valuable of the four. Check the object
+  types and field names against PowerWorld's field export, and check that every `DATA` block
+  carries its full key, *before* the file goes in. A bad name costs a re-execution loop and a
+  manual recovery; catching it costs a lookup.
+
+The division is the point: **code on your side, files across the boundary.** What you avoid
+is an automation surface into Simulator, not automation itself.
 
 Use [esapp](../concepts/esapp.md) when you want speed and automation: it returns real values,
 branches on them, runs headless and in parallel, and can be tested without a human dropping
@@ -135,8 +161,11 @@ with results and no record of what produced them.
   at random", say the language has no RNG and no variables, and expose the choice as an edit
   point — do not hardcode a pick and call it random.
 - Run headless, batched or in parallel. A visible dialog is required.
-- **Test your own work.** Verifying an aux means asking a human to drop it. Reaching for the
-  Python channel "just to check" has left the mode.
+- **Execute your own work.** Running an aux means asking a human to drop it. Reaching for
+  the Python channel "just to check" has left the mode. Note the limit is *execution*, not
+  checking: validate the script statically before it drops — object types, field names, full
+  keys on every `DATA` block — because that is the only verification available before a human
+  spends a run on it.
 
 ### Knowing whether it worked
 
