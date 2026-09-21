@@ -105,7 +105,7 @@ without one. Add it anyway — a page nobody can find is a page nobody reads.
 ## Check the corpus when you have finished
 
 There is no checker to run. Writing the page correctly is the job, and the
-shape above is the whole schema. Two questions are worth asking across all
+shape above is the whole schema. Three questions are worth asking across all
 the pages at once, though, because no amount of care on one page answers
 them. Run these from the repo root when you have added or renamed pages:
 
@@ -115,8 +115,20 @@ python -c "import pathlib;R=pathlib.Path('.');i=(R/'index.md').read_text(encodin
 
 # links that point at a file that does not exist
 python -c "import pathlib,re;R=pathlib.Path('.');print([f'{p}: {t}' for d in ('concepts','methods','demos','references') for p in (R/d).glob('*.md') for t in set(re.findall(r'\]\(([^)#]+\.md)',p.read_text(encoding='utf-8-sig'))) if not (p.parent/t).exists()] or 'no dangling links')"
+
+# page names in ## Connections that were never written as links
+python -c "import pathlib,re;R=pathlib.Path('.');L=re.compile(r'\[[^]]*\]\([^)\s]*\)');S=re.compile(r'^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$');B=lambda t:[s for s in [re.split(r'\s+[\u2014\u2013-]\s+|\s*\(',x.replace('\x00',' ').strip(),maxsplit=1)[0].strip('*_[] ') for x in re.split(r'[\u00b7\n,;]',re.sub(r'\*\*[^*]+?:\*\*',' \u00b7 ',L.sub(' \x00 ',t.split('## Connections')[1].split(chr(10)+'## ')[0])))] if S.match(s)] if '## Connections' in t else [];print([f'{p}: {n}' for d in ('concepts','methods','demos','references') for p in (R/d).glob('*.md') for n in B(p.read_text(encoding='utf-8-sig'))] or 'no bare page names')"
 ```
 
-Paste what they print. If either returns a list, fix it before you say you
+Paste what they print. The first two must come back clean before you say you
 are done — a page nobody can reach and a link that goes nowhere are the two
 failures that make a knowledge base stop compounding.
+
+The third is a signal to read, not a gate. It looks for a page name written as
+bare text where a link belongs, which the dangling-link check cannot see: with
+no `[](...)` around it there is nothing to resolve. That is not hypothetical —
+the port that seeded the manual pages lost 19 cross-references exactly this way
+and every check passed. But ordinary hyphenated English standing alone in a
+segment takes the same shape, so `no-op` and `per-solve` are expected hits.
+Read each one and decide: a page name gets written as a link or deleted, a word
+stays.
