@@ -11,17 +11,11 @@ tags: [powerworld, manual, injection-group, participation-point, transfer]
 
 Injection groups and participation points — the object that says *which* generators and loads move, and in what proportion, when a transfer is scaled or ramped. The input side of every PV, QV and ATC study.
 
-**The normalization and exclusion mechanics behind a stored participation factor are now
-documented inline** — see [injection-group-participation](injection-group-participation.md). Read
-this page for the chapter map — **10 topics across 3 chapter files.**
-
 ## Connections
 
 **Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
 
 **Across:** [pw-pv-qv](pw-pv-qv.md) · [pw-interfaces](pw-interfaces.md) · [pw-power-flow](pw-power-flow.md)
-
-**Now covered inline:** [injection-group-participation](injection-group-participation.md)
 
 ## Content
 

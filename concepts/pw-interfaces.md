@@ -11,18 +11,12 @@ tags: [powerworld, manual, interface, flowgate, nomogram]
 
 The interface object — a named group of monitored branches — plus flowgates and nomograms. Small subject, disproportionate importance: the interface is the monitored element for every transfer, flowgate and nomogram study.
 
-**The direction/sign and element-type mechanics behind a reported flow are now documented
-inline** — see [interface-elements-and-monitoring](interface-elements-and-monitoring.md). Read
-this page for the chapter map — **11 topics across 4 chapter files.**
-
 ## Connections
 
 **Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
 
 **Across:** [pw-contingency](pw-contingency.md) · [pw-injection-groups](pw-injection-groups.md) ·
 [pw-data-model](pw-data-model.md)
-
-**Now covered inline:** [interface-elements-and-monitoring](interface-elements-and-monitoring.md)
 
 ## Content
 

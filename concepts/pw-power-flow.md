@@ -11,25 +11,11 @@ tags: [powerworld, manual, power-flow, solver, voltage-control]
 
 How Simulator solves the AC and DC power flow, and every control that acts during the solve — remote regulation, Mvar sharing, line-drop compensation, droop with deadband, island AGC. Read it before touching solver options or asking why a case converged differently than expected.
 
-**This kit now documents the mechanism inline** — [buscat-and-voltage-control](buscat-and-voltage-control.md),
-[solver-mechanics-and-failure-modes](solver-mechanics-and-failure-modes.md),
-[shunt-transformer-dfacts-control](shunt-transformer-dfacts-control.md) and
-[generator-dispatch-and-diagnostics](generator-dispatch-and-diagnostics.md) cover the solve loop,
-voltage/reactive control and dispatch without a manual detour. Read this page instead when you need
-the chapter map: which of the 49 manual topics across 14 files holds a dialog or option this kit
-doesn't cover yet.
-
 ## Connections
 
 **Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
 
-**Across:** [pw-pv-qv](pw-pv-qv.md) · [topology-consolidation-and-derived-status](topology-consolidation-and-derived-status.md) ·
-[pw-timestep-sim](pw-timestep-sim.md)
-
-**Now covered inline:** [buscat-and-voltage-control](buscat-and-voltage-control.md) ·
-[solver-mechanics-and-failure-modes](solver-mechanics-and-failure-modes.md) ·
-[shunt-transformer-dfacts-control](shunt-transformer-dfacts-control.md) ·
-[generator-dispatch-and-diagnostics](generator-dispatch-and-diagnostics.md)
+**Across:** [pw-pv-qv](pw-pv-qv.md) · [pw-timestep-sim](pw-timestep-sim.md)
 
 **Research pages that use this:** [esapp](esapp.md) · [powerworld-simauto](powerworld-simauto.md)
 

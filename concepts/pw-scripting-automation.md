@@ -11,23 +11,12 @@ tags: [powerworld, manual, aux, script, simauto, automation]
 
 Driving Simulator from outside: the auxiliary file format, script command execution, and the SimAuto automation server with one topic per function. The chapter to open before writing any PowerWorld automation.
 
-**The SimAuto call mechanics beyond esapp's wrapper are now documented inline** —
-[simauto-output-shapes-and-discovery](simauto-output-shapes-and-discovery.md) covers the raw
-output envelope, [objectid-identification-traps](objectid-identification-traps.md) covers the
-branch-ObjectID field-count trap, and [post-contingency-aux-state-carryover](post-contingency-aux-state-carryover.md)
-covers the per-contingency aux/script hooks. Read this page for the chapter map — **99 topics
-across 8 chapter files.**
-
 ## Connections
 
 **Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
 
-**Across:** [pw-data-model](pw-data-model.md) · [raw-epc-roundtrip-traps](raw-epc-roundtrip-traps.md) ·
-[pw-timestep-sim](pw-timestep-sim.md) · [builtin-distributed-computing](builtin-distributed-computing.md)
-
-**Now covered inline:** [simauto-output-shapes-and-discovery](simauto-output-shapes-and-discovery.md) ·
-[objectid-identification-traps](objectid-identification-traps.md) ·
-[post-contingency-aux-state-carryover](post-contingency-aux-state-carryover.md)
+**Across:** [pw-data-model](pw-data-model.md) ·
+[pw-timestep-sim](pw-timestep-sim.md)
 
 **Research pages that use this:** [esapp](esapp.md) · [powerworld-simauto](powerworld-simauto.md) · [aux-only-powerworld](aux-only-powerworld.md) · [aux-script-catalog](../references/aux-script-commands.md)
 

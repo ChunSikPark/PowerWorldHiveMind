@@ -38,7 +38,7 @@ knew.
 
 ## How to find the page — and how much of it to read
 
-The kit is 87 pages — 60 in `concepts/`, 16 in `methods/`, 7 in `demos/`, 4 in
+The kit is 57 pages — 30 in `concepts/`, 16 in `methods/`, 7 in `demos/`, 4 in
 `references/` — and you will need three to five of them. The ladder below is about
 **finding** the right page cheaply. It is not a budget on how much of that page you read.
 
@@ -166,14 +166,6 @@ Say what you tested, what you rejected, and what you did **not** save.
 | Injection groups or participation points | [concepts/pw-injection-groups.md](concepts/pw-injection-groups.md) |
 | A SCRIPT action but does not know its name | [references/aux-script-commands.md](references/aux-script-commands.md) |
 | Exact field names and signatures | [references/esapp-schema-reference.md](references/esapp-schema-reference.md) |
-| Why a case won't converge, or converges to an answer you didn't expect | [concepts/solver-mechanics-and-failure-modes.md](concepts/solver-mechanics-and-failure-modes.md) |
-| Why generator setpoints changed after running a tool that isn't a dispatch tool | [concepts/generator-dispatch-and-diagnostics.md](concepts/generator-dispatch-and-diagnostics.md) |
-| Why an overloaded branch never shows up in overloads(), contingency analysis, ATC, or OPF | [concepts/limit-monitoring-and-scaling.md](concepts/limit-monitoring-and-scaling.md) |
-| Why a device's BusNum keeps changing across solves in a breaker-modeled case | [concepts/topology-consolidation-and-derived-status.md](concepts/topology-consolidation-and-derived-status.md) |
-| Why an ObjectID match returned the wrong branch section or transformer winding | [concepts/objectid-identification-traps.md](concepts/objectid-identification-traps.md) |
-| Why a saved-and-reloaded RAW or EPC case doesn't match the original | [concepts/raw-epc-roundtrip-traps.md](concepts/raw-epc-roundtrip-traps.md) |
-| Why a pasted or imported row didn't create the new object it looked like it should | [concepts/required-fields-for-object-creation.md](concepts/required-fields-for-object-creation.md) |
-| Writing an Advanced Filter, Model Expression, or DataCheck condition that keeps matching nothing | [concepts/filter-expression-language.md](concepts/filter-expression-language.md) |
 
 ## Rules that apply to every line of code you write
 
