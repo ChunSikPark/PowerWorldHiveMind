@@ -38,7 +38,7 @@ knew.
 
 ## How to find the page — and how much of it to read
 
-The kit is 57 pages — 30 in `concepts/`, 16 in `methods/`, 7 in `demos/`, 4 in
+The kit is 47 pages — 20 in `concepts/`, 16 in `methods/`, 7 in `demos/`, 4 in
 `references/` — and you will need three to five of them. The ladder below is about
 **finding** the right page cheaply. It is not a budget on how much of that page you read.
 
@@ -154,16 +154,6 @@ Say what you tested, what you rejected, and what you did **not** save.
 | To change limit-monitoring thresholds | [methods/powerworld-limitset-setdata.md](methods/powerworld-limitset-setdata.md) |
 | To reclassify lines as transformers | [methods/converting-lines-to-transformers.md](methods/converting-lines-to-transformers.md) |
 | To drive Simulator without SimAuto, by dropping aux files | [concepts/powerworld-script-transfer.md](concepts/powerworld-script-transfer.md) |
-| **Anything documented in the PowerWorld manual, and you do not know which chapter** | [concepts/pw-manual-map.md](concepts/pw-manual-map.md) |
-| To know what the manual does *not* document, before trusting it | [concepts/powerworld-help-corpus.md](concepts/powerworld-help-corpus.md) |
-| Solver options, or a control acting during the solve | [concepts/pw-power-flow.md](concepts/pw-power-flow.md) |
-| Contingency definitions, elements, options or results, in the manual | [concepts/pw-contingency.md](concepts/pw-contingency.md) |
-| The Time Step Simulation tool itself | [concepts/pw-timestep-sim.md](concepts/pw-timestep-sim.md) |
-| A field name, or whether a field is writable | [concepts/pw-data-model.md](concepts/pw-data-model.md) |
-| The AUX format or a SimAuto function, in the manual | [concepts/pw-scripting-automation.md](concepts/pw-scripting-automation.md) |
-| Voltage margin — PV or QV curves | [concepts/pw-pv-qv.md](concepts/pw-pv-qv.md) |
-| Interfaces, flowgates or nomograms | [concepts/pw-interfaces.md](concepts/pw-interfaces.md) |
-| Injection groups or participation points | [concepts/pw-injection-groups.md](concepts/pw-injection-groups.md) |
 | A SCRIPT action but does not know its name | [references/aux-script-commands.md](references/aux-script-commands.md) |
 | Exact field names and signatures | [references/esapp-schema-reference.md](references/esapp-schema-reference.md) |
 

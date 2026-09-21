@@ -313,7 +313,7 @@ open a pull request.
 ## See it as a graph
 
 Open the repository folder as a vault in [Obsidian](https://obsidian.md) — *Open folder
-as vault*, then **Ctrl/Cmd+G** — to see the 57 pages and the links between them.
+as vault*, then **Ctrl/Cmd+G** — to see the 47 pages and the links between them.
 Nothing to install or convert. The repo ships `.obsidian/graph.json`, so the graph
 arrives coloured by folder with `index.md` filtered out, since it links to every page
 and would swamp the view.
