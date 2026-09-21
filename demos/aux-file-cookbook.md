@@ -52,12 +52,15 @@ Do this in Simulator. Claude cannot do any of it, and will ask you to.
 2. **Open your case.** Any `.pwb` will do. The numbers shown further down came from a
    small 7-bus sample, so yours will differ — it is the *shape* of each step that matters,
    not the values.
-3. **Tools → Script** to open the Script Command Execution Dialog.
+3. **Switch to Run Mode**, then **Tools → Script** to open the Script Command Execution
+   Dialog. The source deck specifies Run Mode at this point; do not skip it on the
+   assumption that a script can switch modes for you later.
 4. In that dialog, set **ScriptTransferFileDirectory** by browsing to `C:\PowerWorldTransfer`.
 5. Tick **Enabled External Script Control**.
-6. **Leave the dialog open.** This is the step people skip. Closing it stops Simulator
-   watching the folder, while the setting still reads as enabled — so everything looks
-   configured and nothing happens.
+6. **Leave the dialog open.** This is the step people skip. The source deck is explicit that
+   the functionality is available only while the dialog is *visible*, so closing it stops
+   Simulator watching the folder. The settings live in the registry and keep reading as
+   enabled either way — so everything still looks configured while nothing happens.
 7. **Open Simulator's message log and keep it where you can see it.** Every script writes
    its progress there as it runs.
 

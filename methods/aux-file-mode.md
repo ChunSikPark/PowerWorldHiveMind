@@ -96,8 +96,9 @@ filled in, before you write a single line of aux:
 
 1. Open Simulator.
 2. **Load the case by hand.** Do not script this — see the `OpenCase` warning below.
-3. Tools → Script. Set *ScriptTransferFileDirectory* by browsing to your transfer folder,
-   e.g. `C:\PowerWorldTransfer`.
+3. **Switch to Run Mode**, then Tools → Script. Set *ScriptTransferFileDirectory* by
+   browsing to your transfer folder, e.g. `C:\PowerWorldTransfer`. Run Mode at this step is
+   specified by the source deck.
 4. Tick **Enabled External Script Control**, and leave that dialog open.
 5. **Open Simulator's message log and keep it visible.**
 

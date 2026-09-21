@@ -138,6 +138,14 @@ None of these are answered by the deck, and each one changes how a caller must b
 
 ### Version floor
 
-**Simulator 25 beta, build date on or after September 12, 2026.** Earlier builds do not
-have it, including every Simulator 24 build regardless of patch date. See
-[version-requirements](version-requirements.md).
+**The deck states Simulator 25 beta with a build date at or after September 19, 2026.**
+
+**A measurement disagrees with that floor and has not been reconciled.** On 2026-09-21 the
+channel was exercised end to end — dozens of drops, every one consumed and answered — on an
+install whose own `CaseSummaryGet` output reports `EXE Build Date: 25 beta September 12,
+2026`, a week before the stated floor.
+
+Two readings, and nothing here settles which: the floor is conservative, or the string the
+EXE reports is not the build date the deck means. Until someone checks, **treat the deck's
+date as the number to quote and the measurement as the reason not to tell anyone their build
+is too old** — a build reporting an earlier date may well work. See [version-requirements](version-requirements.md).
