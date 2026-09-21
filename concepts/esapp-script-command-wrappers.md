@@ -157,7 +157,7 @@ Two consequences:
   The authority is `pw.esa.GetFieldList(<type>)`, whose `enterable` column is PowerWorld's,
   not esapp's.
 - **The `XF*` bypass in [converting-lines-to-transformers](../methods/converting-lines-to-transformers.md) is now confirmed
-  unnecessary.** ✅ **Verified live 2026-09-10** on Texas2K, Simulator build 2026-07-22,
+  unnecessary.** ✅ **Verified live 2026-09-10** on a ~2,000-bus synthetic case, Simulator build 2026-07-22,
   esapp 0.2.1: `pw[Branch] = df` carrying `LineXFMR='YES'` warns and goes through —
   `BranchDeviceType` flips `Line` → `Transformer`, on a 2-row subset, no exception. That
   page has been rewritten accordingly.

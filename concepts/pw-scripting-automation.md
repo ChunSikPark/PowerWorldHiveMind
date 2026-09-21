@@ -44,8 +44,6 @@ Driving Simulator from outside: the auxiliary file format, script command execut
 | `23-contingency-analysis-running-and-results.md` | 1 | Running contingency analysis, file formats, sensitivity analysis, results and comparing runs. |
 | `52-additional-linked-topics-part3.md` | 1 | Topics reachable from links inside the manual but not listed in the help system's table of contents. |
 
-Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`.
-
 ### What bites
 
 - **Field names are not in this manual, and never were in the other one.** The provenance rule and what to verify against are in [aux-only-powerworld](aux-only-powerworld.md); that the WebHelp declines too is recorded in [powerworld-help-corpus](powerworld-help-corpus.md). Do not look for a field catalog here.

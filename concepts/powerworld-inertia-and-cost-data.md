@@ -16,9 +16,9 @@ the generator's own `GenMVABase` — **and the "don't multiply by `GenMVABase`" 
 follows from it inverts the moment you synthesize H yourself instead of reading it**
 (this bit a second time on 2026-07-27; see the ⛔ box in §1 before writing any inertia
 code); (2) `Gen.GenMCost` is a **live** cost-curve
-evaluation at the case's *current* `GenMW`, not a fixed per-unit rate; (3) ERCOT's 8
-weather zones are already modeled natively as `AreaNum`/`AreaName` on Synth2k-series
-cases — no spatial join needed; (4) a sibling project's fuel-category *name* doesn't
+evaluation at the case's *current* `GenMW`, not a fixed per-unit rate; (3) a system's official
+zonal scheme may already be modelled natively as `AreaNum`/`AreaName`, in which case no
+spatial join is needed; (4) a sibling project's fuel-category *name* doesn't
 always match its actual `GenFuelType` mapping — verify against source code, not the
 label. Read the Content section before writing any code that sums inertia, ranks
 generators by cost, needs zonal load data on a Synth2k case, or reconstructs
@@ -42,9 +42,9 @@ inertia constant on the generator's own MVA base — it's H expressed on a fixed
 independent ways on a real Synth2k case:
 
 - **Round-number test:** converting via `H = TSH * 100 / GenMVABase` lands every
-  nuclear unit and 19/21 coal units on exactly `4.00` seconds, squarely inside
-  ERCOT's published Table 1 ranges (Nuclear 3.8–4.34s, Coal 2.9–4.5s) — not a
-  coincidence at that precision.
+  nuclear unit and nearly every coal unit on exactly `4.00` seconds, squarely inside
+  the published per-technology ranges operators tabulate (nuclear and coal both sit
+  around 3–4.5 s) — not a coincidence at that precision.
 - **Direct cross-check:** the case's own `MachineModel_GENROU` (round-rotor) and
   `MachineModel_GENSAL` (salient-pole, e.g. hydro) dynamic model objects expose a
   `TSH` field of their own, and it reads the true per-unit H **directly, no
@@ -65,7 +65,7 @@ unit.
 >
 > **"Do NOT multiply by `GenMVABase`" holds only because real `Gen.TSH` has already been
 > multiplied by it.** That is a property of *the field*, not of inertia. If you are
-> **synthesizing** H yourself — assumed values from ERCOT's Table 1, a textbook, or any
+> **synthesizing** H yourself — assumed values from an operator's published table, a textbook, or any
 > per-machine source — H is on the **machine's own base** and you **MUST** multiply:
 >
 > ```python
@@ -80,7 +80,7 @@ unit.
 > instead of 470.3, nuclear 2.04 instead of 22.58; and because the error scales with machine
 > size it was **non-uniform**, so unit *commitment order* was wrong too, not just totals.
 >
-> Physically: **H alone is not an inertia quantity.** ERCOT defines system inertia as
+> Physically: **H alone is not an inertia quantity.** System inertia is defined as
 > `M_sys = Σ Hᵢ · MVAᵢ` — seconds must be weighted by machine size before they mean anything
 > at system level. Corollary for any downstream analysis: **unit count is not a proxy for
 > inertia**; many small machines can carry less than a few large ones.
@@ -132,22 +132,20 @@ curve points defined. Both mean "no real cost data," never "free" — guard expl
 (`GenCostCurvePoints > 0 AND GenMCost > 0`) before using cost data to rank or select
 generators, or a data gap silently becomes "dispatch this first."
 
-### 3. ERCOT's 8 weather zones are already `AreaNum`/`AreaName`
+### 3. Check `AreaNum`/`AreaName` before doing a spatial join
 
-On Synth2k-series cases, `AreaNum`/`AreaName` (native PowerWorld fields, on both
-`Gen` and `Load` objects) already encode ERCOT's 8 official weather zones — Far West,
-North, West, South, North Central, South Central, Coast, East — verified present and
-fully populated on both the summerpeak and low-load Synth2k cases. No spatial join
-needed for zonal load/generation analysis on this case family.
+`AreaNum`/`AreaName` are native PowerWorld fields carried on **both `Gen` and `Load`**
+objects, and a case is often built with the system operator's own zonal scheme already
+encoded in them. Verify that before writing any geographic join: where it is populated,
+zonal load and generation analysis needs no spatial work at all.
 
-Don't confuse this with the separate **ISO-region** field (`CustomString:2`, written
-by a case-specific `iso_insertion.py` spatial join against an ISO-boundary shapefile)
-— that field is (a) generator-scoped only, never written to loads, and (b) on the
-Synth2k case, ~96%/~4%/~0.06% across three ISO regions — one bucket dominates, nearly
-useless for zonal differentiation within ERCOT. `AreaNum` is the right key when the
-goal is *intra-ERCOT* zonal granularity (e.g. matching a MIN-load case's zonal load
-shape); ISO region is the right key only when the analysis genuinely needs
-separation between ISO regions.
+Don't confuse it with a **custom region field** — typically something like
+`CustomString:2`, written by a case-specific spatial join against a boundary shapefile.
+Two things regularly make such a field the wrong key: it is usually **generator-scoped
+only**, never written to loads, and its distribution can be so dominated by a single
+bucket that it differentiates nothing. Check the value distribution before you group by
+it. `AreaNum` is the right key for zonal granularity *inside* one system; a region field
+is right only when the analysis genuinely spans regions.
 
 ### 4. Another project's fuel-category name doesn't always mean what it says
 

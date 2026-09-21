@@ -38,8 +38,6 @@ The interface object — a named group of monitored branches — plus flowgates 
 | `12-building-onelines-branches-and-devices.md` | 2 | Inserting transmission lines, transformers, series capacitors, switched shunts, interfaces, injection groups and oneline links. |
 | `03-cases-files-and-formats.md` | 1 | Opening, creating, closing and saving cases; every supported file format; project files. |
 
-Serves: `contingency-work`, `esapp-automation`, `transfer-and-dispatch`.
-
 ### What bites
 
 - This subject has no chapter of its own in the manual — it is scattered across the case-information, object-property, oneline and file-format chapters, which is why it is gathered into one page here.

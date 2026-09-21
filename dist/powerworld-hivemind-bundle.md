@@ -1886,7 +1886,7 @@ fl = pw.esa.GetFieldList('shunt')
 fl[fl.internal_field_name.isin(['SSMinMVR','SSMaxMVR'])][['internal_field_name','enterable']]
 ```
 
-✅ **Verified live 2026-09-10** (Texas2K, 157 shunts, build 2026-07-22, esapp 0.2.1):
+✅ **Verified live 2026-09-10** (~2,000-bus synthetic case, 157 shunts, build 2026-07-22, esapp 0.2.1):
 `enterable` blank for both; `pw[Shunt] = df` with `SSMinMVR = -999.0` raised nothing and left
 the value at `-15.0`.
 
@@ -2224,7 +2224,7 @@ depends on your esapp version:
 | 0.1.x | **raises** `ValueError: Cannot set read-only field(s) on Branch: [...]` — the bypass below was mandatory |
 | 0.2.1 | **warns** `UserWarning: Read-only field(s) on Branch: [...]` and the write goes through |
 
-✅ **Verified live 2026-09-10** (Texas2K, Simulator build 2026-07-22, esapp 0.2.1): a
+✅ **Verified live 2026-09-10** (~2,000-bus synthetic case, Simulator build 2026-07-22, esapp 0.2.1): a
 2-row `pw[Branch] = df` carrying `LineXFMR='YES'` raised nothing and flipped
 `BranchDeviceType` from `Line` to `Transformer`.
 
@@ -4462,7 +4462,7 @@ Four mutually exclusive ways, in increasing order of precision:
 
 ```python
 client.download("era5", "2021-02", region="TX")                       # a state
-client.download("era5", "2021-02", iso="ERCOT")                       # an ISO footprint
+client.download("era5", "2021-02", iso="<ISO>")                        # an ISO footprint
 client.download("era5", "2021-02", bbox=(25.8, -106.7, 36.5, -93.5))  # lat/lon box
 client.download("era5", "2021-02")                                    # everything, usually too much
 ```
@@ -5176,7 +5176,7 @@ moves, 147 load moves, criterion-10 clean on all four.
   vintages, this one is about *applying* one.
 - Depends on the same key-field constraint as circuit-ID renaming: some fields can only be changed
   through an AUX text round-trip, never by a write.
-- 💡 **Could transfer to:** dispatch, real-power-planning, RPP — any study where one scenario got a
+- 💡 **Could transfer to:** any study where one scenario got a
   feature and the rest need it, or where a chain is unreproducible and only the *result* survives.
 
 ## Content
@@ -5661,7 +5661,7 @@ Two consequences:
   The authority is `pw.esa.GetFieldList(<type>)`, whose `enterable` column is PowerWorld's,
   not esapp's.
 - **The `XF*` bypass in [converting-lines-to-transformers](../methods/converting-lines-to-transformers.md) is now confirmed
-  unnecessary.** ✅ **Verified live 2026-09-10** on Texas2K, Simulator build 2026-07-22,
+  unnecessary.** ✅ **Verified live 2026-09-10** on a ~2,000-bus synthetic case, Simulator build 2026-07-22,
   esapp 0.2.1: `pw[Branch] = df` carrying `LineXFMR='YES'` warns and goes through —
   `BranchDeviceType` flips `Line` → `Transformer`, on a 2-row subset, no exception. That
   page has been rewritten accordingly.
@@ -6177,7 +6177,7 @@ faster. On Synth8k: the full 13,050-outage table in **5.8 s** versus **1,101 s**
 10-worker parallel AC sweep ([parallel-contingency-solve](parallel-contingency-solve.md)). Read on for the mechanism, the
 free islanding detector that falls out of it, what it structurally cannot do (voltage,
 reactive power, losses, control limits, divergence), and the measured verdict that it was
-**evaluated and NOT adopted** for reactive power planning — because RPP's binding
+**evaluated and NOT adopted** for reactive power planning — because that work's binding
 constraint is local reactive adequacy, not MW redistribution.
 
 ## Connections
@@ -6351,11 +6351,11 @@ SHRINK a candidate list, then confirm the shortlist with a real solve.
 contingency remediation's DC subsystem. Its ~93 changes are all reactance perturbations on
 EXISTING corridors (measured: 42 single-circuit, 3 double), and its 454 rating bumps do not touch
 these matrices at all — a rating change moves no flow, only the limit you compare against. Both
-reasons LODF was rejected for RPP also **invert** there: that case has 482 corridors over 100%
+reasons LODF was rejected for reactive planning also **invert** there: that case has 482 corridors over 100%
 (worst 296%) rather than 2, and it is a DC study by design so DC's blindness costs it nothing.
 See `RESEARCH-2026-08-25.md` in that repo.
 
-### Why it was NOT adopted for RPP
+### Why it was NOT adopted for reactive power planning
 
 Two independent reasons, both measured — neither is "LODF is inaccurate":
 
@@ -6367,10 +6367,10 @@ Two independent reasons, both measured — neither is "LODF is inaccurate":
 2. **N-1 barely moves the ranking.** `Spearman(base-case stress, full-N-1 stress) = 0.8893` —
    the contingency dimension mostly reproduces the base-case stress signal already computed.
 
-And the structural reason it can never carry RPP's late stage: **LODF inherits all of DC's
+And the structural reason it can never carry that work's late stage: **LODF inherits all of DC's
 blindness** — no voltage (every bus pinned at 1.0 pu), no reactive power, no losses, no
 generator VAr limits / tap changes / switched-shunt action, and it can never return "did not
-converge," which is sometimes the physically meaningful answer. RPP's real violations are
+converge," which is sometimes the physically meaningful answer. Its real violations are
 69/138 kV low-side buses sagging from a **local MVAr deficit**; exact MW bookkeeping cannot
 see that. Voltage security still needs [parallel-contingency-solve](parallel-contingency-solve.md).
 
@@ -6398,7 +6398,7 @@ Each cost real time; all measured 2026-08-10.
   raised `Cannot set read-only field(s)`, which is what the 2026-08-10 runs above hit.
 
   **On 0.2.1 it only warns** — `UserWarning: Read-only field(s) on Branch: ['LineStatus']` —
-  **and the write goes through.** ✅ **Verified live 2026-09-10** (Texas2K, Simulator build
+  **and the write goes through.** ✅ **Verified live 2026-09-10** (~2,000-bus synthetic case, Simulator build
   2026-07-22): `pw[Branch, 'LineStatus'] = 'Open'` opened all 3950 branches; the per-element
   list form opened exactly the one branch intended. So the bracket writer is usable. The
   real hazard is only that the warning scrolls past and looks like a failure when it isn't.
@@ -6756,7 +6756,7 @@ for a big sweep.
 ### Scope limitation (deliberate)
 
 This technique parallelizes ONLY the base N-1 voltage sweep, not any per-contingency remediation
-walk that mutates a shared base fleet sequentially (e.g. RPP's after-removal 2b security loop) —
+walk that mutates a shared base fleet sequentially (e.g. an after-removal security loop) —
 that kind of loop can't be split this way since each fix changes state the next step depends on.
 It also does not autoinsert contingencies itself — the case must already carry its N-1 set before
 the parallel sweep opens it (autoinsert once, save, then hand that saved case path to the workers).
@@ -6832,7 +6832,7 @@ assumed H as if it were `TSH` produced failure shape **2**: fleet inertia read 2
 instead of 470.3, nuclear 2.04 instead of 22.58, and the unit-commitment order in the
 dispatch algorithm was silently wrong.
 
-The physical statement underneath: **H alone is not an inertia quantity.** ERCOT defines
+The physical statement underneath: **H alone is not an inertia quantity.** System inertia is
 `M_sys = Σ Hᵢ · MVAᵢ`. Seconds must be size-weighted before they mean anything at system
 level — which is also why *unit count is not a proxy for system inertia*.
 
@@ -7084,9 +7084,9 @@ the generator's own `GenMVABase` — **and the "don't multiply by `GenMVABase`" 
 follows from it inverts the moment you synthesize H yourself instead of reading it**
 (this bit a second time on 2026-07-27; see the ⛔ box in §1 before writing any inertia
 code); (2) `Gen.GenMCost` is a **live** cost-curve
-evaluation at the case's *current* `GenMW`, not a fixed per-unit rate; (3) ERCOT's 8
-weather zones are already modeled natively as `AreaNum`/`AreaName` on Synth2k-series
-cases — no spatial join needed; (4) a sibling project's fuel-category *name* doesn't
+evaluation at the case's *current* `GenMW`, not a fixed per-unit rate; (3) a system's official
+zonal scheme may already be modelled natively as `AreaNum`/`AreaName`, in which case no
+spatial join is needed; (4) a sibling project's fuel-category *name* doesn't
 always match its actual `GenFuelType` mapping — verify against source code, not the
 label. Read the Content section before writing any code that sums inertia, ranks
 generators by cost, needs zonal load data on a Synth2k case, or reconstructs
@@ -7110,9 +7110,9 @@ inertia constant on the generator's own MVA base — it's H expressed on a fixed
 independent ways on a real Synth2k case:
 
 - **Round-number test:** converting via `H = TSH * 100 / GenMVABase` lands every
-  nuclear unit and 19/21 coal units on exactly `4.00` seconds, squarely inside
-  ERCOT's published Table 1 ranges (Nuclear 3.8–4.34s, Coal 2.9–4.5s) — not a
-  coincidence at that precision.
+  nuclear unit and nearly every coal unit on exactly `4.00` seconds, squarely inside
+  the published per-technology ranges operators tabulate (nuclear and coal both sit
+  around 3–4.5 s) — not a coincidence at that precision.
 - **Direct cross-check:** the case's own `MachineModel_GENROU` (round-rotor) and
   `MachineModel_GENSAL` (salient-pole, e.g. hydro) dynamic model objects expose a
   `TSH` field of their own, and it reads the true per-unit H **directly, no
@@ -7133,7 +7133,7 @@ unit.
 >
 > **"Do NOT multiply by `GenMVABase`" holds only because real `Gen.TSH` has already been
 > multiplied by it.** That is a property of *the field*, not of inertia. If you are
-> **synthesizing** H yourself — assumed values from ERCOT's Table 1, a textbook, or any
+> **synthesizing** H yourself — assumed values from an operator's published table, a textbook, or any
 > per-machine source — H is on the **machine's own base** and you **MUST** multiply:
 >
 > ```python
@@ -7148,7 +7148,7 @@ unit.
 > instead of 470.3, nuclear 2.04 instead of 22.58; and because the error scales with machine
 > size it was **non-uniform**, so unit *commitment order* was wrong too, not just totals.
 >
-> Physically: **H alone is not an inertia quantity.** ERCOT defines system inertia as
+> Physically: **H alone is not an inertia quantity.** System inertia is defined as
 > `M_sys = Σ Hᵢ · MVAᵢ` — seconds must be weighted by machine size before they mean anything
 > at system level. Corollary for any downstream analysis: **unit count is not a proxy for
 > inertia**; many small machines can carry less than a few large ones.
@@ -7200,22 +7200,20 @@ curve points defined. Both mean "no real cost data," never "free" — guard expl
 (`GenCostCurvePoints > 0 AND GenMCost > 0`) before using cost data to rank or select
 generators, or a data gap silently becomes "dispatch this first."
 
-### 3. ERCOT's 8 weather zones are already `AreaNum`/`AreaName`
+### 3. Check `AreaNum`/`AreaName` before doing a spatial join
 
-On Synth2k-series cases, `AreaNum`/`AreaName` (native PowerWorld fields, on both
-`Gen` and `Load` objects) already encode ERCOT's 8 official weather zones — Far West,
-North, West, South, North Central, South Central, Coast, East — verified present and
-fully populated on both the summerpeak and low-load Synth2k cases. No spatial join
-needed for zonal load/generation analysis on this case family.
+`AreaNum`/`AreaName` are native PowerWorld fields carried on **both `Gen` and `Load`**
+objects, and a case is often built with the system operator's own zonal scheme already
+encoded in them. Verify that before writing any geographic join: where it is populated,
+zonal load and generation analysis needs no spatial work at all.
 
-Don't confuse this with the separate **ISO-region** field (`CustomString:2`, written
-by a case-specific `iso_insertion.py` spatial join against an ISO-boundary shapefile)
-— that field is (a) generator-scoped only, never written to loads, and (b) on the
-Synth2k case, ~96%/~4%/~0.06% across three ISO regions — one bucket dominates, nearly
-useless for zonal differentiation within ERCOT. `AreaNum` is the right key when the
-goal is *intra-ERCOT* zonal granularity (e.g. matching a MIN-load case's zonal load
-shape); ISO region is the right key only when the analysis genuinely needs
-separation between ISO regions.
+Don't confuse it with a **custom region field** — typically something like
+`CustomString:2`, written by a case-specific spatial join against a boundary shapefile.
+Two things regularly make such a field the wrong key: it is usually **generator-scoped
+only**, never written to loads, and its distribution can be so dominated by a single
+bucket that it differentiates nothing. Check the value distribution before you group by
+it. `AreaNum` is the right key for zonal granularity *inside* one system; a region field
+is right only when the analysis genuinely spans regions.
 
 ### 4. Another project's fuel-category name doesn't always mean what it says
 
@@ -7522,8 +7520,6 @@ Contingency analysis end to end: how contingencies are defined, what an element 
 | `25-ctg-combo-analysis.md` | 3 | Contingency combination analysis and the combination element dialog. |
 | `05-case-information-displays-by-object-part1.md` | 1 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
 
-Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`.
-
 ### What bites
 
 - Reference-state handling is its own set of topics and is easy to skip; it decides what the violations are measured *against*.
@@ -7598,8 +7594,6 @@ The object and field reference: every case-information display, every object pro
 | `10-power-flow-solution-and-options-part2.md` | 1 | Power flow solution theory, simulator options, and solution and control settings. |
 | `18-general-tools.md` | 1 | Limit monitoring, difference case, scale case, connections tools and other general-purpose tools. |
 
-Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`, `weather-pipelines`.
-
 ### What bites
 
 - Edit mode and run mode have **separate pages for the same object**; the field sets differ and so does what is writable.
@@ -7656,8 +7650,6 @@ Injection groups and participation points — the object that says *which* gener
 | `07-object-properties-run-mode-and-general-part2.md` | 6 | Run-mode and general property dialogs, object groups, supplemental data and data maintainers. |
 | `05-case-information-displays-by-object-part3.md` | 3 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
 | `03-cases-files-and-formats.md` | 1 | Opening, creating, closing and saving cases; every supported file format; project files. |
-
-Serves: `esapp-automation`, `reactive-power-planning`, `transfer-and-dispatch`.
 
 ### What bites
 
@@ -7717,8 +7709,6 @@ The interface object — a named group of monitored branches — plus flowgates 
 | `05-case-information-displays-by-object-part3.md` | 2 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
 | `12-building-onelines-branches-and-devices.md` | 2 | Inserting transmission lines, transformers, series capacitors, switched shunts, interfaces, injection groups and oneline links. |
 | `03-cases-files-and-formats.md` | 1 | Opening, creating, closing and saving cases; every supported file format; project files. |
-
-Serves: `contingency-work`, `esapp-automation`, `transfer-and-dispatch`.
 
 ### What bites
 
@@ -7909,8 +7899,6 @@ How Simulator solves the AC and DC power flow, and every control that acts durin
 | `07-object-properties-run-mode-and-general-part2.md` | 1 | Run-mode and general property dialogs, object groups, supplemental data and data maintainers. |
 | `52-additional-linked-topics-part1.md` | 1 | Topics reachable from links inside the manual but not listed in the help system's table of contents. |
 
-Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`, `time-step-simulation`, `transfer-and-dispatch`.
-
 ### What bites
 
 - The chapter mixes real solver content with generic application options — Environment, File Management and Message Log Options sit in the same file and are filed elsewhere here.
@@ -7965,8 +7953,6 @@ PV and QV curve analysis — real-power transfer margin and reactive margin at a
 | Chapter file | Topics | Holds |
 |---|--:|---|
 | `29-pv-and-qv-curves.md` | 25 | PV curves, QV curves and the PV/QV refine model. |
-
-Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`.
 
 ### What bites
 
@@ -8033,8 +8019,6 @@ Driving Simulator from outside: the auxiliary file format, script command execut
 | `23-contingency-analysis-running-and-results.md` | 1 | Running contingency analysis, file formats, sensitivity analysis, results and comparing runs. |
 | `52-additional-linked-topics-part3.md` | 1 | Topics reachable from links inside the manual but not listed in the help system's table of contents. |
 
-Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`.
-
 ### What bites
 
 - **Field names are not in this manual, and never were in the other one.** The provenance rule and what to verify against are in [aux-only-powerworld](aux-only-powerworld.md); that the WebHelp declines too is recorded in [powerworld-help-corpus](powerworld-help-corpus.md). Do not look for a field catalog here.
@@ -8094,8 +8078,6 @@ Time Step Simulation: the quasi-static tool that solves a case repeatedly across
 |---|--:|---|
 | `26-time-step-simulation-part1.md` | 22 | Time step simulation setup, schedules, controller time delays and running the simulation. |
 | `26-time-step-simulation-part2.md` | 10 | Time step simulation setup, schedules, controller time delays and running the simulation. |
-
-Serves: `contingency-work`, `reactive-power-planning`, `time-step-simulation`.
 
 ### What bites
 

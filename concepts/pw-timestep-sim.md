@@ -38,8 +38,6 @@ Time Step Simulation: the quasi-static tool that solves a case repeatedly across
 | `26-time-step-simulation-part1.md` | 22 | Time step simulation setup, schedules, controller time delays and running the simulation. |
 | `26-time-step-simulation-part2.md` | 10 | Time step simulation setup, schedules, controller time delays and running the simulation. |
 
-Serves: `contingency-work`, `reactive-power-planning`, `time-step-simulation`.
-
 ### What bites
 
 - The tool is only a quarter of the story — the script commands that launch a run are in the auxiliary-file chapter, the programmatic entry point in SimAuto, and unattended batch runs in the Cruncher. Opening only this subject will not get a run automated.

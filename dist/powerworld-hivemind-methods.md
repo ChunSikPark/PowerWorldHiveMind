@@ -131,7 +131,7 @@ fl = pw.esa.GetFieldList('shunt')
 fl[fl.internal_field_name.isin(['SSMinMVR','SSMaxMVR'])][['internal_field_name','enterable']]
 ```
 
-✅ **Verified live 2026-09-10** (Texas2K, 157 shunts, build 2026-07-22, esapp 0.2.1):
+✅ **Verified live 2026-09-10** (~2,000-bus synthetic case, 157 shunts, build 2026-07-22, esapp 0.2.1):
 `enterable` blank for both; `pw[Shunt] = df` with `SSMinMVR = -999.0` raised nothing and left
 the value at `-15.0`.
 
@@ -469,7 +469,7 @@ depends on your esapp version:
 | 0.1.x | **raises** `ValueError: Cannot set read-only field(s) on Branch: [...]` — the bypass below was mandatory |
 | 0.2.1 | **warns** `UserWarning: Read-only field(s) on Branch: [...]` and the write goes through |
 
-✅ **Verified live 2026-09-10** (Texas2K, Simulator build 2026-07-22, esapp 0.2.1): a
+✅ **Verified live 2026-09-10** (~2,000-bus synthetic case, Simulator build 2026-07-22, esapp 0.2.1): a
 2-row `pw[Branch] = df` carrying `LineXFMR='YES'` raised nothing and flipped
 `BranchDeviceType` from `Line` to `Transformer`.
 
@@ -2707,7 +2707,7 @@ Four mutually exclusive ways, in increasing order of precision:
 
 ```python
 client.download("era5", "2021-02", region="TX")                       # a state
-client.download("era5", "2021-02", iso="ERCOT")                       # an ISO footprint
+client.download("era5", "2021-02", iso="<ISO>")                        # an ISO footprint
 client.download("era5", "2021-02", bbox=(25.8, -106.7, 36.5, -93.5))  # lat/lon box
 client.download("era5", "2021-02")                                    # everything, usually too much
 ```

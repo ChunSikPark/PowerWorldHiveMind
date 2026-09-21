@@ -51,8 +51,6 @@ How Simulator solves the AC and DC power flow, and every control that acts durin
 | `07-object-properties-run-mode-and-general-part2.md` | 1 | Run-mode and general property dialogs, object groups, supplemental data and data maintainers. |
 | `52-additional-linked-topics-part1.md` | 1 | Topics reachable from links inside the manual but not listed in the help system's table of contents. |
 
-Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`, `time-step-simulation`, `transfer-and-dispatch`.
-
 ### What bites
 
 - The chapter mixes real solver content with generic application options — Environment, File Management and Message Log Options sit in the same file and are filed elsewhere here.

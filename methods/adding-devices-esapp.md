@@ -127,7 +127,7 @@ fl = pw.esa.GetFieldList('shunt')
 fl[fl.internal_field_name.isin(['SSMinMVR','SSMaxMVR'])][['internal_field_name','enterable']]
 ```
 
-✅ **Verified live 2026-09-10** (Texas2K, 157 shunts, build 2026-07-22, esapp 0.2.1):
+✅ **Verified live 2026-09-10** (~2,000-bus synthetic case, 157 shunts, build 2026-07-22, esapp 0.2.1):
 `enterable` blank for both; `pw[Shunt] = df` with `SSMinMVR = -999.0` raised nothing and left
 the value at `-15.0`.
 

@@ -34,8 +34,6 @@ PV and QV curve analysis — real-power transfer margin and reactive margin at a
 |---|--:|---|
 | `29-pv-and-qv-curves.md` | 25 | PV curves, QV curves and the PV/QV refine model. |
 
-Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`.
-
 ### What bites
 
 - Many topic titles here are bare dialog-tab names — Setup, Options, Results, Plot, Output — so a title search will not find them. Search by the curve type, or use the index.

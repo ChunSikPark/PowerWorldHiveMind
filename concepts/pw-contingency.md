@@ -42,8 +42,6 @@ Contingency analysis end to end: how contingencies are defined, what an element 
 | `25-ctg-combo-analysis.md` | 3 | Contingency combination analysis and the combination element dialog. |
 | `05-case-information-displays-by-object-part1.md` | 1 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
 
-Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`.
-
 ### What bites
 
 - Reference-state handling is its own set of topics and is easy to skip; it decides what the violations are measured *against*.

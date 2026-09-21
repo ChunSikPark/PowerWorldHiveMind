@@ -17,7 +17,7 @@ faster. On Synth8k: the full 13,050-outage table in **5.8 s** versus **1,101 s**
 10-worker parallel AC sweep ([parallel-contingency-solve](parallel-contingency-solve.md)). Read on for the mechanism, the
 free islanding detector that falls out of it, what it structurally cannot do (voltage,
 reactive power, losses, control limits, divergence), and the measured verdict that it was
-**evaluated and NOT adopted** for reactive power planning — because RPP's binding
+**evaluated and NOT adopted** for reactive power planning — because that work's binding
 constraint is local reactive adequacy, not MW redistribution.
 
 ## Connections
@@ -191,11 +191,11 @@ SHRINK a candidate list, then confirm the shortlist with a real solve.
 contingency remediation's DC subsystem. Its ~93 changes are all reactance perturbations on
 EXISTING corridors (measured: 42 single-circuit, 3 double), and its 454 rating bumps do not touch
 these matrices at all — a rating change moves no flow, only the limit you compare against. Both
-reasons LODF was rejected for RPP also **invert** there: that case has 482 corridors over 100%
+reasons LODF was rejected for reactive planning also **invert** there: that case has 482 corridors over 100%
 (worst 296%) rather than 2, and it is a DC study by design so DC's blindness costs it nothing.
 See `RESEARCH-2026-08-25.md` in that repo.
 
-### Why it was NOT adopted for RPP
+### Why it was NOT adopted for reactive power planning
 
 Two independent reasons, both measured — neither is "LODF is inaccurate":
 
@@ -207,10 +207,10 @@ Two independent reasons, both measured — neither is "LODF is inaccurate":
 2. **N-1 barely moves the ranking.** `Spearman(base-case stress, full-N-1 stress) = 0.8893` —
    the contingency dimension mostly reproduces the base-case stress signal already computed.
 
-And the structural reason it can never carry RPP's late stage: **LODF inherits all of DC's
+And the structural reason it can never carry that work's late stage: **LODF inherits all of DC's
 blindness** — no voltage (every bus pinned at 1.0 pu), no reactive power, no losses, no
 generator VAr limits / tap changes / switched-shunt action, and it can never return "did not
-converge," which is sometimes the physically meaningful answer. RPP's real violations are
+converge," which is sometimes the physically meaningful answer. Its real violations are
 69/138 kV low-side buses sagging from a **local MVAr deficit**; exact MW bookkeeping cannot
 see that. Voltage security still needs [parallel-contingency-solve](parallel-contingency-solve.md).
 
@@ -238,7 +238,7 @@ Each cost real time; all measured 2026-08-10.
   raised `Cannot set read-only field(s)`, which is what the 2026-08-10 runs above hit.
 
   **On 0.2.1 it only warns** — `UserWarning: Read-only field(s) on Branch: ['LineStatus']` —
-  **and the write goes through.** ✅ **Verified live 2026-09-10** (Texas2K, Simulator build
+  **and the write goes through.** ✅ **Verified live 2026-09-10** (~2,000-bus synthetic case, Simulator build
   2026-07-22): `pw[Branch, 'LineStatus'] = 'Open'` opened all 3950 branches; the per-element
   list form opened exactly the one branch intended. So the bracket writer is usable. The
   real hazard is only that the warning scrolls past and looks like a failure when it isn't.

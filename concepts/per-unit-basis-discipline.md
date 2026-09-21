@@ -64,7 +64,7 @@ assumed H as if it were `TSH` produced failure shape **2**: fleet inertia read 2
 instead of 470.3, nuclear 2.04 instead of 22.58, and the unit-commitment order in the
 dispatch algorithm was silently wrong.
 
-The physical statement underneath: **H alone is not an inertia quantity.** ERCOT defines
+The physical statement underneath: **H alone is not an inertia quantity.** System inertia is
 `M_sys = Σ Hᵢ · MVAᵢ`. Seconds must be size-weighted before they mean anything at system
 level — which is also why *unit count is not a proxy for system inertia*.
 

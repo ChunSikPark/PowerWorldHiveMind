@@ -78,7 +78,7 @@ Four mutually exclusive ways, in increasing order of precision:
 
 ```python
 client.download("era5", "2021-02", region="TX")                       # a state
-client.download("era5", "2021-02", iso="ERCOT")                       # an ISO footprint
+client.download("era5", "2021-02", iso="<ISO>")                        # an ISO footprint
 client.download("era5", "2021-02", bbox=(25.8, -106.7, 36.5, -93.5))  # lat/lon box
 client.download("era5", "2021-02")                                    # everything, usually too much
 ```

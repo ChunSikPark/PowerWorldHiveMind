@@ -25,7 +25,7 @@ moves, 147 load moves, criterion-10 clean on all four.
   vintages, this one is about *applying* one.
 - Depends on the same key-field constraint as circuit-ID renaming: some fields can only be changed
   through an AUX text round-trip, never by a write.
-- 💡 **Could transfer to:** dispatch, real-power-planning, RPP — any study where one scenario got a
+- 💡 **Could transfer to:** any study where one scenario got a
   feature and the rest need it, or where a chain is unreproducible and only the *result* survives.
 
 ## Content

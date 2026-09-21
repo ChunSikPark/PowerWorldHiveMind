@@ -53,8 +53,6 @@ The object and field reference: every case-information display, every object pro
 | `10-power-flow-solution-and-options-part2.md` | 1 | Power flow solution theory, simulator options, and solution and control settings. |
 | `18-general-tools.md` | 1 | Limit monitoring, difference case, scale case, connections tools and other general-purpose tools. |
 
-Serves: `contingency-work`, `esapp-automation`, `reactive-power-planning`, `weather-pipelines`.
-
 ### What bites
 
 - Edit mode and run mode have **separate pages for the same object**; the field sets differ and so does what is writable.

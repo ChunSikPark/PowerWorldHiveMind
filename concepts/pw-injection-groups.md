@@ -36,8 +36,6 @@ Injection groups and participation points — the object that says *which* gener
 | `05-case-information-displays-by-object-part3.md` | 3 | The per-object case information displays: buses, generators, loads, lines, transformers, shunts, interfaces, ownership and more. |
 | `03-cases-files-and-formats.md` | 1 | Opening, creating, closing and saving cases; every supported file format; project files. |
 
-Serves: `esapp-automation`, `reactive-power-planning`, `transfer-and-dispatch`.
-
 ### What bites
 
 - Like interfaces, this has no chapter of its own and is gathered here.

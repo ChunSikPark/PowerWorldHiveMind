@@ -112,7 +112,7 @@ for a big sweep.
 ### Scope limitation (deliberate)
 
 This technique parallelizes ONLY the base N-1 voltage sweep, not any per-contingency remediation
-walk that mutates a shared base fleet sequentially (e.g. RPP's after-removal 2b security loop) —
+walk that mutates a shared base fleet sequentially (e.g. an after-removal security loop) —
 that kind of loop can't be split this way since each fix changes state the next step depends on.
 It also does not autoinsert contingencies itself — the case must already carry its N-1 set before
 the parallel sweep opens it (autoinsert once, save, then hand that saved case path to the workers).

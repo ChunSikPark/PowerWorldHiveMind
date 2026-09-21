@@ -53,7 +53,7 @@ depends on your esapp version:
 | 0.1.x | **raises** `ValueError: Cannot set read-only field(s) on Branch: [...]` — the bypass below was mandatory |
 | 0.2.1 | **warns** `UserWarning: Read-only field(s) on Branch: [...]` and the write goes through |
 
-✅ **Verified live 2026-09-10** (Texas2K, Simulator build 2026-07-22, esapp 0.2.1): a
+✅ **Verified live 2026-09-10** (~2,000-bus synthetic case, Simulator build 2026-07-22, esapp 0.2.1): a
 2-row `pw[Branch] = df` carrying `LineXFMR='YES'` raised nothing and flipped
 `BranchDeviceType` from `Line` to `Transformer`.
 
