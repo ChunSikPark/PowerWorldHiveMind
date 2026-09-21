@@ -20,7 +20,14 @@ Five things here are silent failures, all live-measured on
 `Synth2k_case` on 2026-08-17 — each produces a plausible wrong
 answer, not an error:
 
-1. **`Ctg_AutoInsert_Options` rejects `ElementType=GEN` without complaining** and leaves it
+> **`ElementType`, `DeleteExisting` and `Handle3WXF` are *concise* names.** PowerWorld's
+> object-field export lists two names per field, and these three appear only in the Concise
+> Variable Name column. Grep the export for them and you find nothing, which reads as "the
+> field does not exist". Their full variable names are `CtgAutoInsElementType`,
+> `CtgAutoInsDeleteExistCtgs` and `Include3WXfifFoundWithXf`. Both spellings are accepted;
+> search the export on either column before concluding a field is missing.
+
+1. **`CTG_AutoInsert_Options` rejects `ElementType=GEN` without complaining** and leaves it
    at `BRANCH`. You ask for 743 generator outages and get 3,911 branch ones.
 2. **The `CTGElement` SUBDATA action string must be quoted.** Unquoted, PowerWorld parses
    the *first* contingency and drops the other 690 with no error.
@@ -50,7 +57,7 @@ answer, not an error:
 pw.esa.RunScriptCommand("EnterMode(EDIT);")
 pw.esa.RunScriptCommand("Delete(Contingency);")
 pw.esa.RunScriptCommand(
-    "SetData(Ctg_AutoInsert_Options, "
+    "SetData(CTG_AutoInsert_Options, "
     "[ElementType, DeleteExisting, Handle3WXF], [BRANCH, YES, INSERT3WXF]);")
 pw.esa.RunScriptCommand("CTGAutoInsert;")
 pw.esa.RunScriptCommand("EnterMode(RUN);")
@@ -60,8 +67,8 @@ pw.esa.RunScriptCommand("EnterMode(RUN);")
 parser, silently ignored, and leaves the previous value in place:
 
 ```python
-pw.esa.RunScriptCommand("SetData(Ctg_AutoInsert_Options,[ElementType],[GEN]);")
-pw.esa.GetParametersSingleElement("Ctg_AutoInsert_Options", ["ElementType"], [""])
+pw.esa.RunScriptCommand("SetData(CTG_AutoInsert_Options,[ElementType],[GEN]);")
+pw.esa.GetParametersSingleElement("CTG_AutoInsert_Options", ["ElementType"], [""])
 # -> 'BRANCH'          <- the write did not happen, and nothing said so
 # 'GENERATOR' and 'Gen' both -> 'GENERATOR'
 ```

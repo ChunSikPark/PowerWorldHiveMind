@@ -165,7 +165,7 @@ Say what you tested, what you rejected, and what you did **not** save.
 | Devices ranked by violation severity | [methods/ranking-new-devices-by-severity.md](methods/ranking-new-devices-by-severity.md) |
 | To change limit-monitoring thresholds | [methods/powerworld-limitset-setdata.md](methods/powerworld-limitset-setdata.md) |
 | To reclassify lines as transformers | [methods/converting-lines-to-transformers.md](methods/converting-lines-to-transformers.md) |
-| To drive Simulator without SimAuto, by dropping aux files | [concepts/powerworld-script-transfer.md](concepts/powerworld-script-transfer.md) |
+| To drive Simulator without SimAuto, by dropping aux files | [methods/aux-file-mode.md](methods/aux-file-mode.md) for the rules and a working template; [concepts/powerworld-script-transfer.md](concepts/powerworld-script-transfer.md) for how the channel itself works. Read the first one before writing a script |
 | A SCRIPT action but does not know its name | [references/aux-script-commands.md](references/aux-script-commands.md) |
 | Exact field names and signatures | [references/esapp-schema-reference.md](references/esapp-schema-reference.md) |
 
@@ -356,6 +356,7 @@ Complete runs on a real 37-bus case, including what goes wrong and how it was fi
 
 | Page | What it covers |
 |---|---|
+| [aux-file-cookbook](demos/aux-file-cookbook.md) | Claude in one window, Simulator in the other. Four recipes in order: turn the channel on, prove it with a four-line script, inventory a case, then take a bus out and measure it. Start here if you are working through files rather than Python. |
 | [adding-a-device](demos/adding-a-device.md) | Three attempts that reported success and created nothing, then the fix. `CreateData` accepts a malformed call and builds nothing. If you read one demo, read this one. |
 | [comparing-planning-cases](demos/comparing-planning-cases.md) | Diff a 2016 and a 2024 case to find what the plan builds — 691 new branches, 199 new generators — then solve a contingency set for only the new devices. Includes the scoping trap that makes the naive answer 87% wrong. |
 | [contingency-and-aux](demos/contingency-and-aux.md) | Run N-1 from nothing, then write a filter and contingency `.aux` from the result and load it back. 89 auto-inserted contingencies, 12 violations, 5 targeted ones merged. |
@@ -371,6 +372,7 @@ Step-by-step procedures. Read the one that matches your task.
 | Page | What it covers |
 |---|---|
 | [adding-devices-esapp](methods/adding-devices-esapp.md) | Create buses, branches and loads in an open case, then solve a DC OPF and screen N-1. The write-side counterpart to esapp-overview. |
+| [aux-file-mode](methods/aux-file-mode.md) | PowerWorld and LLM interaction through files: the agent writes `.aux`, you drop it into a watched folder, results come back as CSVs. The GUI setup handshake an agent cannot perform itself, the rules (never `OpenCase`, never `LogClear`, always read back), and a working template to copy. |
 | [applying-a-dispatch-to-a-case](methods/applying-a-dispatch-to-a-case.md) | Turn a MW-per-generator dispatch into a runnable scenario case. The DC solve fakes a balance rather than telling you the fleet is short. |
 | [converting-lines-to-transformers](methods/converting-lines-to-transformers.md) | Reclassify branches as transformers when a case models every branch as a line. `BranchDeviceType` is read-only; the real switch is `LineXFMR = "YES"` plus the nominal kV fields. |
 | [esapp-overview](methods/esapp-overview.md) | The starting page: open a case, read and write data, solve power flow, and use `snapshot()` to experiment without damaging anything. |
@@ -608,6 +610,397 @@ pages so a wrong answer is traceable.
 
 The correct call is not guessable. Three reasonable attempts failed identically and
 silently.
+
+
+---
+
+# ==== demos/aux-file-cookbook.md ====
+
+---
+type: reference
+domain: tooling
+aliases: [aux-cookbook, two-window-workflow, script-transfer-walkthrough, first-drop,
+  getting-started-aux, external-script-control-setup]
+tags: [demo, aux, script-transfer, walkthrough, getting-started, two-window]
+---
+
+# Cookbook: Claude in one window, Simulator in the other
+
+## Abstract
+
+A start-to-finish walkthrough of the file-based workflow, written for someone sitting in
+front of two windows. Four recipes, in order: turn the channel on, prove it is alive with a
+four-line script (skip that one once you trust it), let the agent scan the case for its
+devices, then change something and measure it. Every number here came from a real run on a
+small sample case, failures included.
+
+## Connections
+
+- **Up:** [Home](../index.md)
+- **The reference:** [aux-file-mode](../methods/aux-file-mode.md), the rules and the full
+  template this page walks you through
+- **The channel:** [powerworld-script-transfer](../concepts/powerworld-script-transfer.md)
+- **The language:** [aux-only-powerworld](../concepts/aux-only-powerworld.md)
+- **Other demos:** [start-here](start-here.md)
+
+## Content
+
+### How this works
+
+Two windows, side by side: Simulator with your case open, and Claude. They never talk to
+each other directly. They pass files through one folder you nominate.
+
+Claude writes a script. You copy it into the folder. Simulator notices it, runs it, deletes
+it, and writes back a log plus whatever CSVs the script asked for. Claude reads those. That
+is the whole loop.
+
+This page assumes you are the one moving the file, which is the case when Claude is somewhere
+it cannot reach that folder. If Claude is running on the same machine and can write there, it
+copies its own scripts in and reads its own results, and your job shrinks to the setup in
+recipe 1. Simulator behaves the same either way: it polls the folder and picks up whatever it
+finds.
+
+Pick the folder now. Anything empty will do:
+
+```
+C:\PowerWorldTransfer
+```
+
+---
+
+### Recipe 1 — Turn the channel on
+
+Do this in Simulator. Claude cannot do any of it, and will ask you to.
+
+**1. Open PowerWorld Simulator.**
+
+**2. Open your case.** Any `.pwb` will do. The numbers further down came from a small 7-bus
+sample, so yours will differ. Follow the shape of each step rather than the values.
+
+**3. Switch to Run Mode, then open the Tools tab.** The source deck specifies Run Mode here.
+Do not skip it and assume a script can switch modes for you later.
+
+![The Tools tab in the ribbon](../assets/aux-step-tools.png)
+
+**4. Click Script** to open the Script Command Execution Dialog.
+
+![The Script button under the Tools tab](../assets/aux-step-script.png)
+
+**5. Set ScriptTransferFileDirectory.** Click **Browse...** and pick your folder.
+
+![The External Script Control panel with Browse highlighted](../assets/aux-step-browse.png)
+
+Everything you need is on that one panel. Two things on it before you move on:
+
+- The heading says **"Only Active when Dialog is Open; Fields Saved in Registry"**. That is
+  the whole story on persistence: the folder and the tick survive a restart, the open dialog
+  does not.
+- **"Always Delete an Invalid Input Aux File"** makes Simulator throw away a script it cannot
+  parse instead of leaving it in the folder. Leave it ticked. It does not cover everything
+  (see [When it goes wrong](#when-it-goes-wrong)), but it removes the most common way a run
+  gets stuck repeating.
+
+**6. Tick Enable External Script Control.**
+
+![The Enable External Script Control checkbox](../assets/aux-step-enable.png)
+
+**7. Leave the dialog open.** Closing it stops Simulator watching the folder, and the settings
+keep reading as enabled either way, so everything still looks configured while nothing
+happens.
+
+**8. Click Show Log** and keep that window where you can see it. Every script writes its
+progress there as it runs.
+
+![The Show Log button](../assets/aux-step-showlog.png)
+
+Watch that log. The output file appears only once a run finishes, so while something is wrong
+the folder tells you nothing. The log separates two failures that otherwise look identical to
+waiting:
+
+- A looping run repeats the same block of lines every poll interval.
+- A failed run prints its error in full, including the cases where no output file is ever
+  written.
+
+Then tell Claude, in these words or your own:
+
+> *"Aux-file mode. My transfer folder is `C:\PowerWorldTransfer` and I have my case loaded."*
+
+Steps 5 and 6 are once per machine; the registry keeps them across restarts. Steps 1, 2, 3,
+7 and 8 are every session.
+
+---
+
+### Recipe 2 — Prove it is alive before you trust it
+
+**Skip this if you have used the channel before and know it works.** It is here for your
+first run on a machine, where a broken script and a channel that was never running look
+exactly the same from the folder: nothing happens either way.
+
+Do not debug a real script against an unproven channel. Ask for the smallest possible one:
+
+> *"Give me a four-line aux that just writes a marker to the log, so I can check the channel
+> works."*
+
+You get something like this. Save it anywhere except the transfer folder:
+
+```
+SCRIPT
+{
+  LogAdd("HELLO -- the channel works");
+  LogAddDateTime;
+}
+```
+
+Now copy it into `C:\PowerWorldTransfer` and rename it to exactly `SimulatorScriptInput.aux`.
+
+> Copy it in finished. Do not save into the folder from an editor. Simulator cannot tell a
+> finished file from one you are still writing, and a half-written script is still valid up
+> to the cut. It will run the fragment.
+
+Within a second, two things happen:
+
+| | |
+|---|---|
+| `SimulatorScriptInput.aux` disappears | Simulator consumed it. The deletion is the acknowledgement |
+| `SimulatorScriptOutput.Txt` appears | The log from that run |
+
+Open it. The last line is what you are looking for:
+
+```
+Automatic loading of file ...\SimulatorScriptInput.Aux started at 2026-09-21T14:43:01.314Z
+Starting load of auxiliary file: ...\SimulatorScriptInput.Aux
+HELLO -- the channel works
+September 21, 2026 09:43:01.342
+Finished load of auxiliary file: ...\SimulatorScriptInput.Aux
+Automatic loading of file finished successfully in 0.083 seconds
+```
+
+`finished successfully in N seconds` is the completion signal. A small case runs in
+0.08–0.5 s; a large one takes longer and prints the same line. If you see it, the channel
+works, and every later problem is in your script rather than your setup.
+
+If the file does not disappear, the channel is not running. In order of likelihood: the
+Script dialog got closed, the checkbox is not ticked, or the folder in the dialog is not the
+folder you copied into. Delete `SimulatorScriptInput.aux` before you retry, or it will run
+the moment you fix the setting.
+
+**Read the folder back to each other.** Nothing on the file side can tell you whether
+Simulator is watching the folder you are writing to: there is no heartbeat file and no echo
+of the setting. So when a drop goes unanswered, the first move is for whoever is at the GUI
+to read the **ScriptTransferFileDirectory** box out loud, character for character, and
+compare it to the path the script is being copied into. A trailing space, a different drive
+letter or a near-identical folder name all produce exactly the silence you are looking at,
+and the file side cannot distinguish any of them from a closed dialog.
+
+---
+
+### Recipe 3 — Let it scan the case first
+
+Once you confirm the setup, the agent should raise this on its own, **and then wait for you
+to answer:**
+
+> *"Channel is live. I cannot see your case from here. Do you want me to scan it first and
+> list what devices are in it? It is read-only, it writes CSVs and changes nothing."*
+
+It should not drop anything until you reply. Your Simulator is live and your case is loaded,
+so the first file that lands runs against your session — that decision is yours, even for a
+read-only scan. If an agent scans without asking, it is not following this page.
+
+Say yes. Until it runs, the agent knows nothing about your case: not the bus numbers, not
+whether there are transformers, not whether a contingency set already exists. One drop
+replaces all of that guessing.
+
+The script it hands you writes the case summary plus one CSV per device class: buses,
+branches, substations, generators, loads, shunts, contingencies, areas, zones. The pattern
+repeats:
+
+```
+//--- STAGE A: where the CSVs go -------------------------------------------
+SCRIPT
+{
+  SetCurrentDirectory("C:\PowerWorldTransfer\scan", YES);   // YES = create it
+  CaseSummaryGet("", "SCAN_00_case_identity.txt", 3);
+}
+
+//--- STAGE B: the network -------------------------------------------------
+SCRIPT
+{
+  // KEY: BusNum
+  SaveData("SCAN_bus.csv", CSV, Bus,
+           [BusNum,BusName_NomVolt,BusNomVolt,SubNum,SubName,AreaNum,ZoneNum,
+            BusStatus,BusSlack,BusPUVolt,BusAngle,BusGenMW,BusLoadMW],
+           [], "", [], NO, NO);
+
+  // KEY: BusNum, BusNum:1, LineCircuit
+  // BranchDeviceType is what separates a Line from a Transformer.
+  SaveData("SCAN_branch.csv", CSV, Branch,
+           [BusNum,BusNum:1,LineCircuit,BranchDeviceType,LineStatus,
+            LineR,LineX,LineAMVA,LineMW,LinePercent],
+           [], "", [], NO, NO);
+}
+
+//--- STAGE C: the injections ----------------------------------------------
+SCRIPT
+{
+  // KEY: BusNum, GenID
+  // GenMVRMax/Min is capability, not dispatch. A unit idling at 0 MVAr with
+  // 200 MVAr of range is reactive support; GenMVR alone would call it nothing.
+  SaveData("SCAN_gen.csv", CSV, Gen,
+           [BusNum,GenID,GenStatus,GenMW,GenMVR,GenMVRMax,GenMVRMin],
+           [], "", [], NO, NO);
+
+  LogAdd("SCAN COMPLETE");
+}
+```
+
+The remaining classes follow the same shape. Field names below were read out of
+PowerWorld's own object-field export, which is the only authority; do not invent names or
+take them from the *Auxiliary File Format* manual, which has no per-object field catalog.
+
+```
+  // KEY: BusNum, LoadID
+  SaveData("SCAN_load.csv", CSV, Load,
+           [BusNum,LoadID,BusName_NomVolt,LoadStatus,LoadMW,LoadMVR,LoadSMW,LoadSMVR,
+            AreaNum,ZoneNum],
+           [], "", [], NO, NO);
+
+  // KEY: BusNum, ShuntID
+  SaveData("SCAN_shunt.csv", CSV, Shunt,
+           [BusNum,ShuntID,BusName_NomVolt,SSStatus,SSNMVR,SSCMode,AreaNum,ZoneNum],
+           [], "", [], NO, NO);
+
+  // KEY: SubNum
+  SaveData("SCAN_substation.csv", CSV, Substation,
+           [SubNum,SubName,Latitude,Longitude,AreaNum,ZoneNum],
+           [], "", [], NO, NO);
+
+  // KEY: AreaNum   -- note the MW fields are BG-prefixed, NOT AreaLoadMW
+  SaveData("SCAN_area.csv", CSV, Area,
+           [AreaNum,AreaName,BGLoadMW,BGGenMW,BGLossMW,BusLoadNum],
+           [], "", [], NO, NO);
+
+  // KEY: ZoneNum   -- same BG prefix here
+  SaveData("SCAN_zone.csv", CSV, Zone,
+           [ZoneNum,ZoneName,BGLoadMW,BGGenMW,BGLossMW,BusLoadNum],
+           [], "", [], NO, NO);
+
+  // KEY: CTGLabel  -- empty file just means no contingency set is defined
+  SaveData("SCAN_contingency.csv", CSV, Contingency,
+           [CTGLabel,CTGSkip,CTGSolved,CTGViol,CTGProc],
+           [], "", [], NO, NO);
+```
+
+The Area and Zone lines are worth a second look, because guessing here is exactly what the
+warning trap catches. Their MW totals are **`BGLoadMW` / `BGGenMW` / `BGLossMW`**, on a
+balancing-group prefix. The names you would reach for by analogy, `AreaLoadMW` and
+`ZoneLoadMW`, do not exist. Asking for them produces a `Warning:`, not an error, and a CSV
+holding the key column and nothing else while the run reports success.
+
+Every table leads with its key fields. A bus row is keyed by `BusNum`, a generator by
+`BusNum` + `GenID`, a branch by `BusNum` + `BusNum:1` + `LineCircuit`. Drop the key and you
+cannot join the CSV to anything, and if you write it back PowerWorld cannot tell which device
+you meant: the change does nothing and still reports success.
+
+Three things to know when you read the results:
+
+- **A zero-byte CSV means the case has none of that class**, not that the scan failed. No
+  header row is written for an empty type. An empty `SCAN_shunt.csv` is a real answer.
+- **The summary header and the CSVs can disagree, on purpose.** `SCAN_00_case_identity.txt`
+  describes the `.pwb` on disk; the CSVs describe what is loaded right now. If you changed
+  something without saving, the CSVs are the truthful half.
+- **Search the log for `Warning:`.** A scan asks for many field names at once, and a wrong
+  one is only a warning:
+
+  ```
+  Warning: unknown fields will not be written to the file
+  Warning: Variable name 'AREALOADMW' is not defined for Area objects.
+  ```
+
+  That run wrote a 75-byte `SCAN_area.csv` containing the key column and nothing else, and
+  reported success. Nothing else tells you the numbers you asked for are missing.
+
+With those CSVs the agent answers follow-ups without another drop: what the voltage range is,
+how many transformers there are, which branches are most loaded, whether a contingency set
+already exists.
+
+### Recipe 4 — Change something and measure it
+
+> *"Take bus 4 out of service and tell me what it does to the system."*
+
+What comes back is one script that baselines the case, opens the three branches touching bus
+4, re-solves, writes everything to CSV, then closes those branches again so your case is
+where you left it. Copy in, rename, watch it go. It takes about 0.4 s.
+
+Bus 4 was carrying 93.71 MW of generation and 80 MW of load. Diffing the before and after
+CSVs:
+
+| | before | after |
+|---|---|---|
+| bus 4 status | `Connected` | `Disconnected` |
+| bus 4 voltage | 1.000000 pu | 0.000000 |
+| bus 3 voltage | 0.992669 pu | 0.961330 |
+| slack output | 200.63 MW | 215.83 MW |
+| worst branch loading | 68.7 % | 91.9 % |
+
+Only bus 3 moves, because it was the one leaning on bus 4's local generation. Line 1–3 goes
+from comfortable to nearly loaded. All of that came out of the CSVs; the log never contained
+it.
+
+**Why the script opens branches instead of the bus.** You cannot switch a bus off by setting
+its status. That field reports whether the bus is energised; it does not control it, and
+writing to it does nothing while still reporting success. The script opens the branches, lets
+the status follow, then reads it back to prove it worked.
+
+---
+
+### When it goes wrong
+
+Three failure shapes, all of which look similar from your side of the folder.
+
+**The file sits there and nothing happens.** A setup problem: dialog closed, checkbox
+unticked, or wrong folder. Delete the file, fix the setting, drop again.
+
+How long to wait before calling it dead: **30 seconds on a small case, a couple of minutes on
+a large one.** Successful round trips here run 0.08-0.5 s on a seven-bus case, so anything
+past a few seconds is already abnormal; the extra margin is only for a case big enough that
+the solve itself is slow. If the input file has not been touched in 30 seconds, stop waiting.
+It is not slow, it is not running.
+
+**The file sits there but files keep being written.** The script failed partway and Simulator
+is re-running it every poll interval, forever. Output timestamps advance while the input file
+stays put. Delete `SimulatorScriptInput.aux` yourself.
+
+`Always Delete an Invalid Input Aux File` in the setup panel is aimed at exactly this, and
+you should have it ticked. It is not a complete guard, though: a run was observed looping on
+2026-09-21 with a script that parsed fine and then crashed Simulator partway through, which
+is not the same thing as an invalid file. Keep a timeout on anything that drops files
+automatically.
+
+**Everything completed, but a column is missing from a CSV.** A bad field name is a
+`Warning:`, not an error. The column is dropped and the run still reports success. Search the
+log for `Warning:` after every run:
+
+```
+Warning: unknown fields will not be written to the file
+Warning: Variable name 'AREALOADMW' is not defined for Area objects.
+```
+
+That run produced a 75-byte CSV with the key column and nothing else, and reported success.
+
+### What this mode costs you
+
+- **It is not headless.** A dialog has to stay open, so nothing batches or runs in parallel.
+- **Something has to move the file.** Whoever can write to the watched folder triggers the
+  run. If Claude is running on the same machine and can write there, it drops its own scripts
+  and reads its own results, and you only supply the GUI setup. If it cannot reach the folder,
+  which is the hand-off case this mode exists for, every run waits on you.
+- **Claude never makes Simulator do anything.** It writes a file. Simulator decides, on its
+  own poll interval, to pick it up. That is the whole extent of the control it has, and it is
+  why a dropped script cannot leave your case somewhere you did not ask for.
+
+In exchange, every script is reviewable before it touches your case, every artifact is a file
+you can read and keep, and you end up with a script you own rather than a session that
+happened once.
 
 
 ---
@@ -920,6 +1313,15 @@ print("violation rows:", len(v))
 violation rows: 12
 L_000019PEARLCITY69-000023WA   val=100.525  lim=100.300  pct=100.224
 ```
+
+> **That field list is Python-side only. Do not paste it into an aux `SaveData`.**
+> `ViolationCTG` has no `ObjectType` in the aux object-field vocabulary; the violation
+> category there is **`LimViolCat`** (concise `LV_Type`). Asking an aux for `ObjectType`
+> produces a `Warning:` rather than an error, so the column is silently missing and the run
+> still reports success. A field list verified against the export, with no warnings:
+> `[CTGLabel,LimViolID:1,LimViolLimit,LimViolValue,LimViolPct,LimViolCat,BusNum,BusNum:1]`.
+> The aux keys are `CTGLabel` and `LimViolID:1`. See
+> [aux-file-mode](../methods/aux-file-mode.md).
 
 Three things to know before you interpret this:
 
@@ -2149,6 +2551,409 @@ inherits that and can never carry an AC study. See [case-impedance-completeness]
 
 ---
 
+# ==== methods/aux-file-mode.md ====
+
+---
+type: method
+domain: tooling
+aliases: [aux-file-mode, aux-mode, no-python-mode, powerworld-llm-interaction,
+  llm-interaction-programming, drop-file-mode, agent-operating-mode]
+tags: [powerworld, aux, script-transfer, llm, agent, operating-mode, template]
+---
+
+# Aux-file mode: PowerWorld and LLM interaction through files
+
+## Abstract
+
+A working mode where the exchange between an agent and Simulator is files, not function
+calls: the agent writes a `.aux`, drops it in a folder Simulator watches, and reads the
+results back out of CSVs. No code of yours talks to PowerWorld, but plenty of code runs on
+your side, parsing the log and the CSVs, because that is the only way to find out what
+happened. It costs you return values, branching, headless operation and the ability to test
+your own work. This page is the setup handshake, the rules, and a working template to copy.
+
+## Connections
+
+- **Up:** [Home](../index.md)
+- **The channel:** [powerworld-script-transfer](../concepts/powerworld-script-transfer.md),
+  how the drop folder works
+- **The language:** [aux-only-powerworld](../concepts/aux-only-powerworld.md), what a `.aux`
+  can do unaided, and the syntax traps
+- **The alternative:** [esapp](../concepts/esapp.md), the Python mode this one replaces
+- **Command names:** [aux-script-commands](../references/aux-script-commands.md)
+- **Build floor:** [version-requirements](../concepts/version-requirements.md)
+
+## Content
+
+### What this mode is for
+
+This is **PowerWorld and LLM interaction programming**: the unit of exchange between the
+agent and Simulator is a file, not a function call. The agent writes a script, you drop it
+in, Simulator runs it and writes back. Both sides read the same artifacts.
+
+That shape has its own advantages, independent of tooling:
+
+- **Everything is inspectable.** The script, the log and the results are all files on disk
+  that you can read, diff, archive and send to someone. There is no opaque call whose
+  behaviour you have to take on trust.
+- **The human is in the loop by construction.** You see every script before it runs. For work
+  that edits a case, that is a feature rather than friction.
+- **The deliverable is the script.** What the agent produces is a `.aux` you keep and re-run
+  yourself, not a transcript of an API session that only existed once.
+- **No code of yours touches PowerWorld.** Nothing imports a COM library, nothing holds a
+  handle on Simulator, nothing can leave it in a state you did not ask for.
+
+That last point draws a boundary around PowerWorld, not around code in general.
+
+### You still write code, it just runs on your side
+
+This mode is not "no scripting". The log is English prose and the answers are in CSVs, so
+the caller does real work to find out what happened, and an agent working this way writes and
+runs that code constantly. Four jobs:
+
+- **Delivery.** Copy the file in, poll for the input file to disappear, and pull your own
+  file on a timeout. A run that fails the wrong way is never cleaned up, so without a timeout
+  you wait forever while Simulator re-executes it.
+- **Reading the outcome.** Grep the output for the trailing `finished successfully in N
+  seconds`, then for `Successful Power Flow Solution`, then for `Warning:` lines. An unknown
+  field name is a warning rather than an error, so the column goes missing from the CSV while
+  the run reports success.
+- **Getting the answer.** Load the CSVs and diff them. The log never contains the answer.
+- **Validating before you drop.** Check the object types and field names against PowerWorld's
+  field export, and check that every `DATA` block carries its full key, before the file goes
+  in. A bad name costs a re-execution loop and a manual recovery; catching it costs a lookup.
+
+Code on your side, files across the boundary. What you give up is an automation surface into
+Simulator, not automation.
+
+Use [esapp](../concepts/esapp.md) when you want speed and automation: it returns real values,
+branches on them, runs headless and in parallel, and needs nobody to move a file between
+steps.
+
+Pick one and stay in it. An aux deliverable that was secretly debugged through the Python
+path is no longer a self-contained script, and nobody finds that out until someone else runs
+it.
+
+> **On licensing, be careful what you claim.** Published material describes this channel as
+> needing no COM and no SimAuto call. What has *not* been established here is whether a
+> Simulator install lacking the SimAuto add-on will run dropped scripts. The script actions
+> are the same action set SimAuto invokes, and where the licence check sits is an open
+> question. Do not sell this mode as a licence workaround until someone has tested it on a
+> machine without the add-on. Treat it as an interaction pattern.
+
+### Step 1 — the setup handshake
+
+Five things have to happen in the GUI, and an agent cannot do any of them. If you are an
+agent entering this mode, your first output is these five steps with the real folder path
+filled in, before you write a single line of aux:
+
+1. Open Simulator.
+2. **Load the case by hand.** Do not script this; see the `OpenCase` warning below.
+3. **Switch to Run Mode**, then Tools → Script. Set *ScriptTransferFileDirectory* by
+   browsing to your transfer folder, e.g. `C:\PowerWorldTransfer`. Run Mode at this step is
+   specified by the source deck.
+4. Tick **Enabled External Script Control**, and leave that dialog open.
+5. **Click Show Log** in that dialog, and keep the log window visible.
+
+After that, any file copied into the folder as `SimulatorScriptInput.aux` runs automatically,
+one poll interval later.
+
+Step 5 earns its place. The output file appears only once a run finishes, so for every
+failure that never finishes (an abort, a loop, a poller that is not running) the folder stays
+silent and the log is the only thing that says which one you have. A looping run shows the
+same block of lines once per poll interval.
+
+Two things here cost time when you do not know them:
+
+- **The settings persist in the registry, the dialog does not.** The panel says so itself:
+  its heading reads *External Script Control (Only Active when Dialog is Open; Fields Saved
+  in Registry)*. `ScriptTransferFileEnabled`, `ScriptTransferFileDirectory` and
+  `ScriptInputOutputPollSec` survive a restart, so the browsing step is once per machine.
+- **Tick `Always Delete an Invalid Input Aux File` while you are in there.** It makes
+  Simulator discard a script it cannot parse rather than leaving it in the folder to be
+  retried. It is not a complete guard against the re-execution loop, since a script can parse
+  cleanly and still fail mid-run, but it removes the most common cause.
+- **Closing the dialog stops the poller while the flag still reads enabled.** The dropped
+  file sits there, which looks exactly like a crash, a failed run, and a run still in
+  progress. If a drop is not picked up, check the dialog before you debug the aux.
+
+Once the user confirms the setup, the agent should propose a device scan without being
+asked, **then stop and wait for an answer:**
+
+> *"Channel is live. I cannot see your case from here. Do you want me to scan it first and
+> list what devices are in it? It is read-only, it writes CSVs and changes nothing."*
+
+**Propose, then wait. Do not drop the file until they answer.** Volunteering the idea is the
+helpful part; running it unasked is not. The user is sitting in front of a live Simulator
+with their own case loaded, and a dropped script executes against it the moment it lands —
+so the first drop of a session is theirs to approve, even when it only reads.
+
+Until that runs the agent knows nothing about the case: not the bus numbers, not whether
+there are transformers, not whether a contingency set already exists. Anything it proposes
+beforehand is a guess, and one read-only drop replaces all of it. See
+[aux-file-cookbook](../demos/aux-file-cookbook.md) for the script and how to read what comes
+back.
+
+### Step 2 — deliver by copy, never by authoring in place
+
+Write the aux somewhere else, then copy it in as `SimulatorScriptInput.aux`. The poller
+cannot tell a finished file from one still being written, and a truncated aux stays valid up
+to the cut, so authoring in place races the poll interval and can feed Simulator half a
+script that runs and reports success.
+
+Simulator deletes the input file once it has read it. That deletion is the acknowledgement,
+which means the script destroys itself. Archive a copy before you drop it, or you end up with
+results and no record of what produced them.
+
+### The rules
+
+**Never:**
+
+- **`OpenCase`.** It raises an access violation, aborts the file, and the poller then re-runs
+  it every interval *forever*. Measured 2026-09-21 with a file containing nothing but
+  `OpenCase` and three log markers, on a freshly started Simulator with no case loaded, so
+  this is not a case-swap problem. Load the case by hand. `CaseSummaryGet` on a named `.pwb`
+  works fine, so you can read a case file, just not load one.
+- **`LogClear`.** Anywhere in a dropped file it suppresses `SimulatorScriptOutput.txt`
+  entirely: the script runs and the channel returns nothing.
+- **A `("", STOP)` failure slot**, unless you mean it. A file that stops early is never
+  consumed, so it loops.
+- **Writing a derived field to cause a state.** A status field that *reports* a condition
+  cannot set it. `BusStatus` is the classic: PowerWorld's field export leaves its `Enterable`
+  column empty, so writing it is a no-op that still reports success. Open the branches and call
+  `UpdateIslandsAndBusStatus`; the status follows.
+
+**Always:**
+
+- **Get a yes before the first drop of a session.** The user is at a live Simulator with
+  their case loaded, and the file runs the moment it lands. Show the script, say what it
+  does, wait. Read-only follow-ups after that first yes are fine; anything that modifies the
+  case needs its own.
+- **Read back.** The channel returns a log transcript, not a return value. If the answer
+  matters, `SaveData` it to CSV and read the CSV. `Simulation: Successful Power Flow Solution`
+  is worth grepping for, but its absence is not a diagnosis.
+- **Carry the key fields** in every table you write or intend to write back: `BusNum`+`GenID`,
+  `BusNum`+`BusNum:1`+`LineCircuit`, `BusNum`+`ShuntID`. Drop one and PowerWorld cannot tell
+  which row you mean; the write no-ops and reports success.
+- **Get field names from PowerWorld's own field export**, never from the manual and never from
+  memory. The *Auxiliary File Format* manual has no per-object field catalog. The vocabularies
+  also differ between the Python and aux sides: a Python class name is not always the aux
+  object type, and using one for the other is a hard validation error.
+
+**Cannot, and say so rather than fake it:**
+
+- Return a value, or branch on a result. There is no query-then-act, so a choice that depends
+  on the case is made by a human reading an exported CSV between two runs. Asked to "pick one
+  at random", say the language has no RNG and no variables, and expose the choice as an edit
+  point instead of hardcoding a pick and calling it random.
+- Run headless, batched or in parallel. A visible dialog is required.
+- **Make Simulator run anything.** An agent writes a file; Simulator picks it up on its own
+  poll interval. Whether the agent can *trigger* a run depends on access, not on the mode: if
+  it can write to the watched folder it drops its own scripts and reads its own results, and
+  if it cannot, every run waits on a human. Either way, reaching for the Python channel "just
+  to check" has left the mode. Validate statically before dropping (object types, field names,
+  full keys on every `DATA` block), because a bad name costs a re-execution loop whoever
+  drops it.
+
+### Knowing whether it worked
+
+A completed run writes `SimulatorScriptOutput.txt`, framed like this:
+
+```
+Automatic loading of file ...\SimulatorScriptInput.Aux started at 2026-09-21T14:43:01.314Z
+Starting load of auxiliary file: ...\SimulatorScriptInput.Aux
+  ... your LogAdd markers and PowerWorld's own lines ...
+Finished load of auxiliary file: ...\SimulatorScriptInput.Aux
+Automatic loading of file finished successfully in 0.083 seconds
+```
+
+That trailing line is the completion signal, and it is parseable. Typical round trips are
+0.08–0.5 s for a small case.
+
+The failure shape is the input file still sitting there with no output file written. That
+happens on an abort, and, measured 2026-09-21, it also happens on a fully successful run that
+called `OpenCase`: all stages ran, both solves converged, every output file was correct, zero
+errors logged, and the poller still re-ran the whole thing five times. Any harness must pull
+its own input file on a timeout rather than wait for a signal that is not coming.
+
+### CaseSummaryGet describes the file, not your edits
+
+`CaseSummaryGet` with a blank first argument describes the `.pwb` file behind the current
+case rather than the case as you have edited it. The spec says "the pwb file for the current
+case" and means it literally. Unsaved in-memory changes are invisible to it, so diffing two
+summaries across an unsaved edit shows no difference at all, which reads exactly like a
+change that never happened. Read the CSVs.
+
+### Template
+
+A complete working file. It identifies the loaded case, surveys the folder for other cases,
+baselines, opens a bus by opening the branches that touch it, solves, and restores. Change the
+two marked lines to match your own case and it runs.
+
+```
+//=============================================================================
+// Identify the case -> baseline -> open a bus -> solve -> restore.
+// Read-only on disk: edits memory, never calls SaveCase.
+//
+// BEFORE DROPPING:
+//   1. Load the case by hand. Stage E names its bus numbers.
+//   2. Tools -> Script open, "Enabled External Script Control" ticked.
+//   3. Copy in as SimulatorScriptInput.aux. Never author in place.
+//
+// FOUR RULES (each a silent failure if ignored):
+//   - No OpenCase. Access violation, then the poller re-runs the file forever.
+//   - No LogClear. It suppresses SimulatorScriptOutput.txt entirely.
+//   - CaseSummaryGet reads the .pwb FILE, not your edited case.
+//   - BusStatus is derived, not settable. Open the branches, not the bus.
+//=============================================================================
+
+
+//--- A: output folder --------------------------------------------------------
+SCRIPT
+{
+  // <<< EDIT: where the CSVs go. YES = create it if absent.
+  SetCurrentDirectory("C:\PowerWorldTransfer\out", YES);
+  LogAdd("A1 output dir set");
+  LogAddDateTime;
+}
+
+
+//--- B: what case is loaded? -------------------------------------------------
+SCRIPT
+{
+  // Blank name = the file behind the current case. Detail 3 = the most fields.
+  CaseSummaryGet("", "01_case_identity.txt", 3);
+
+  // "# of Breakers" decides how you open a bus:
+  //   0  -> bus-branch. Open the incident branches (stage E).
+  //   >0 -> node-breaker. Use OpenWithBreakers instead.
+  LogAdd("B1 01_case_identity.txt -- check '# of Buses' and '# of Breakers'");
+}
+
+
+//--- C: survey the folder ----------------------------------------------------
+SCRIPT
+{
+  // Reads .pwb files WITHOUT opening them -- identify a case with no OpenCase.
+  CaseDirectorySummaryGet("C:\PowerWorldTransfer", NO,
+                          "00_directory_survey.txt", 1);   // NO = skip subfolders
+  LogAdd("C1 00_directory_survey.txt");
+}
+
+
+//--- D: baseline -------------------------------------------------------------
+SCRIPT
+{
+  EnterMode(RUN);
+  SolvePowerFlow(RECTNEWT);     // no ("",STOP) slot: a bad solve is a result
+  LogAdd("D1 base solve -- grep above for 'Successful Power Flow Solution'");
+
+  SaveData("base_bus.csv", CSV, Bus,
+           [BusNum,BusName_NomVolt,BusStatus,BusSlack,BusPUVolt,BusAngle,BusGenMW,BusLoadMW],
+           [], "", [], NO, NO);
+
+  // Read this file to choose the bus for stage E. Aux has no RNG.
+  SaveData("base_branch.csv", CSV, Branch,
+           [BusNum,BusNum:1,LineCircuit,LineStatus,LineMW,LineMVA,LinePercent],
+           [], "", [], NO, NO);
+  LogAdd("D2 base_bus.csv + base_branch.csv");
+}
+
+
+//--- E: open the bus ---------------------------------------------------------
+// <<< EDIT: one line per branch touching your chosen bus, from base_branch.csv.
+// KEY = BusNum + BusNum:1 + LineCircuit. All three, or the write no-ops and
+// still reports success.
+// Pick a bus with gen and load that is NOT the slack, so the case still solves.
+DATA (Branch, [BusNum,BusNum:1,LineCircuit,LineStatus])
+{
+2 4 "1" "Open"
+3 4 "1" "Open"
+4 5 "1" "Open"
+}
+
+SCRIPT
+{
+  UpdateIslandsAndBusStatus;    // without this the bus stays "Connected"
+  LogAdd("E1 branches opened, islands updated");
+
+  // Proof the flip is topological: the bus is already dead here, no solve yet.
+  SaveData("pre_solve_bus.csv", CSV, Bus,
+           [BusNum,BusName_NomVolt,BusStatus,BusPUVolt,BusGenMW,BusLoadMW],
+           [], "", [], NO, NO);
+  LogAdd("E2 pre_solve_bus.csv -- bus Disconnected BEFORE any solve");
+}
+
+
+//--- F: solve and read back --------------------------------------------------
+SCRIPT
+{
+  SolvePowerFlow(RECTNEWT);
+  LogAdd("F1 post-outage solve");
+
+  SaveData("post_bus.csv", CSV, Bus,
+           [BusNum,BusName_NomVolt,BusStatus,BusSlack,BusPUVolt,BusAngle,BusGenMW,BusLoadMW],
+           [], "", [], NO, NO);
+  SaveData("post_branch.csv", CSV, Branch,
+           [BusNum,BusNum:1,LineCircuit,LineStatus,LineMW,LineMVA,LinePercent],
+           [], "", [], NO, NO);
+
+  // Wrong on purpose: shows the as-saved totals, not the outaged ones.
+  CaseSummaryGet("", "03_summary_AFTER_outage.txt", 3);
+
+  LogAdd("F2 post_bus.csv + post_branch.csv written");
+  LogAdd("F3 ANSWER = diff base_bus.csv vs post_bus.csv");
+}
+
+
+//--- G: restore --------------------------------------------------------------
+DATA (Branch, [BusNum,BusNum:1,LineCircuit,LineStatus])
+{
+2 4 "1" "Closed"
+3 4 "1" "Closed"
+4 5 "1" "Closed"
+}
+
+SCRIPT
+{
+  UpdateIslandsAndBusStatus;
+  SolvePowerFlow(RECTNEWT);
+  SaveData("restored_bus.csv", CSV, Bus,
+           [BusNum,BusName_NomVolt,BusStatus,BusSlack,BusPUVolt,BusAngle,BusGenMW,BusLoadMW],
+           [], "", [], NO, NO);
+
+  // Matches base_bus.csv on status and voltage. Angles differ in the 5th
+  // decimal -- solver tolerance from a different start point, not a failure.
+  LogAdd("G1 restored, re-solved, restored_bus.csv");
+  LogAddDateTime;
+  LogSave("run.log.txt", NO);
+}
+```
+
+### What that template produces
+
+On the 7-bus sample this was measured on, the outaged bus carried 93.71 MW of generation and
+80 MW of load. Your numbers will differ. The result is visible in one diff:
+
+| | base | post-outage |
+|---|---|---|
+| bus 4 status | `Connected` | `Disconnected` |
+| bus 4 voltage | 1.000000 pu | 0.000000 |
+| bus 3 voltage | 0.992669 pu | 0.961330 |
+| slack output | 200.63 MW | 215.83 MW |
+| worst branch loading | 68.7 % | 91.9 % |
+
+Only one surviving bus moves, because it was the one leaning on the outaged bus's local
+generation. The five voltage-controlled buses hold their setpoints exactly.
+
+The restore returns every bus to `Connected` with voltage magnitudes identical to six decimals.
+Angles differ in the fifth decimal and the slack by about a kilowatt: Newton–Raphson
+converging from the outaged solution rather than the loaded state. **That is solver tolerance,
+not a failed restore**, and expecting an exact match will make a correct run look broken.
+
+
+---
+
 # ==== methods/converting-lines-to-transformers.md ====
 
 ---
@@ -2802,7 +3607,14 @@ Five things here are silent failures, all live-measured on
 `Synth2k_case` on 2026-08-17 — each produces a plausible wrong
 answer, not an error:
 
-1. **`Ctg_AutoInsert_Options` rejects `ElementType=GEN` without complaining** and leaves it
+> **`ElementType`, `DeleteExisting` and `Handle3WXF` are *concise* names.** PowerWorld's
+> object-field export lists two names per field, and these three appear only in the Concise
+> Variable Name column. Grep the export for them and you find nothing, which reads as "the
+> field does not exist". Their full variable names are `CtgAutoInsElementType`,
+> `CtgAutoInsDeleteExistCtgs` and `Include3WXfifFoundWithXf`. Both spellings are accepted;
+> search the export on either column before concluding a field is missing.
+
+1. **`CTG_AutoInsert_Options` rejects `ElementType=GEN` without complaining** and leaves it
    at `BRANCH`. You ask for 743 generator outages and get 3,911 branch ones.
 2. **The `CTGElement` SUBDATA action string must be quoted.** Unquoted, PowerWorld parses
    the *first* contingency and drops the other 690 with no error.
@@ -2832,7 +3644,7 @@ answer, not an error:
 pw.esa.RunScriptCommand("EnterMode(EDIT);")
 pw.esa.RunScriptCommand("Delete(Contingency);")
 pw.esa.RunScriptCommand(
-    "SetData(Ctg_AutoInsert_Options, "
+    "SetData(CTG_AutoInsert_Options, "
     "[ElementType, DeleteExisting, Handle3WXF], [BRANCH, YES, INSERT3WXF]);")
 pw.esa.RunScriptCommand("CTGAutoInsert;")
 pw.esa.RunScriptCommand("EnterMode(RUN);")
@@ -2842,8 +3654,8 @@ pw.esa.RunScriptCommand("EnterMode(RUN);")
 parser, silently ignored, and leaves the previous value in place:
 
 ```python
-pw.esa.RunScriptCommand("SetData(Ctg_AutoInsert_Options,[ElementType],[GEN]);")
-pw.esa.GetParametersSingleElement("Ctg_AutoInsert_Options", ["ElementType"], [""])
+pw.esa.RunScriptCommand("SetData(CTG_AutoInsert_Options,[ElementType],[GEN]);")
+pw.esa.GetParametersSingleElement("CTG_AutoInsert_Options", ["ElementType"], [""])
 # -> 'BRANCH'          <- the write did not happen, and nothing said so
 # 'GENERATOR' and 'Gen' both -> 'GENERATOR'
 ```
@@ -7052,10 +7864,17 @@ tags: [powerworld, aux, script, external-program, llm, simulator-25, undocumente
 ## Abstract
 
 Simulator 25 beta can watch a directory and execute any `.aux` dropped into it, writing
-back the message-log slice produced by that load. Write a file, read a file — **no COM, no
-SimAuto call, and therefore no SimAuto licence.** This is the cheapest channel an external
-program (an LLM among them) has ever had into PowerWorld, and it is the first one that
-needs nothing installed on the caller's side.
+back the message-log slice produced by that load. Write a file, read a file — **no COM and
+no SimAuto call of your own.** This is the cheapest channel an external program (an LLM
+among them) has ever had into PowerWorld, and it needs nothing installed on the caller's
+side.
+
+**The deck goes further and says it therefore needs no SimAuto licence. That is the deck's
+claim, and it is untested.** Every run behind this page was made on a machine that *has*
+the add-on, so nothing measured here could have falsified it. The script actions a dropped
+file executes are the same action set SimAuto invokes, so where the licence check actually
+sits is an open question. **Do not repeat it as a benefit** until someone has run a drop on
+a Simulator without the add-on installed.
 
 **It is not in the *Auxiliary File Format* manual.** Searched 2026-09-12 against the
 September 1, 2026 edition: zero hits for `ScriptTransfer`, `SimulatorScriptInput`,
@@ -7173,9 +7992,17 @@ None of these are answered by the deck, and each one changes how a caller must b
 
 ### Version floor
 
-**Simulator 25 beta, build date on or after September 12, 2026.** Earlier builds do not
-have it, including every Simulator 24 build regardless of patch date. See
-[version-requirements](version-requirements.md).
+**The deck states Simulator 25 beta with a build date at or after September 19, 2026.**
+
+**A measurement disagrees with that floor and has not been reconciled.** On 2026-09-21 the
+channel was exercised end to end — dozens of drops, every one consumed and answered — on an
+install whose own `CaseSummaryGet` output reports `EXE Build Date: 25 beta September 12,
+2026`, a week before the stated floor.
+
+Two readings, and nothing here settles which: the floor is conservative, or the string the
+EXE reports is not the build date the deck means. Until someone checks, **treat the deck's
+date as the number to quote and the measurement as the reason not to tell anyone their build
+is too old** — a build reporting an earlier date may well work. See [version-requirements](version-requirements.md).
 
 
 ---

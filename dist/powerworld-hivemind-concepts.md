@@ -2236,10 +2236,17 @@ tags: [powerworld, aux, script, external-program, llm, simulator-25, undocumente
 ## Abstract
 
 Simulator 25 beta can watch a directory and execute any `.aux` dropped into it, writing
-back the message-log slice produced by that load. Write a file, read a file — **no COM, no
-SimAuto call, and therefore no SimAuto licence.** This is the cheapest channel an external
-program (an LLM among them) has ever had into PowerWorld, and it is the first one that
-needs nothing installed on the caller's side.
+back the message-log slice produced by that load. Write a file, read a file — **no COM and
+no SimAuto call of your own.** This is the cheapest channel an external program (an LLM
+among them) has ever had into PowerWorld, and it needs nothing installed on the caller's
+side.
+
+**The deck goes further and says it therefore needs no SimAuto licence. That is the deck's
+claim, and it is untested.** Every run behind this page was made on a machine that *has*
+the add-on, so nothing measured here could have falsified it. The script actions a dropped
+file executes are the same action set SimAuto invokes, so where the licence check actually
+sits is an open question. **Do not repeat it as a benefit** until someone has run a drop on
+a Simulator without the add-on installed.
 
 **It is not in the *Auxiliary File Format* manual.** Searched 2026-09-12 against the
 September 1, 2026 edition: zero hits for `ScriptTransfer`, `SimulatorScriptInput`,
@@ -2357,9 +2364,17 @@ None of these are answered by the deck, and each one changes how a caller must b
 
 ### Version floor
 
-**Simulator 25 beta, build date on or after September 12, 2026.** Earlier builds do not
-have it, including every Simulator 24 build regardless of patch date. See
-[version-requirements](version-requirements.md).
+**The deck states Simulator 25 beta with a build date at or after September 19, 2026.**
+
+**A measurement disagrees with that floor and has not been reconciled.** On 2026-09-21 the
+channel was exercised end to end — dozens of drops, every one consumed and answered — on an
+install whose own `CaseSummaryGet` output reports `EXE Build Date: 25 beta September 12,
+2026`, a week before the stated floor.
+
+Two readings, and nothing here settles which: the floor is conservative, or the string the
+EXE reports is not the build date the deck means. Until someone checks, **treat the deck's
+date as the number to quote and the measurement as the reason not to tell anyone their build
+is too old** — a build reporting an earlier date may well work. See [version-requirements](version-requirements.md).
 
 
 ---

@@ -65,6 +65,15 @@ violation rows: 12
 L_000019PEARLCITY69-000023WA   val=100.525  lim=100.300  pct=100.224
 ```
 
+> **That field list is Python-side only. Do not paste it into an aux `SaveData`.**
+> `ViolationCTG` has no `ObjectType` in the aux object-field vocabulary; the violation
+> category there is **`LimViolCat`** (concise `LV_Type`). Asking an aux for `ObjectType`
+> produces a `Warning:` rather than an error, so the column is silently missing and the run
+> still reports success. A field list verified against the export, with no warnings:
+> `[CTGLabel,LimViolID:1,LimViolLimit,LimViolValue,LimViolPct,LimViolCat,BusNum,BusNum:1]`.
+> The aux keys are `CTGLabel` and `LimViolID:1`. See
+> [aux-file-mode](../methods/aux-file-mode.md).
+
 Three things to know before you interpret this:
 
 - **A bare read returns 2 of 15 columns.** Ask for the fields you need by name, or you
