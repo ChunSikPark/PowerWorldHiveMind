@@ -1,6 +1,45 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 — 2026-09-21
+
+- **Three new concept pages.** `concepts/powerworld-script-transfer.md` documents Simulator
+  25 beta's watched-directory channel — drop an `.aux` in, read the message-log slice back,
+  with no COM, no SimAuto call and therefore no SimAuto licence — which appears in no
+  edition of the *Auxiliary File Format* manual and is sourced from a September 2026 slide
+  deck. `concepts/aux-only-powerworld.md` records what the aux language can do with no
+  Python at all, what it structurally cannot (no return values, almost no control flow, no
+  assertions), and the read-back discipline that substitutes. `concepts/opf-preconditions.md`
+  names the three independent preconditions the LP OPF refuses to start without, one of
+  which is data and cannot be switched on honestly. All three verified live in September
+  2026 against a regional synthetic planning model.
+- **The kit can now be grown from inside a session.** A new `knowledge-base-page` skill and
+  `/kb-page` command teach the schema these pages already follow — the filing tree, the
+  `Abstract`/`Connections`/`Content` shape, the closed frontmatter enums, the two-link floor
+  and the `index.md` row — so a session that worked something out can file it instead of
+  losing it to chat. It ships as **one markdown file with no checker**, deliberately: a
+  checker, a test suite and a `PreToolUse` hook were built, used, and then removed, because
+  a clone never syncs back upstream and a gate that edits the user's global config is not
+  something to hand a stranger. Two corpus queries survive inline, for the only two
+  questions a single page cannot answer — which pages have no index row, and which links
+  point at nothing. The plugin now registers two skills and two commands.
+- **System and project identity are gone from the published pages.** Three classes were
+  leaking: a system operator's name and its zone list, the research programme's own project
+  names framing findings as project decisions, and four pages still naming a case in their
+  provenance line. Each is replaced by the general rule, which is the part a reader can use
+  — the zone list becomes "check whether `AreaNum`/`AreaName` already carries the operator's
+  scheme before writing a spatial join". The export's forbidden-term list gains 13 entries
+  so the gate catches this class next time rather than a reviewer catching it page by page.
+- **An Obsidian graph config ships with the pages** (`.obsidian/graph.json`): coloured by
+  folder, with `index.md` and the top-level files filtered out, since `index.md` links to
+  every page and would swamp the view. Open the repo as a vault to see the page network and
+  spot an orphan or a cluster that has grown big enough to split. The rest of `.obsidian/`
+  is per-machine state and stays ignored.
+- **`BENCHMARK.md` had the wrong baseline.** It said v0.2.0 was 47 pages; v0.2.0 was **44**,
+  and 47 is the count as of this release. The note also warned that ten unbenchmarked manual
+  pages had been added — those were withdrawn before shipping, so the warning described a
+  state no release ever had. Corrected to what is true: 19-of-23 was measured on the 44-page
+  v0.2.0, this release adds three pages, and page count is the variable retrieval cost is
+  most sensitive to.
 
 - **The esapp 0.2.1 read-only correction had only reached `concepts/`.** Five pages in
   `methods/` and `references/` still stated the 0.1.x behaviour — that a read-only column

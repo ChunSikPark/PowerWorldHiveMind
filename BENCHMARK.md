@@ -6,10 +6,10 @@ what PowerWorldHiveMind changes, what it does not, and what it costs.
 Measured against release **v0.2.0**. Later releases are benchmarked the same way, so the
 numbers below can be compared across versions.
 
-> **The kit has grown since that measurement** — v0.2.0 was 47 pages; it is now 57, after
-> ten pages routing the PowerWorld manual by subject were added. Those pages have not been
-> benchmarked, and page count is the variable this kit's retrieval cost is most sensitive to.
-> Read 19-of-23 as describing v0.2.0, not the current contents.
+> **The kit has grown slightly since that measurement** — v0.2.0 was 44 pages; v0.3.0 is
+> 47, after three concept pages were added. Page count is the variable this kit's retrieval
+> cost is most sensitive to, so read the cost figures as a floor. The 19-of-23 result stands
+> on substantially the same corpus.
 
 **It solved 19 of 23 questions against 6 for a capable assistant with a web
 browser.** On the failures PowerWorld does not report as failures it scored **15 of 16**
