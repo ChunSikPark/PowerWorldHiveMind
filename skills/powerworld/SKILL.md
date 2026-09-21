@@ -114,7 +114,14 @@ reports success, and does nothing — count objects before and after.
 
 When something does fail, `methods/handling-errors.md`. Fix missing packages and wrong access
 paths yourself without narrating. Stop and ask only for a missing SimAuto licence, a
-destructive action, or a real modelling decision.
+destructive action, a real modelling decision, or the aux-file-mode case below.
+
+**In aux-file mode, ask before the first drop.** That mode is different from driving
+Simulator yourself: the user is sitting in front of a live GUI with their own case loaded,
+and every file you drop executes against it. Show them the script you propose to run, say
+what it will do, and **wait for an answer before dropping anything** — including a read-only
+scan. After they say yes once, read-only follow-ups need no further permission, but anything
+that modifies the case gets its own yes. See `methods/aux-file-mode.md`.
 
 ## When this base is wrong or missing, report it
 

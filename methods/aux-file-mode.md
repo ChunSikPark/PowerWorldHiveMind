@@ -122,11 +122,16 @@ Two things here cost time when you do not know them:
   file sits there, which looks exactly like a crash, a failed run, and a run still in
   progress. If a drop is not picked up, check the dialog before you debug the aux.
 
-Once the user confirms the setup, the agent should offer a device scan rather than wait for
-instructions:
+Once the user confirms the setup, the agent should propose a device scan without being
+asked, **then stop and wait for an answer:**
 
 > *"Channel is live. I cannot see your case from here. Do you want me to scan it first and
 > list what devices are in it? It is read-only, it writes CSVs and changes nothing."*
+
+**Propose, then wait. Do not drop the file until they answer.** Volunteering the idea is the
+helpful part; running it unasked is not. The user is sitting in front of a live Simulator
+with their own case loaded, and a dropped script executes against it the moment it lands —
+so the first drop of a session is theirs to approve, even when it only reads.
 
 Until that runs the agent knows nothing about the case: not the bus numbers, not whether
 there are transformers, not whether a contingency set already exists. Anything it proposes
@@ -165,6 +170,10 @@ results and no record of what produced them.
 
 **Always:**
 
+- **Get a yes before the first drop of a session.** The user is at a live Simulator with
+  their case loaded, and the file runs the moment it lands. Show the script, say what it
+  does, wait. Read-only follow-ups after that first yes are fine; anything that modifies the
+  case needs its own.
 - **Read back.** The channel returns a log transcript, not a return value. If the answer
   matters, `SaveData` it to CSV and read the CSV. `Simulation: Successful Power Flow Solution`
   is worth grepping for, but its absence is not a diagnosis.

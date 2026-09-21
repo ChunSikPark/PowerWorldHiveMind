@@ -178,10 +178,15 @@ and the file side cannot distinguish any of them from a closed dialog.
 
 ### Recipe 3 — Let it scan the case first
 
-Once you confirm the setup, the agent should offer this rather than wait to be asked:
+Once you confirm the setup, the agent should raise this on its own, **and then wait for you
+to answer:**
 
 > *"Channel is live. I cannot see your case from here. Do you want me to scan it first and
 > list what devices are in it? It is read-only, it writes CSVs and changes nothing."*
+
+It should not drop anything until you reply. Your Simulator is live and your case is loaded,
+so the first file that lands runs against your session — that decision is yours, even for a
+read-only scan. If an agent scans without asking, it is not following this page.
 
 Say yes. Until it runs, the agent knows nothing about your case: not the bus numbers, not
 whether there are transformers, not whether a contingency set already exists. One drop
