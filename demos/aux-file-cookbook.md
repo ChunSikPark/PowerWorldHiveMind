@@ -13,7 +13,7 @@ tags: [demo, aux, script-transfer, walkthrough, getting-started, two-window]
 A start-to-finish walkthrough of the file-based workflow, written for someone sitting in
 front of two windows. Four recipes, in order: turn the channel on, prove it is alive with a
 four-line script, inventory a case, then change something and measure it. Every number here
-came from a real run on PowerWorld's own shipped `B7flat` sample, failures included.
+came from a real run on a small sample case, failures included.
 
 ## Connections
 
@@ -49,8 +49,9 @@ C:\PowerWorldTransfer
 Do this in Simulator. Claude cannot do any of it, and will ask you to.
 
 1. **Open PowerWorld Simulator.**
-2. **Open a case.** For this cookbook use `B7flat.pwb`, which ships with Simulator — every
-   number below is from that case, so you can check your output against it.
+2. **Open your case.** Any `.pwb` will do. The numbers shown further down came from a
+   small 7-bus sample, so yours will differ — it is the *shape* of each step that matters,
+   not the values.
 3. **Tools → Script** to open the Script Command Execution Dialog.
 4. In that dialog, set **ScriptTransferFileDirectory** by browsing to `C:\PowerWorldTransfer`.
 5. Tick **Enabled External Script Control**.
@@ -60,7 +61,7 @@ Do this in Simulator. Claude cannot do any of it, and will ask you to.
 
 Then tell Claude, in these words or your own:
 
-> *"Aux-file mode. My transfer folder is `C:\PowerWorldTransfer` and I have B7flat loaded."*
+> *"Aux-file mode. My transfer folder is `C:\PowerWorldTransfer` and I have my case loaded."*
 
 **You only do steps 4 and 5 once per machine** — they are stored in the registry and survive a
 restart. Steps 1, 2 and 6 are every session.
@@ -109,8 +110,8 @@ Finished load of auxiliary file: ...\SimulatorScriptInput.Aux
 Automatic loading of file finished successfully in 0.083 seconds
 ```
 
-**`finished successfully in N seconds` is the completion signal.** A real run on this case
-takes 0.08–0.5 s. If you see that line, the channel is working and every later problem is in
+**`finished successfully in N seconds` is the completion signal.** On a small case a run
+takes 0.08–0.5 s; a large one takes longer, but the line is the same. If you see that line, the channel is working and every later problem is in
 your script, not your setup.
 
 **If the file does not disappear**, the channel is not running. In order of likelihood: the
@@ -129,7 +130,7 @@ Now something useful. Say:
 Same cycle: copy in, rename, watch it vanish. You get `01_case_identity.txt`:
 
 ```
-Information for: ...\B7flat.pwb
+Information for: ...\<your case>.pwb
 EXE Build Date: 25 beta September 12, 2026
 CASE SUMMARY BEGIN
   # of Buses = 7
@@ -138,7 +139,7 @@ CASE SUMMARY BEGIN
   # of Gens = 5
   # of Areas = 3
   # of Breakers = 0
-  Slack Buses = Bus 7 (7) in Area Right (3);
+  Slack Buses = Bus 7 (7) in Area <name> (3);
 CASE SUMMARY END
 ```
 

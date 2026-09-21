@@ -200,7 +200,7 @@ never happened. Read the CSVs.
 
 A complete working file. It identifies the loaded case, surveys the folder for other cases,
 baselines, opens a bus by opening the branches that touch it, solves, and restores. Change the
-two marked lines and it runs on PowerWorld's own shipped `B7flat` sample.
+two marked lines to match your own case and it runs.
 
 ```
 //=============================================================================
@@ -276,7 +276,7 @@ SCRIPT
 // <<< EDIT: one line per branch touching your chosen bus, from base_branch.csv.
 // KEY = BusNum + BusNum:1 + LineCircuit. All three, or the write no-ops and
 // still reports success.
-// On B7flat, bus 4 has gen and load and is not the slack, so it still solves.
+// Pick a bus with gen and load that is NOT the slack, so the case still solves.
 DATA (Branch, [BusNum,BusNum:1,LineCircuit,LineStatus])
 {
 2 4 "1" "Open"
@@ -344,7 +344,8 @@ SCRIPT
 
 ### What that template produces
 
-On `B7flat`, opening bus 4 takes out 93.71 MW of generation and 80 MW of load. The result is
+On the 7-bus sample this was measured on, the outaged bus carried 93.71 MW of generation and
+80 MW of load. Your numbers will differ; the shape of the answer will not. The result is
 visible in one diff:
 
 | | base | post-outage |
