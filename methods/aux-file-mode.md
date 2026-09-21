@@ -112,6 +112,18 @@ Two things about this cost real time when you do not know them:
   just sits there — which looks exactly like a crash, a failed run, and a run still in
   progress. If a drop is not picked up, check the dialog before you debug the aux.
 
+Once the user confirms the setup, **the agent's next move is to offer a device scan, not to
+wait for instructions**:
+
+> *"Channel is live. I cannot see your case from here. Do you want me to scan it first and
+> list what devices are in it? It is read-only — it writes CSVs and changes nothing."*
+
+Until that runs the agent knows nothing about the case — not the bus numbers, not whether
+there are transformers, not whether a contingency set already exists — so anything it
+proposes beforehand is a guess. One read-only drop replaces the guessing. See
+[aux-file-cookbook](../demos/aux-file-cookbook.md) for the script and how to read what comes
+back.
+
 ### Step 2 — deliver by copy, never by authoring in place
 
 Write the aux somewhere else, then copy it in as `SimulatorScriptInput.aux`. The poller cannot

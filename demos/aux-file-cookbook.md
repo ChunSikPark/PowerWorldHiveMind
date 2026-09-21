@@ -12,8 +12,8 @@ tags: [demo, aux, script-transfer, walkthrough, getting-started, two-window]
 
 A start-to-finish walkthrough of the file-based workflow, written for someone sitting in
 front of two windows. Four recipes, in order: turn the channel on, prove it is alive with a
-four-line script, inventory a case, then change something and measure it. Every number here
-came from a real run on a small sample case, failures included.
+four-line script, let the agent scan the case for its devices, then change something and
+measure it. Every number here came from a real run on a small sample case, failures included.
 
 ## Connections
 
@@ -121,41 +121,87 @@ the moment you fix the setting.
 
 ---
 
-### Recipe 3 — Ask what is in the case
+### Recipe 3 — Let it scan the case first
 
-Now something useful. Say:
+**Once you confirm the setup, the agent should not wait to be asked — it should offer this:**
 
-> *"Write me an aux that tells me what is in this case."*
+> *"Channel is live. I cannot see your case from here. Do you want me to scan it first and
+> list what devices are in it? It is read-only — it writes CSVs and changes nothing."*
 
-Same cycle: copy in, rename, watch it vanish. You get `01_case_identity.txt`:
+Say yes. It is one drop and it saves you the whole guessing phase, because until it runs the
+agent knows nothing about your case: not the bus numbers, not whether there are transformers,
+not whether a contingency set already exists. Everything it suggests before this is a guess.
+
+The script it hands you writes one CSV per device class — buses, branches, substations,
+generators, loads, shunts, contingencies, areas, zones — plus the case summary. The pattern
+repeats, and the comments above each block are the part that matters:
 
 ```
-Information for: ...\<your case>.pwb
-EXE Build Date: 25 beta September 12, 2026
-CASE SUMMARY BEGIN
-  # of Buses = 7
-  Gen MW = 768.07
-  Load MW = 760.00
-  # of Gens = 5
-  # of Areas = 3
-  # of Breakers = 0
-  Slack Buses = Bus 7 (7) in Area <name> (3);
-CASE SUMMARY END
+//--- STAGE A: where the CSVs go -------------------------------------------
+SCRIPT
+{
+  SetCurrentDirectory("C:\PowerWorldTransfer\scan", YES);   // YES = create it
+  CaseSummaryGet("", "SCAN_00_case_identity.txt", 3);
+}
+
+//--- STAGE B: the network -------------------------------------------------
+SCRIPT
+{
+  // KEY: BusNum
+  SaveData("SCAN_bus.csv", CSV, Bus,
+           [BusNum,BusName_NomVolt,BusNomVolt,SubNum,SubName,AreaNum,ZoneNum,
+            BusStatus,BusSlack,BusPUVolt,BusAngle,BusGenMW,BusLoadMW],
+           [], "", [], NO, NO);
+
+  // KEY: BusNum, BusNum:1, LineCircuit
+  // BranchDeviceType is what separates a Line from a Transformer.
+  SaveData("SCAN_branch.csv", CSV, Branch,
+           [BusNum,BusNum:1,LineCircuit,BranchDeviceType,LineStatus,
+            LineR,LineX,LineAMVA,LineMW,LinePercent],
+           [], "", [], NO, NO);
+}
+
+//--- STAGE C: the injections ----------------------------------------------
+SCRIPT
+{
+  // KEY: BusNum, GenID
+  // GenMVRMax/Min is capability, not dispatch. A unit idling at 0 MVAr with
+  // 200 MVAr of range is reactive support; GenMVR alone would call it nothing.
+  SaveData("SCAN_gen.csv", CSV, Gen,
+           [BusNum,GenID,GenStatus,GenMW,GenMVR,GenMVRMax,GenMVRMin],
+           [], "", [], NO, NO);
+
+  LogAdd("SCAN COMPLETE");
+}
 ```
 
-plus CSVs — one row per bus, per branch, per generator — which Claude reads to answer
-follow-up questions.
+**Every table leads with its key fields, and that is not decorative.** A bus row is keyed by
+`BusNum`, a generator by `BusNum` + `GenID`, a branch by `BusNum` + `BusNum:1` +
+`LineCircuit`. Drop the key and the CSV is a picture rather than data — you cannot join it to
+anything, and if you ever write it back PowerWorld cannot tell which device you meant, so the
+change silently does nothing and still reports success.
 
-**`# of Breakers = 0` matters more than it looks.** It says this is a bus-branch model, so
-to take a bus out you open the branches that touch it. A case with breakers would be
-switched a different way. Claude checks this line before proposing an outage.
+Three things to know when you read the results:
 
-> **One trap to know now rather than later.** That summary describes the `.pwb` **file on
-> disk**, not the case as you have edited it in memory. Change something without saving and
-> the summary will not show it. The CSVs always tell the truth; the summary does not. Ask for
-> CSVs whenever the answer matters.
+- **A zero-byte CSV means the case has none of that class**, not that the scan failed. No
+  header row is written for an empty type. An empty `SCAN_shunt.csv` is a real answer.
+- **The summary header and the CSVs can disagree, on purpose.** `SCAN_00_case_identity.txt`
+  describes the `.pwb` on disk; the CSVs describe what is loaded right now. If you changed
+  something without saving, the CSVs are the truthful half.
+- **Search the log for `Warning:`.** This is where it bites hardest, because a scan asks for
+  many field names at once and a wrong one is only a warning:
 
----
+  ```
+  Warning: unknown fields will not be written to the file
+  Warning: Variable name 'AREALOADMW' is not defined for Area objects.
+  ```
+
+  That run wrote a 75-byte `SCAN_area.csv` — the key column and nothing else — and reported
+  success. Nothing else tells you the numbers you asked for are missing.
+
+With those CSVs in hand the agent can answer follow-ups without another drop: *what is the
+voltage range*, *how many transformers*, *which branches are most loaded*, *is there a
+contingency set already*. One drop, then conversation.
 
 ### Recipe 4 — Change something and measure it
 
