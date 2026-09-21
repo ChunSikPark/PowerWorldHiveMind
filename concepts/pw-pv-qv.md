@@ -17,7 +17,8 @@ PV and QV curve analysis — real-power transfer margin and reactive margin at a
 
 **Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
 
-**Across:** [pw-power-flow](pw-power-flow.md) · [pw-injection-groups](pw-injection-groups.md) · pw-atc · pw-sensitivities
+**Across:** [pw-power-flow](pw-power-flow.md) · [pw-injection-groups](pw-injection-groups.md) ·
+[ptdf-shift-factor-otdf](ptdf-shift-factor-otdf.md)
 
 ## Content
 

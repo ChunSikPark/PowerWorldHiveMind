@@ -11,15 +11,27 @@ tags: [powerworld, manual, fields, case-information, object-properties, filters]
 
 The object and field reference: every case-information display, every object property dialog, and the filtering and expression machinery that selects rows. This is where you find out what a field is called and whether you can write to it.
 
-**177 topics across 15 chapter files.**
+**The filtering/expression grammar and the object-creation gotchas are now documented inline** —
+[filter-expression-language](filter-expression-language.md),
+[datamaintainer-and-object-groups](datamaintainer-and-object-groups.md),
+[data-check-objects](data-check-objects.md) and
+[required-fields-for-object-creation](required-fields-for-object-creation.md) cover that ground
+without a manual detour. Read this page for the chapter map — **177 topics across 15 chapter
+files.**
 
 ## Connections
 
 **Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
 
-**Across:** [pw-scripting-automation](pw-scripting-automation.md) · [pw-power-flow](pw-power-flow.md) · [pw-interfaces](pw-interfaces.md) · pw-case-data-io
+**Across:** [pw-scripting-automation](pw-scripting-automation.md) · [pw-power-flow](pw-power-flow.md) ·
+[pw-interfaces](pw-interfaces.md) · [raw-epc-roundtrip-traps](raw-epc-roundtrip-traps.md)
 
-**Research pages that use this:** esapp-settable-vs-enterable · [esapp](esapp.md)
+**Now covered inline:** [filter-expression-language](filter-expression-language.md) ·
+[datamaintainer-and-object-groups](datamaintainer-and-object-groups.md) ·
+[data-check-objects](data-check-objects.md) ·
+[required-fields-for-object-creation](required-fields-for-object-creation.md)
+
+**Research pages that use this:** [esapp](esapp.md)
 
 ## Content
 
@@ -56,7 +68,7 @@ The object and field reference: every case-information display, every object pro
 ### What bites
 
 - Edit mode and run mode have **separate pages for the same object**; the field sets differ and so does what is writable.
-- Key fields are the load-bearing concept for any automation. **A write that omits them silently does nothing** — no error, no change ([esapp](esapp.md), [adding-devices-esapp](../methods/adding-devices-esapp.md)). Landing on the *wrong rows* is a different bug entirely, from the positional setter form; see esapp-settable-vs-enterable.
+- Key fields are the load-bearing concept for any automation. **A write that omits them silently does nothing** — no error, no change ([esapp](esapp.md), [adding-devices-esapp](../methods/adding-devices-esapp.md)). Required fields are the separate, smaller gate on *creating* a new object; see [required-fields-for-object-creation](required-fields-for-object-creation.md).
 
 ---
 

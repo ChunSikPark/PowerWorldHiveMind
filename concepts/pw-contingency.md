@@ -11,13 +11,23 @@ tags: [powerworld, manual, contingency, ras, limits]
 
 Contingency analysis end to end: how contingencies are defined, what an element can do, every option that changes the result, and how results are read back. The largest single analysis subject in the manual after dynamics.
 
-**96 topics across 7 chapter files.**
+**Two traps this kit now covers inline:** the aux-hook state-carryover bug in
+[post-contingency-aux-state-carryover](post-contingency-aux-state-carryover.md), and the batch/ranking
+tools built on top of ordinary contingency analysis in
+[contingency-linked-sensitivities](contingency-linked-sensitivities.md). Read this page for the
+chapter map — **96 topics across 7 chapter files.**
 
 ## Connections
 
 **Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
 
-**Across:** [pw-interfaces](pw-interfaces.md) · pw-sensitivities · pw-topology · [pw-scripting-automation](pw-scripting-automation.md)
+**Across:** [pw-interfaces](pw-interfaces.md) ·
+[ptdf-shift-factor-otdf](ptdf-shift-factor-otdf.md) ·
+[topology-consolidation-and-derived-status](topology-consolidation-and-derived-status.md) ·
+[pw-scripting-automation](pw-scripting-automation.md)
+
+**Now covered inline:** [post-contingency-aux-state-carryover](post-contingency-aux-state-carryover.md) ·
+[contingency-linked-sensitivities](contingency-linked-sensitivities.md)
 
 ## Content
 

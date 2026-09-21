@@ -25,10 +25,11 @@ Read this before searching the help for anything. It costs less than one wrong g
 **Up:** [Home](../index.md) ·
 **Across:** [aux-only-powerworld](aux-only-powerworld.md) (the field-name provenance rule this page confirms from a second
 source), [aux-script-catalog](../references/aux-script-commands.md) (the SCRIPT action catalog, condensed from the *other* manual),
-[esapp](esapp.md), [powerworld-simauto](powerworld-simauto.md), what-drives-hop-count (why chapter size, not chapter count,
-is what made this corpus cheap to search), benchmarking-a-knowledge-base ·
-**Technique:** routing-layer-over-immutable-docs — the general pattern this corpus is the
-worked case of, and the evidence for what to do about a corpus you must not edit ·
+[esapp](esapp.md), [powerworld-simauto](powerworld-simauto.md) ·
+**Distilled from this corpus:** [solver-mechanics-and-failure-modes](solver-mechanics-and-failure-modes.md),
+[filter-expression-language](filter-expression-language.md), [simauto-output-shapes-and-discovery](simauto-output-shapes-and-discovery.md),
+[raw-epc-roundtrip-traps](raw-epc-roundtrip-traps.md) — a sample of the content pages now carrying manual
+material directly; each subject routing page below names its own full set ·
 **Deeper:** [timestep-simulation](timestep-simulation.md), [gic](gic.md)
 
 ## Content

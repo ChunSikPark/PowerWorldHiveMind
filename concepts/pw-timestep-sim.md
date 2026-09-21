@@ -11,13 +11,23 @@ tags: [powerworld, manual, timestep, schedules, quasi-static]
 
 Time Step Simulation: the quasi-static tool that solves a case repeatedly across a list of timepoints with scheduled inputs. Two chapter files hold all of it, but the commands that drive it and the batch engine that scales it are elsewhere.
 
+**The input and solve mechanics beyond a plain `.pww` load are now documented inline** —
+[timestep-schedules-and-delays](timestep-schedules-and-delays.md) covers Schedules, Schedule
+Subscriptions and controller time delays; [timestep-opf-and-storage](timestep-opf-and-storage.md)
+covers the OPF/SCOPF solve modes and result-storage opt-ins. Read this page for the chapter map —
 **32 topics across 2 chapter files.**
 
 ## Connections
 
 **Up:** [pw-manual-map](pw-manual-map.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md)
 
-**Across:** [pw-scripting-automation](pw-scripting-automation.md) · pw-distributed-compute · pw-weather-ratings · pw-scheduled-actions
+**Across:** [pw-scripting-automation](pw-scripting-automation.md) ·
+[builtin-distributed-computing](builtin-distributed-computing.md) ·
+[weather-dependent-limits](weather-dependent-limits.md) ·
+[scheduled-actions-scripting](scheduled-actions-scripting.md)
+
+**Now covered inline:** [timestep-schedules-and-delays](timestep-schedules-and-delays.md) ·
+[timestep-opf-and-storage](timestep-opf-and-storage.md)
 
 **Research pages that use this:** [timestep-simulation](timestep-simulation.md) · [pww-data](pww-data.md)
 

@@ -20,8 +20,7 @@ These pages describe and route. They reproduce no manual text — the corpus its
 ## Connections
 
 **Up:** [Home](../index.md) · **Corpus:** [powerworld-help-corpus](powerworld-help-corpus.md) ·
-**Method:** routing-layer-over-immutable-docs (why this exists as a layer beside the manual
-rather than as edits to it) · **Research:** [esapp](esapp.md) · [powerworld-simauto](powerworld-simauto.md)
+**Research:** [esapp](esapp.md) · [powerworld-simauto](powerworld-simauto.md)
 
 ## Content
 
