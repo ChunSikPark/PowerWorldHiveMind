@@ -30,6 +30,14 @@ is one line:
 
 > **A rule ships as REFUSE only if every page already in the repo passes it.**
 
+`links` is the exception that proves the rule needs a second clause. All 57
+shipped pages have zero dangling links, so by the letter of the discipline it
+qualified as a REFUSE — but that measured a *finished* corpus and then gated
+the *transition*. A page written before the pages it links to dangles through
+no fault of its own, and two new pages linking to each other could never both
+be written. So: **a rule is a REFUSE only if a page can satisfy it at the
+moment it is written**, not merely once everything around it exists.
+
 A rule that even one shipped page fails is a WARN. A checker that refuses the
 repo's own pages is wrong about the repo, not about the page.
 
@@ -40,11 +48,17 @@ repo's own pages is wrong about the repo, not about the page.
 | `enum` | REFUSE | `type` ∈ 5 values, `domain` ∈ 3 — 57/57 |
 | `listshape` | REFUSE | `aliases`/`tags` are bracketed lists — 57/57 |
 | `sections` | REFUSE | Abstract → Connections → Content — 57/57 |
-| `links` | REFUSE | 360 relative-link instances, 0 dangling |
+| `links` | WARN | 360 distinct link targets over 521 instances, 0 dangling |
 | `orphan` | REFUSE | every page carries ≥1 outbound link — 57/57 |
 | `linkfloor` | WARN | ≥2 links holds for only 55/57 |
 | `index-row` | WARN | an `index.md` row holds for only 55/57 |
 | `size` | WARN | a length signal, not a limit |
+
+**`encoding` short-circuits.** When a page fails to decode, `check_page`
+returns that finding alone and runs no other rule. A page with a BOM *and*
+four other faults reports one fault, and fixing the BOM reveals the rest.
+A clean result straight after an encoding fix is not yet a clean page —
+run the check again.
 
 Re-measure after any schema change:
 
@@ -61,7 +75,10 @@ page, either the rule is wrong or the page is — decide which, and say so.
   `demos/`.
 - **Root-level `.md` files are meta** — `README.md`, `AGENTS.md`, `index.md`,
   `CHANGELOG.md` and the rest. They are skipped.
-- `commands/`, `skills/`, `dist/`, `assets/` hold machinery, not pages.
+- These hold machinery or build output, not pages, and are skipped wherever
+  they appear: `commands/`, `skills/`, `dist/`, `assets/`, `scripts/`,
+  `raw/`, `node_modules/`, `__pycache__/`, `.git/`, `.github/`, `.obsidian/`.
+  The list is `SKIP_DIRS` in `kb_page.py`.
 
 The meta test is a *shape* rule (`len(rel.parts) == 1`), not a list of
 filenames, because a list is a second source of truth that drifts.

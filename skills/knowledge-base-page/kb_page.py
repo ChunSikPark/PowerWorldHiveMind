@@ -21,7 +21,8 @@ Measured on the repo at the time of writing:
                  domain in {tooling, cross-cutting, weather}
     listshape    aliases/tags are bracketed lists, 0 deviations
     sections      Abstract -> Connections -> Content, 57/57
-    links        360 relative-link instances, 0 dangling
+    links        360 distinct link targets over 521 instances, 0 dangling
+                 (a WARN even so -- see the note on the RULES entry)
     linkfloor    55/57 carry 2 or more (hence WARN)
     index-row    55/57 appear in index.md (hence WARN)
 """
@@ -77,7 +78,12 @@ RULES = [
     ("listshape", REFUSE, "aliases: or tags: is not a [bracketed, list]"),
     ("sections", REFUSE, "## Abstract, ## Connections, ## Content missing or "
                          "out of order"),
-    ("links", REFUSE, "a relative .md link that does not resolve on disk"),
+    # WARN, not REFUSE: a page written before the pages it links to has
+    # dangling links through no fault of its own, and two new pages that
+    # link to each other could never both be written. The audit catches
+    # dangling links across the finished corpus, which is the right place
+    # for a check a batch can only satisfy once it is complete.
+    ("links", WARN, "a relative .md link that does not resolve on disk"),
     ("orphan", REFUSE, "no outbound links at all -- the page is unreachable"),
     ("linkfloor", WARN, "fewer than %d outbound links" % LINKFLOOR_SIGNAL),
     ("index-row", WARN, "the page has no row in index.md"),
@@ -110,6 +116,37 @@ def find_repo_root(start):
     return None
 
 
+def _at(text, idx):
+    """"line L, column C" plus the offending line with a caret under it.
+
+    An offset alone is useless for a U+FEFF: it is invisible in every
+    editor, so "character 281" means opening a hex view or writing a
+    script -- the work the checker exists to save. Point at a line.
+    """
+    line_no = text.count("\n", 0, idx) + 1
+    line_start = text.rfind("\n", 0, idx) + 1
+    col = idx - line_start + 1
+    line_end = text.find("\n", idx)
+    line = text[line_start:line_end if line_end != -1 else len(text)]
+    # Render invisibles as <U+XXXX>. Echoing a U+FEFF verbatim defeats the
+    # purpose -- and on a cp1252 console, the Windows default, printing it
+    # raises UnicodeEncodeError, so the message would crash rather than
+    # explain.
+    shown, caret_col = "", col
+    for i, ch in enumerate(line):
+        if ch.isprintable() and ch != "\ufeff":
+            shown += ch
+            continue
+        token = "<U+%04X>" % ord(ch)
+        if i < col - 1:
+            caret_col += len(token) - 1
+        shown += token
+    width = len("<U+%04X>" % ord(text[idx])) if idx < len(text) else 1
+    caret = " " * (caret_col - 1) + "^" * width
+    return "line %d, column %d%s%s%s%s" % (line_no, col, chr(10), shown,
+                                           chr(10), caret)
+
+
 def read_page(path):
     try:
         raw = Path(path).read_bytes()
@@ -118,11 +155,17 @@ def read_page(path):
     try:
         text = raw.decode("utf-8-sig")
     except UnicodeDecodeError as exc:
-        raise PageReadError("not valid UTF-8 at byte %d" % exc.start)
+        # exc.start is a BYTE offset and the text will not decode, so
+        # locate it in a lossy decode rather than reporting a number in
+        # different units from the one the U+FEFF branch uses.
+        lossy = raw.decode("utf-8", errors="replace")
+        idx = len(raw[:exc.start].decode("utf-8", errors="replace"))
+        raise PageReadError("not valid UTF-8 at %s" % _at(lossy, idx))
     stripped = text.replace("\r\n", "\n")
-    idx = stripped.find("﻿")
+    idx = stripped.find("\ufeff")
     if idx != -1:
-        raise PageReadError("embedded U+FEFF at character %d" % idx)
+        raise PageReadError(
+            "embedded U+FEFF (invisible) at %s" % _at(stripped, idx))
     return stripped
 
 
@@ -223,9 +266,20 @@ def check_page(path, root=None):
             " / ".join("## " + h for h in heads[:4]) or "(none present)"))
 
     links = outbound_links(body)
-    dangling = [t for t in links if not (path.parent / t).resolve().exists()]
-    for t in dangling:
-        findings.append(Finding("links", "link target does not exist", t))
+    for t in links:
+        tried = (path.parent / t).resolve()
+        if tried.exists():
+            continue
+        # Quote the path actually tried: a `../` depth mistake and a
+        # misspelt filename produce the same link text and need
+        # different fixes.
+        try:
+            shown = tried.relative_to(Path(root).resolve()).as_posix()
+        except (ValueError, TypeError, OSError):
+            shown = str(tried)
+        findings.append(Finding(
+            "links", "link target does not exist; resolved to %s" % shown,
+            t))
 
     if not links:
         findings.append(Finding(

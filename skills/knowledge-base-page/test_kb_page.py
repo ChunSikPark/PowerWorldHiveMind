@@ -125,6 +125,15 @@ record(fired("concepts/dangling.md", "links"),
 record(not fired("concepts/valid.md", "links"),
        "links that all resolve on disk", False, "links")
 
+# links WARNs rather than refusing: a page written before the pages it links
+# to dangles through no fault of its own, and two new pages linking to each
+# other could never both be written.
+record(all(f.level == kb.WARN
+           for f in kb.check_page(REPO / 'concepts/dangling.md', root=REPO)
+           if f.rule == 'links'),
+       '...and a dangling link WARNs rather than blocking the write', False,
+       'links')
+
 write("concepts/orphan.md", NL.join([
     "---", "type: concept", "domain: tooling",
     "aliases: [x]", "tags: [y]", "---", "",
@@ -188,6 +197,34 @@ record(kb.find_repo_root(REPO / "concepts" / "valid.md") == REPO,
 # ------------------------------------------------------------- API surface
 record(kb.CONTRACT_API >= 1, "CONTRACT_API is set", False, "meta")
 record(bool(kb.RULES), "a non-empty rule table", True, "meta")
+
+# --------------------------------------------------- message quality
+# A rule that fires but cannot be acted on without opening the source is
+# half a rule. These pin the two messages a fresh reader could not use.
+
+_enc = [f for f in kb.check_page(REPO / 'concepts/bom.md', root=REPO)
+        if f.rule == 'encoding'][0]
+record('line ' in _enc.message and 'column ' in _enc.message,
+       'encoding names a line and column, not a bare offset', False,
+       'encoding')
+record('<U+FEFF>' in _enc.message,
+       '...and renders the invisible character visibly', False,
+       'encoding')
+# The default Windows console is cp1252. Echoing a raw U+FEFF there raises
+# UnicodeEncodeError, so the message would crash instead of explaining.
+try:
+    str(_enc).encode('cp1252')
+    _printable = True
+except UnicodeEncodeError:
+    _printable = False
+record(_printable,
+       '...and the whole finding is printable on a cp1252 console', False,
+       'encoding')
+
+_lnk = [f for f in kb.check_page(REPO / 'concepts/dangling.md', root=REPO)
+        if f.rule == 'links'][0]
+record('resolved to' in _lnk.message,
+       'links says what path it resolved against', False, 'links')
 
 _covered = {}
 for ok, name, want, rule in results:
