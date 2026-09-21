@@ -12,8 +12,9 @@ tags: [demo, aux, script-transfer, walkthrough, getting-started, two-window]
 
 A start-to-finish walkthrough of the file-based workflow, written for someone sitting in
 front of two windows. Four recipes, in order: turn the channel on, prove it is alive with a
-four-line script, let the agent scan the case for its devices, then change something and
-measure it. Every number here came from a real run on a small sample case, failures included.
+four-line script (skip that one once you trust it), let the agent scan the case for its
+devices, then change something and measure it. Every number here came from a real run on a
+small sample case, failures included.
 
 ## Connections
 
@@ -106,6 +107,10 @@ Steps 5 and 6 are once per machine; the registry keeps them across restarts. Ste
 ---
 
 ### Recipe 2 — Prove it is alive before you trust it
+
+**Skip this if you have used the channel before and know it works.** It is here for your
+first run on a machine, where a broken script and a channel that was never running look
+exactly the same from the folder: nothing happens either way.
 
 Do not debug a real script against an unproven channel. Ask for the smallest possible one:
 
