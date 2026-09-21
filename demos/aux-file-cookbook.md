@@ -47,20 +47,46 @@ C:\PowerWorldTransfer
 
 Do this in Simulator. Claude cannot do any of it, and will ask you to.
 
-1. **Open PowerWorld Simulator.**
-2. **Open your case.** Any `.pwb` will do. The numbers further down came from a small 7-bus
-   sample, so yours will differ. Follow the shape of each step rather than the values.
-3. **Switch to Run Mode**, then **Tools → Script** to open the Script Command Execution
-   Dialog. The source deck specifies Run Mode here. Do not skip it and assume a script can
-   switch modes for you later.
-4. In that dialog, set **ScriptTransferFileDirectory** by browsing to `C:\PowerWorldTransfer`.
-5. Tick **Enabled External Script Control**.
-6. **Leave the dialog open.** The source deck is explicit that the functionality works only
-   while the dialog is visible, so closing it stops Simulator watching the folder. The
-   settings live in the registry and keep reading as enabled either way, so everything still
-   looks configured while nothing happens.
-7. **Open Simulator's message log and keep it where you can see it.** Every script writes its
-   progress there as it runs.
+**1. Open PowerWorld Simulator.**
+
+**2. Open your case.** Any `.pwb` will do. The numbers further down came from a small 7-bus
+sample, so yours will differ. Follow the shape of each step rather than the values.
+
+**3. Switch to Run Mode, then open the Tools tab.** The source deck specifies Run Mode here.
+Do not skip it and assume a script can switch modes for you later.
+
+![The Tools tab in the ribbon](../assets/aux-step-tools.png)
+
+**4. Click Script** to open the Script Command Execution Dialog.
+
+![The Script button under the Tools tab](../assets/aux-step-script.png)
+
+**5. Set ScriptTransferFileDirectory.** Click **Browse...** and pick your folder.
+
+![The External Script Control panel with Browse highlighted](../assets/aux-step-browse.png)
+
+Everything you need is on that one panel. Two things on it before you move on:
+
+- The heading says **"Only Active when Dialog is Open; Fields Saved in Registry"**. That is
+  the whole story on persistence: the folder and the tick survive a restart, the open dialog
+  does not.
+- **"Always Delete an Invalid Input Aux File"** makes Simulator throw away a script it cannot
+  parse instead of leaving it in the folder. Leave it ticked. It does not cover everything
+  (see [When it goes wrong](#when-it-goes-wrong)), but it removes the most common way a run
+  gets stuck repeating.
+
+**6. Tick Enable External Script Control.**
+
+![The Enable External Script Control checkbox](../assets/aux-step-enable.png)
+
+**7. Leave the dialog open.** Closing it stops Simulator watching the folder, and the settings
+keep reading as enabled either way, so everything still looks configured while nothing
+happens.
+
+**8. Click Show Log** and keep that window where you can see it. Every script writes its
+progress there as it runs.
+
+![The Show Log button](../assets/aux-step-showlog.png)
 
 Watch that log. The output file appears only once a run finishes, so while something is wrong
 the folder tells you nothing. The log separates two failures that otherwise look identical to
@@ -74,8 +100,8 @@ Then tell Claude, in these words or your own:
 
 > *"Aux-file mode. My transfer folder is `C:\PowerWorldTransfer` and I have my case loaded."*
 
-Steps 4 and 5 are once per machine; the registry keeps them across restarts. Steps 1, 2, 6
-and 7 are every session.
+Steps 5 and 6 are once per machine; the registry keeps them across restarts. Steps 1, 2, 3,
+7 and 8 are every session.
 
 ---
 
@@ -250,9 +276,14 @@ Three failure shapes, all of which look similar from your side of the folder.
 unticked, or wrong folder. Delete the file, fix the setting, drop again.
 
 **The file sits there but files keep being written.** The script failed partway and Simulator
-is re-running it every poll interval, forever, because a failed script is never cleaned up.
-Output timestamps advance while the input file stays put. Delete `SimulatorScriptInput.aux`
-yourself; nothing else stops it.
+is re-running it every poll interval, forever. Output timestamps advance while the input file
+stays put. Delete `SimulatorScriptInput.aux` yourself.
+
+`Always Delete an Invalid Input Aux File` in the setup panel is aimed at exactly this, and
+you should have it ticked. It is not a complete guard, though: a run was observed looping on
+2026-09-21 with a script that parsed fine and then crashed Simulator partway through, which
+is not the same thing as an invalid file. Keep a timeout on anything that drops files
+automatically.
 
 **Everything completed, but a column is missing from a CSV.** A bad field name is a
 `Warning:`, not an error. The column is dropped and the run still reports success. Search the

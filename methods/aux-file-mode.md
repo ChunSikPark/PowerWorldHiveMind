@@ -98,7 +98,7 @@ filled in, before you write a single line of aux:
    browsing to your transfer folder, e.g. `C:\PowerWorldTransfer`. Run Mode at this step is
    specified by the source deck.
 4. Tick **Enabled External Script Control**, and leave that dialog open.
-5. **Open Simulator's message log and keep it visible.**
+5. **Click Show Log** in that dialog, and keep the log window visible.
 
 After that, any file copied into the folder as `SimulatorScriptInput.aux` runs automatically,
 one poll interval later.
@@ -110,9 +110,14 @@ same block of lines once per poll interval.
 
 Two things here cost time when you do not know them:
 
-- **The settings persist in the registry, the dialog does not.** `ScriptTransferFileEnabled`,
-  `ScriptTransferFileDirectory` and `ScriptInputOutputPollSec` survive a restart, so the
-  browsing step is once per machine. The dialog still has to be open every session.
+- **The settings persist in the registry, the dialog does not.** The panel says so itself:
+  its heading reads *External Script Control (Only Active when Dialog is Open; Fields Saved
+  in Registry)*. `ScriptTransferFileEnabled`, `ScriptTransferFileDirectory` and
+  `ScriptInputOutputPollSec` survive a restart, so the browsing step is once per machine.
+- **Tick `Always Delete an Invalid Input Aux File` while you are in there.** It makes
+  Simulator discard a script it cannot parse rather than leaving it in the folder to be
+  retried. It is not a complete guard against the re-execution loop, since a script can parse
+  cleanly and still fail mid-run, but it removes the most common cause.
 - **Closing the dialog stops the poller while the flag still reads enabled.** The dropped
   file sits there, which looks exactly like a crash, a failed run, and a run still in
   progress. If a drop is not picked up, check the dialog before you debug the aux.
