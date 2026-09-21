@@ -112,7 +112,3 @@ python skills/knowledge-base-page/kb_page.py rules      # the rule table
 `check` exits 1 on a REFUSE and prints the rule id and the offending text.
 Warnings do not fail it. **Run it and paste the output** — "it looks right" is
 not evidence.
-
-If the PreToolUse hook is wired (see this folder's `README.md`), a
-non-conforming page is refused before it reaches disk and you will see the same
-text come back from the failed write. Fix the page and write it again.
