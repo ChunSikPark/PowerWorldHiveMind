@@ -8,10 +8,10 @@ description: Write a new page into this knowledge base, or fix one that does not
 This repo is a knowledge base you are expected to **grow**, not just read. A
 session that worked something out and left it in the chat has thrown it away.
 
-The schema below is not taste. It was derived by measuring the 57 pages this
-repo ships, and `kb_page.py` enforces it. **The checker is authoritative** — if
-this file and the checker ever disagree, the checker is right and this file is
-stale.
+The schema below is not taste. It was derived by measuring the pages this
+repo already ships — every one of them follows it, with no exceptions. **The
+pages are authoritative.** If this file and the pages ever disagree, read a
+few pages and follow those; then fix this file.
 
 ## Before you write: does a page already cover it?
 
@@ -68,9 +68,10 @@ rest. State the answer here, not a promise of the answer.
 
 **`type:`** is one of `concept`, `method`, `reference`, `tool`, `dataset`.
 **`domain:`** is one of `tooling`, `cross-cutting`, `weather`.
-Both lists are closed — the checker refuses anything else. If you genuinely
-need a new value, add it to `TYPES`/`DOMAINS` in `kb_page.py` **and** say so,
-rather than bending the page.
+Both lists are closed: every page in the repo uses one of these and nothing
+else. If your page genuinely needs a new value, **say so explicitly** rather
+than bending the page to fit or quietly inventing one — adding a value is a
+decision about the whole base, not about your page.
 
 **`aliases:`** and **`tags:`** are `[bracketed, lists]`. They may wrap across
 lines. These are what `grep` finds later, so write the phrasings a future
@@ -101,14 +102,21 @@ for its folder, in the existing style:
 A page with no row warns rather than refusing, because two pages already ship
 without one. Add it anyway — a page nobody can find is a page nobody reads.
 
-## Check before you claim it is done
+## Check the corpus when you have finished
+
+There is no checker to run. Writing the page correctly is the job, and the
+shape above is the whole schema. Two questions are worth asking across all
+the pages at once, though, because no amount of care on one page answers
+them. Run these from the repo root when you have added or renamed pages:
 
 ```bash
-python skills/knowledge-base-page/kb_page.py check concepts/your-page.md
-python skills/knowledge-base-page/kb_page.py audit      # the whole repo
-python skills/knowledge-base-page/kb_page.py rules      # the rule table
+# pages with no row in index.md
+python -c "import pathlib;R=pathlib.Path('.');i=(R/'index.md').read_text(encoding='utf-8-sig');print([f'{d}/{p.name}' for d in ('concepts','methods','demos','references') for p in (R/d).glob('*.md') if f'{d}/{p.name}' not in i and p.stem not in i] or 'all pages indexed')"
+
+# links that point at a file that does not exist
+python -c "import pathlib,re;R=pathlib.Path('.');print([f'{p}: {t}' for d in ('concepts','methods','demos','references') for p in (R/d).glob('*.md') for t in set(re.findall(r'\]\(([^)#]+\.md)',p.read_text(encoding='utf-8-sig'))) if not (p.parent/t).exists()] or 'no dangling links')"
 ```
 
-`check` exits 1 on a REFUSE and prints the rule id and the offending text.
-Warnings do not fail it. **Run it and paste the output** — "it looks right" is
-not evidence.
+Paste what they print. If either returns a list, fix it before you say you
+are done — a page nobody can reach and a link that goes nowhere are the two
+failures that make a knowledge base stop compounding.
