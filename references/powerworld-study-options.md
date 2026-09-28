@@ -60,8 +60,10 @@ f[f["Description"].str.contains("island", case=False, na=False)]     # search by
 
 **Worked example of why the export matters.** "Add a shunt to an area": `Shunt` is keyed
 `BusNum` (`*1*`) + `ShuntID` (`*2B*`) and requires `SSCMode`, `SSNMVR`, `SSStatus` (`**`). It
-has **no area field** — area is inherited from the bus. Pick a bus in the area and create the
-shunt there; a write to an invented `Shunt.AreaNum` silently does nothing.
+carries **two** area fields: `AreaNum` ("Area\Num of Shunt", writable — the shunt's own area
+assignment, which may differ from its bus's) and `AreaNum:1` ("Area\Num of Bus", read-only).
+Writing `AreaNum` changes which area the shunt is accounted to, not where it connects. To put a
+shunt electrically inside an area, create it at a bus in that area.
 
 ### How to set any option object
 
