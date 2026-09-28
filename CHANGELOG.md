@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+- **A third skill, `violation-map`, and the method page behind it.** It builds two
+  single-file HTML maps from a case: a **voltage page** (the substations around the
+  out-of-band buses, every line in its own kV colour, a click-to-zoom problem list,
+  substation one-lines, the reactive balance inside the radius, and candidate fixes measured
+  in memory with a Before/After switch and a scenario × outage grid) and a **radial-ties page**
+  (every bridge whose single outage islands part of the grid, grouped into radial trees, with
+  a suggested tie per tree and its AC-measured verdict). The engine under
+  `skills/violation-map/engine/` is driven by one `config.json`; nothing it runs writes to a
+  case. `methods/violation-network-map.md` carries the page contract and the traps each of
+  which cost a run: islanding solves with zero violations, an undo does not restore taps or
+  shunts, a tie's rating does not scale with its length, and an un-exited PowerWorld stays
+  resident. Verified end to end on a 10,000-bus synthetic planning model; there is no thermal
+  view yet, and the page says so.
+
 ## 0.3.0 — 2026-09-21
 
 - **Three new concept pages.** `concepts/powerworld-script-transfer.md` documents Simulator

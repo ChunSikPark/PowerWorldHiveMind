@@ -1,0 +1,44 @@
+{
+  "title": "Intact-case voltage map",
+  "out_dir": "vmap_out",
+
+  "scenarios": [
+    {"key": "peak",  "label": "Summer peak",  "short": "Peak"},
+    {"key": "light", "label": "Light load",   "short": "Light"}
+  ],
+  "states": [
+    {"key": "base", "label": "As delivered",
+     "cases": {"peak": "C:/path/to/cases/peak.pwb", "light": "C:/path/to/cases/light.pwb"}},
+    {"key": "fixed", "label": "After the fix",
+     "cases": {"peak": "C:/path/to/fixed/peak.pwb", "light": "C:/path/to/fixed/light.pwb"}}
+  ],
+
+  "band": {"lo": 0.94, "hi": 1.05, "post_lo": 0.90, "post_hi": 1.10},
+  "min_net_kv": 69,
+  "exclude_bus_prefixes": ["GSU_", "STR_", "TERT_"],
+  "hops": 5,
+
+  "areas": {
+    "north": {"title": "North area", "seeds": [1101, 1102], "default_hops": 5},
+    "south": {"title": "South area", "seeds": [2201], "default_hops": 3}
+  },
+
+  "designs": {
+    "area": "north",
+    "watch_buses": [1101, 1102],
+    "watch_label": "stub buses",
+    "outages": [
+      {"key": "o1", "label": "Lose 1101-1150", "f": 1101, "t": 1150, "ckt": "1"}
+    ],
+    "candidates": [
+      {"name": "50 MVAr reactor at 1101", "short": "Reactor 50", "kind": "shunt", "bus": 1101, "mvar": -50},
+      {"name": "New 345 kV tie 1102-1300", "short": "Tie 1102-1300", "kind": "line",
+       "from_bus": 1102, "to_bus": 1300, "template": [1200, 1250, "1"]},
+      {"name": "Lower the plant setpoint", "short": "Vset 1.02", "kind": "edit", "object": "Gen",
+       "rows": [{"BusNum": 1180, "GenID": "1", "GenVoltSet": 1.02}]}
+    ]
+  },
+
+  "radial": {"min_kv": 138, "reach_mi": 60, "reach_max_mi": 90,
+             "exclude_landing_name_parts": ["LargeLoad", "DataCenter"]}
+}

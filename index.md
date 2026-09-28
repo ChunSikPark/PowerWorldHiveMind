@@ -39,6 +39,7 @@ Step-by-step procedures. Read the one that matches your task.
 | [save-powerworld-case](methods/save-powerworld-case.md) | Write an open case back to disk. The COM `SaveCase` returns success and writes no file, so use the script form and check the file exists. |
 | [teamoverbyeweather-client](methods/teamoverbyeweather-client.md) | Download a weather dataset, crop it to a region and a time window, and get `.pww` files ready for PowerWorld. Pure Python — no PowerWorld licence needed. |
 | [timestep-simulation-setup](methods/timestep-simulation-setup.md) | Drive TimeStep to turn `.pww` files into hourly generation CSVs, including the per-generator prerequisites a case must satisfy first. |
+| [violation-network-map](methods/violation-network-map.md) | Put the violations on an interactive map: the voltage page (problem list, one-lines, reactive balance, measured fixes with Before/After) and the radial-ties page (bridges whose one outage islands load, a suggested tie per tree). Built by the `violation-map` skill. |
 | [visualize-renewable-output](methods/visualize-renewable-output.md) | Plot the timestep CSVs: fleet totals over time, per-ISO and per-state breakdowns, capacity-factor curves, and peak and trough hours. |
 
 ## Concepts — what a thing is

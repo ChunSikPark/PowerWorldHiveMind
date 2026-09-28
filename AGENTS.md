@@ -38,7 +38,7 @@ knew.
 
 ## How to find the page — and how much of it to read
 
-The kit is 47 pages — 20 in `concepts/`, 16 in `methods/`, 7 in `demos/`, 4 in
+The kit is 50 pages — 20 in `concepts/`, 18 in `methods/`, 8 in `demos/`, 4 in
 `references/` — and you will need three to five of them. The ladder below is about
 **finding** the right page cheaply. It is not a budget on how much of that page you read.
 
@@ -137,6 +137,7 @@ Say what you tested, what you rejected, and what you did **not** save.
 | To know what a term or acronym means | [concepts/glossary.md](concepts/glossary.md) |
 | To compare two cases / find what a plan builds | [demos/comparing-planning-cases.md](demos/comparing-planning-cases.md) |
 | To fix violations, not just report them | [demos/violation-remediation.md](demos/violation-remediation.md) |
+| To see violations or islanding on a map | [methods/violation-network-map.md](methods/violation-network-map.md), built by the `violation-map` skill |
 | A worked example of any of this | [demos/start-here.md](demos/start-here.md) |
 | **Anything to fail, at any point** | [methods/handling-errors.md](methods/handling-errors.md) |
 | Anything at all, first | [methods/preflight-powerworld.md](methods/preflight-powerworld.md) |

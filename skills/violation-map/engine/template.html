@@ -1,0 +1,903 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voltage Violation Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F3F5F2; --panel:#FFFFFF; --ink:#18201C; --ink-2:#4B5751; --ink-3:#7D8983;
+  --rule:#D6DCD7; --grid:#E4E9E5; --halo:#F3F5F2; --chip:#EEF1EE;
+  --kv765:#1E9E48; --kv345:#C4353D; --kv138:#26302B; --kv69:#8A9A3C;
+  --v-ok:#E3E8E4; --v-ok-edge:#9AA6A0; --v-warm:#EDB547; --v-hot:#DD6B2E; --v-crit:#8E1C6C; --v-low:#2F6FD3;
+  --q-pin:#6A3FCF; --q-room:#0A8A8A; --q-inj:#C77A12; --q-zero:#9AA6A0;
+  --sh-cap:#DD6B2E; --sh-rea:#0A8A8A;
+  --c0:#DCE3DE; --c1:#E9C46A; --c2:#E07A3A; --c3:#B0306A;
+  --sel:#2F5BD3; --warn-bg:#FFF4DC; --warn-ink:#7A4B00; --new:#D6247F;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --cond:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0F1412; --panel:#161D1A; --ink:#E3E9E5; --ink-2:#A3AFA9; --ink-3:#74807A;
+    --rule:#2A3430; --grid:#1B2320; --halo:#0F1412; --chip:#1F2824;
+    --kv765:#3CC66A; --kv345:#EC5B62; --kv138:#D3DAD6; --kv69:#AEBE5A;
+    --v-ok:#2B3531; --v-ok-edge:#6C7872; --v-warm:#F0BE55; --v-hot:#F07A3C; --v-crit:#D24BA6; --v-low:#6E9CFF;
+    --q-pin:#B394FF; --q-room:#2EC4C4; --q-inj:#F0A94A; --q-zero:#6C7872;
+    --sh-cap:#F07A3C; --sh-rea:#2EC4C4;
+    --c0:#2B3531; --c1:#C9A44A; --c2:#E0763A; --c3:#D24BA6;
+    --sel:#7E9CFF; --warn-bg:#3A2E12; --warn-ink:#F5D48A; --new:#FF5CB0;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0F1412; --panel:#161D1A; --ink:#E3E9E5; --ink-2:#A3AFA9; --ink-3:#74807A;
+  --rule:#2A3430; --grid:#1B2320; --halo:#0F1412; --chip:#1F2824;
+  --kv765:#3CC66A; --kv345:#EC5B62; --kv138:#D3DAD6; --kv69:#AEBE5A;
+  --v-ok:#2B3531; --v-ok-edge:#6C7872; --v-warm:#F0BE55; --v-hot:#F07A3C; --v-crit:#D24BA6; --v-low:#6E9CFF;
+  --q-pin:#B394FF; --q-room:#2EC4C4; --q-inj:#F0A94A; --q-zero:#6C7872;
+  --sh-cap:#F07A3C; --sh-rea:#2EC4C4;
+  --c0:#2B3531; --c1:#C9A44A; --c2:#E0763A; --c3:#D24BA6;
+  --sel:#7E9CFF; --warn-bg:#3A2E12; --warn-ink:#F5D48A; --new:#FF5CB0;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.45 var(--sans);}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 390px;height:100%;}
+.mapwrap{position:relative;min-height:0;overflow:hidden;border-right:1px solid var(--rule);}
+svg#map{width:100%;height:100%;display:block;touch-action:none;cursor:grab;background:var(--paper)}
+svg#map.drag{cursor:grabbing}
+.mapbar{position:absolute;left:12px;top:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;max-width:calc(100% - 24px)}
+.mapbar button{font:500 12px var(--sans);color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:6px 10px;cursor:pointer}
+.mapbar button:hover{border-color:var(--ink-3)}
+.mapbar .sep{width:1px;height:22px;background:var(--rule)}
+.mapbar .msg{font-size:12px;color:var(--ink-2);background:var(--panel);border-radius:6px;padding:2px 6px}
+button:focus-visible,select:focus-visible,input:focus-visible,.row:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+.scale{position:absolute;left:12px;bottom:12px;font:11px var(--mono);color:var(--ink-2);background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:4px 8px}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:6px 8px;font:12px var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.12);max-width:280px}
+.tip b{font-family:var(--cond);font-weight:600;font-size:13px}
+.tip .m{font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.panel>*{min-width:0}
+.panel{overflow-y:auto;overflow-x:hidden;background:var(--panel);padding:18px 18px 28px;display:flex;flex-direction:column;gap:20px;min-height:0}
+h1{font:600 22px/1.15 var(--cond);letter-spacing:.2px;margin:0;text-wrap:balance}
+.sub{color:var(--ink-2);font-size:12.5px;margin-top:4px}
+h2{font:600 11px var(--cond);text-transform:uppercase;letter-spacing:.9px;color:var(--ink-3);margin:0 0 8px}
+.note{font-size:12px;color:var(--ink-3);margin:6px 0 0}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{font:600 12.5px var(--cond);color:var(--ink-2);background:var(--chip);border:1px solid transparent;border-radius:999px;padding:5px 11px;cursor:pointer}
+.seg button[aria-pressed="true"]{color:var(--panel);background:var(--ink)}
+.seg button[disabled]{opacity:.5;cursor:default}
+.ctl{display:grid;gap:10px}
+.ctl label{font-size:12.5px;color:var(--ink-2);display:flex;justify-content:space-between;gap:8px;align-items:center}
+select{font:13px var(--sans);color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:5px 8px}
+input[type=range]{width:100%;accent-color:var(--q-room)}
+.sw{width:14px;height:3px;border-radius:2px;display:inline-block}
+.bal{display:grid;grid-template-columns:1fr auto;gap:0;font-size:13px;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.bal div{padding:6px 10px;border-bottom:1px solid var(--grid)}
+.bal .v{font:500 12.5px var(--mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bal .hd{font:600 10.5px var(--cond);text-transform:uppercase;letter-spacing:.6px;color:var(--ink-3);background:var(--chip)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{border:1px solid var(--rule);border-radius:8px;padding:8px 10px}
+.kpi .n{font:600 20px var(--cond);font-variant-numeric:tabular-nums}
+.kpi .l{font-size:11.5px;color:var(--ink-2)}
+.kpi.bad .n{color:var(--v-hot)}
+.list{display:grid;gap:4px}
+.row{display:grid;grid-template-columns:1fr auto;gap:0 10px;padding:6px 8px;border:1px solid var(--rule);border-radius:6px;cursor:pointer;font-size:12.5px}
+.row:hover{border-color:var(--ink-3)}
+.row .x{font:500 12px var(--mono);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.row .d{grid-column:1/-1;font-size:11.5px;color:var(--ink-2)}
+.chip{font:500 11px var(--mono);background:var(--chip);border-radius:999px;padding:1px 8px;color:var(--ink);white-space:nowrap}
+.chip.pin{background:var(--q-pin);color:var(--panel)}
+.chip.room{background:var(--q-room);color:var(--panel)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th{font:600 10.5px var(--cond);text-transform:uppercase;letter-spacing:.6px;color:var(--ink-3);text-align:left;padding:4px 6px;border-bottom:1px solid var(--rule)}
+td{padding:4px 6px;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums;vertical-align:top}
+td.num{font-family:var(--mono);text-align:right;white-space:nowrap}
+.dh{font:600 17px var(--cond)}
+.details{display:grid;gap:10px}
+.empty{color:var(--ink-3);font-size:13px}
+.legend{display:grid;gap:6px;font-size:12px;color:var(--ink-2)}
+.legend .r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid var(--v-ok-edge)}
+.lbl{font:600 11px var(--cond);fill:var(--ink);paint-order:stroke;stroke:var(--halo);stroke-width:3.2px;stroke-linejoin:round;pointer-events:none}
+.qlbl{font:500 10px var(--mono);paint-order:stroke;stroke:var(--halo);stroke-width:3px;stroke-linejoin:round;pointer-events:none}
+.banner{position:absolute;left:50%;transform:translateX(-50%);bottom:12px;background:var(--panel);border:1px solid var(--sel);border-radius:8px;padding:6px 8px 6px 12px;font:500 12.5px var(--sans);display:flex;gap:10px;align-items:center;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.banner button,.dbtn{font:500 12px var(--sans);color:var(--ink);background:var(--chip);border:1px solid var(--rule);border-radius:6px;padding:4px 9px;cursor:pointer}
+.dbtn[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.prob{display:grid;grid-template-columns:auto 1fr auto;gap:0 10px;align-items:center;padding:6px 8px;border:1px solid var(--rule);border-radius:6px;cursor:pointer;font-size:12.5px;background:var(--panel);text-align:left;color:var(--ink);width:100%}
+.prob:hover{border-color:var(--ink-3)}
+.prob.on{border-color:var(--sel);box-shadow:inset 3px 0 0 var(--sel)}
+.prob .sev{width:10px;height:10px;border-radius:50%}
+.prob .x{font:500 12px var(--mono);font-variant-numeric:tabular-nums}
+.prob .d{grid-column:2/-1;font-size:11.5px;color:var(--ink-2)}
+.problist{display:grid;gap:4px;max-height:300px;overflow-y:auto}
+.oneline{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:var(--paper)}
+.oneline svg{display:block}
+.oltx{font:500 10px var(--mono);fill:var(--ink-2)}
+.olbus{font:600 11px var(--cond);fill:var(--ink)}
+.cmp{display:grid;gap:8px}
+.metric .mt{font-size:12.5px;font-weight:600;display:flex;justify-content:space-between;gap:6px}
+.metric .mt small{font-weight:400;color:var(--ink-2)}
+.bar{display:grid;grid-template-columns:62px minmax(0,1fr) 52px;gap:6px;align-items:center;font-size:11.5px}
+.bar .who{color:var(--ink-2)}
+.bar .val{font:500 12px var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.track{position:relative;height:11px;background:var(--chip);border-radius:3px;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.fill.bad{background:var(--v-hot)} .fill.good{background:var(--q-room)}
+.limit{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.7}
+.dlist{display:grid;gap:6px}
+.drow{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:center;padding:8px 10px;border:1px solid var(--rule);border-radius:8px;cursor:pointer;background:var(--panel);text-align:left;color:var(--ink);width:100%;font:inherit}
+.drow:hover{border-color:var(--ink-3)}
+.drow[aria-current="true"]{border-color:var(--sel);box-shadow:inset 3px 0 0 var(--sel)}
+.drow .rk{font:500 12px var(--mono);color:var(--ink-3);min-width:16px;text-align:right}
+.drow .n{font:600 13px var(--cond)}
+.drow .d{grid-column:2/-1;font-size:11.5px;color:var(--ink-2)}
+.pill{font:600 11px var(--mono);padding:2px 7px;border-radius:999px;display:inline-block;margin:3px 0}
+.pill.good{background:var(--q-room);color:var(--panel)} .pill.part{background:var(--v-warm);color:#2B1D00} .pill.bad{background:var(--v-hot);color:var(--panel)}
+.dgrid{display:grid;gap:3px;margin-top:8px;font:500 10.5px var(--mono);align-items:center}
+.dgrid .h{text-align:center;font:600 10px var(--cond);text-transform:uppercase;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dgrid .o{color:var(--ink-2);font-family:var(--sans);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cell{height:22px;min-width:0;padding:0;overflow:hidden;border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--panel);font:500 10.5px var(--mono);border:0;cursor:pointer}
+.cell.pass{background:var(--q-room)} .cell.soft{background:var(--v-warm);color:#2B1D00} .cell.fail{background:var(--v-hot)} .cell.isl{background:var(--v-crit)} .cell.na{background:var(--grid);color:var(--ink-3)}
+.pick{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.pick button{font:600 12.5px var(--sans);color:var(--panel);background:var(--sel);border:0;border-radius:6px;padding:7px 12px;cursor:pointer}
+.pick button[disabled]{opacity:.55;cursor:default}
+.pick .msg{font-size:12px;color:var(--ink-2)}
+.isllbl{font:600 10px var(--mono);fill:var(--v-crit);paint-order:stroke;stroke:var(--halo);stroke-width:3px;pointer-events:none}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:62vh auto;height:auto}
+  html,body{height:auto}
+  .mapwrap{border-right:0;border-bottom:1px solid var(--rule);height:62vh}
+  .panel{overflow:visible;padding-inline:16px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <div class="mapwrap" id="mapwrap">
+    <svg id="map" role="img" aria-label="Map of the substations around the out-of-band buses">
+      <g id="world"><g id="gEdges"></g><g id="gCand"></g><g id="gHi"></g><g id="gNodes"></g><g id="gDev"></g><g id="gLabels"></g></g>
+    </svg>
+    <div class="mapbar">
+      <button id="prevP" type="button" aria-label="Previous problem bus">&#9664;</button>
+      <button id="nextP" type="button">Next problem &#9654;</button>
+      <span class="sep" aria-hidden="true"></span>
+      <button id="fitCore" type="button">Fit seeds</button>
+      <button id="fitAll" type="button">Fit all</button>
+      <button id="zin" type="button" aria-label="Zoom in">+</button>
+      <button id="zout" type="button" aria-label="Zoom out">&minus;</button>
+      <span class="sep" aria-hidden="true"></span>
+      <button id="expPng" type="button">Export PNG</button>
+      <button id="expSvg" type="button">SVG</button>
+      <button id="expCsv" type="button">CSV</button>
+      <span class="msg" id="expMsg"></span>
+    </div>
+    <div class="scale" id="scale">&nbsp;</div>
+    <div class="tip" id="tip" hidden></div>
+    <div class="banner" id="banner" hidden><span id="bannerTx"></span><button type="button" id="bannerClear">Show whole area</button></div>
+  </div>
+
+  <aside class="panel">
+    <header>
+      <h1 id="title"></h1>
+      <div class="sub" id="subtitle"></div>
+    </header>
+
+    <section class="ctl">
+      <h2>Area, dispatch, state</h2>
+      <div class="seg" id="segArea"></div>
+      <div class="seg" id="segSce"></div>
+      <div class="seg" id="segSet"></div>
+    </section>
+
+    <section>
+      <h2>Problem buses &mdash; click to zoom</h2>
+      <div class="problist" id="probList"></div>
+      <p class="note" id="probNote"></p>
+    </section>
+
+    <section class="ctl" id="desSec" hidden>
+      <h2>Candidate fixes, measured</h2>
+      <div class="seg" id="segOut"></div>
+      <div class="seg" id="segMode"></div>
+      <div class="cmp" id="cmp"></div>
+      <div class="dlist" id="dList"></div>
+      <p class="note" id="desNote"></p>
+    </section>
+
+    <section class="ctl">
+      <h2>Voltage layer</h2>
+      <div class="seg" id="segKv"></div>
+      <p class="note" style="margin:0">Shows only lines of that class and substations with a bus at that voltage; substations are coloured by that voltage.</p>
+    </section>
+
+    <section>
+      <h2>Inside the hop radius</h2>
+      <div class="kpis" id="kpis"></div>
+      <p class="note" id="kpinote"></p>
+    </section>
+
+    <section>
+      <h2>Reactive balance (MVAr)</h2>
+      <div class="bal" id="bal"></div>
+      <p class="note">Line charging is B/2&middot;(V<sub>f</sub>&sup2;+V<sub>t</sub>&sup2;)&middot;100 for every line with both ends inside the radius. &ldquo;Room&rdquo; is how much more a unit or reactor can still absorb before it hits its limit &mdash; capability is not room. A generator counts as pinned when it is within 1&nbsp;MVAr of its limit.</p>
+    </section>
+
+    <section class="ctl">
+      <h2>View</h2>
+      <label for="hops"><span>Substation hops from the seed buses</span><span id="hopsv" style="font-family:var(--mono)"></span></label>
+      <input id="hops" type="range" min="1" max="6" step="1" value="5">
+      <label for="lmode"><span>Colour lines by</span>
+        <select id="lmode"><option value="kv">Voltage class</option><option value="chg">Charging MVAr</option><option value="x">Reactance X (pu)</option></select></label>
+      <label for="devs"><span>Show generators and shunts</span><input type="checkbox" id="devs" checked></label>
+    </section>
+
+    <section>
+      <h2 id="hiH">Highest network buses</h2>
+      <div class="list" id="hiList"></div>
+    </section>
+
+    <section>
+      <h2>Generators by reactive output</h2>
+      <div class="list" id="genList"></div>
+    </section>
+
+    <section>
+      <h2>Largest charging lines</h2>
+      <div class="list" id="chgList"></div>
+    </section>
+
+    <section class="details" id="details" aria-live="polite">
+      <h2>Details</h2>
+      <div class="empty">Select a substation or a line on the map.</div>
+    </section>
+
+    <section class="legend">
+      <h2>Legend</h2>
+      <div class="r"><span class="sw" style="background:var(--kv765);height:4px"></span>765 kV
+        <span class="sw" style="background:var(--kv345)"></span>345 kV
+        <span class="sw" style="background:var(--kv138)"></span>138 kV
+        <span class="sw" style="background:var(--kv69);height:2px"></span>&le;69 kV &nbsp;every line in its own kV colour</div>
+      <div class="r" id="legV"></div>
+      <div class="r"><svg width="12" height="12" aria-hidden="true"><path d="M6 1 L11 11 L1 11 Z" fill="var(--q-pin)"/></svg>generator pinned at its absorbing limit
+        <svg width="12" height="12" aria-hidden="true"><path d="M6 1 L11 11 L1 11 Z" fill="var(--q-room)"/></svg>absorbing, room left
+        <svg width="12" height="12" aria-hidden="true"><path d="M6 1 L11 11 L1 11 Z" fill="var(--q-inj)"/></svg>injecting
+        <svg width="12" height="12" aria-hidden="true"><path d="M6 1 L11 11 L1 11 Z" fill="none" stroke="var(--q-zero)"/></svg>no Q range</div>
+      <div class="r"><svg width="12" height="12" aria-hidden="true"><rect x="1" y="1" width="10" height="10" fill="var(--sh-rea)"/></svg>reactor in service
+        <svg width="12" height="12" aria-hidden="true"><rect x="1" y="1" width="10" height="10" fill="var(--sh-cap)"/></svg>capacitor in service; label is MVAr now</div>
+      <div class="r" id="legC" hidden><span class="sw" style="background:var(--c0)"></span><span id="legC0"></span>
+        <span class="sw" style="background:var(--c1)"></span><span id="legC1"></span>
+        <span class="sw" style="background:var(--c2)"></span><span id="legC2"></span>
+        <span class="sw" style="background:var(--c3)"></span><span id="legC3"></span></div>
+    </section>
+  </aside>
+</div>
+
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script>
+(() => {
+const D = JSON.parse(document.getElementById('data').textContent);
+const NS = 'http://www.w3.org/2000/svg';
+const $ = id => document.getElementById(id);
+const fmt = (x, d = 1) => (x == null || isNaN(x)) ? '–' : Number(x).toFixed(d);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ls = {get: k => { try { return localStorage.getItem('vmap.' + k); } catch (e) { return null; } },
+            set: (k, v) => { try { localStorage.setItem('vmap.' + k, v); } catch (e) {} }};
+const SCES = D.scenarios, SETS = D.sets, AREAS = D.areas, BAND = D.band;
+const SCE = new Map(SCES.map(s => [s.key, s]));
+const BASE = SETS[0].key, SETL = new Map(SETS.map(s => [s.key, s.label]));
+const HI = BAND.hi, LO = BAND.lo, WARM = HI - 0.02, CRIT = HI + 0.02;
+document.title = D.title; $('title').textContent = D.title;
+$('legV').innerHTML = `<span class="dot" style="background:var(--v-low);border-color:transparent"></span>&lt;${LO}`
+  + ` <span class="dot" style="background:var(--v-ok)"></span>${LO}–${WARM.toFixed(2)}`
+  + ` <span class="dot" style="background:var(--v-warm);border-color:transparent"></span>${WARM.toFixed(2)}–${HI}`
+  + ` <span class="dot" style="background:var(--v-hot);border-color:transparent"></span>${HI}–${CRIT.toFixed(2)}`
+  + ` <span class="dot" style="background:var(--v-crit);border-color:transparent"></span>&gt;${CRIT.toFixed(2)} pu (highest network bus)`;
+$('hiH').textContent = `Highest network buses (≥${D.min_net_kv} kV)`;
+
+// ---------- static model
+const S = new Map(D.subs.map(s => [s.id, Object.assign(s, {buses: [], gens: [], shunts: [], links: [], intra: []})]));
+const B = new Map(); D.buses.forEach((b, i) => { b.i = i; B.set(b.num, b); S.get(b.sub).buses.push(b); });
+D.branches.forEach((b, i) => { b.i = i; });
+D.gens.forEach((g, i) => { g.i = i; const b = B.get(g.bus); if (b) S.get(b.sub).gens.push(g); });
+D.shunts.forEach((h, i) => { h.i = i; const b = B.get(h.bus); if (b) S.get(b.sub).shunts.push(h); });
+for (const s of S.values()) s.maxKv = Math.max(0, ...s.buses.map(b => b.kv));
+const pairs = new Map();
+for (const br of D.branches) {
+  if (br.sf === br.st) { S.get(br.sf).intra.push(br); continue; }
+  const a = Math.min(br.sf, br.st), c = Math.max(br.sf, br.st), k = a + '-' + c;
+  if (!pairs.has(k)) pairs.set(k, {a, c, ckts: [], kv: 0});
+  const p = pairs.get(k); p.ckts.push(br); p.kv = Math.max(p.kv, br.kv);
+}
+const P = [...pairs.values()];
+for (const p of P) { S.get(p.a).links.push(p); S.get(p.c).links.push(p); }
+
+// ---------- projection (equirectangular, corrected at the mean latitude), miles
+const GEO = D.subs.filter(s => s.lat != null && s.lon != null);   // a substation with no coordinates is not drawn
+const lat0 = GEO.reduce((t, s) => t + s.lat, 0) / Math.max(1, GEO.length) * Math.PI / 180;
+for (const s of S.values()) { s.x = s.lon * 69.17 * Math.cos(lat0); s.y = -s.lat * 69.17; }
+
+// ---------- state
+const firstArea = Object.keys(AREAS)[0];
+const st = {area: ls.get('area') || firstArea, sce: ls.get('sce') || SCES[0].key, set: BASE,
+            lmode: 'kv', devs: true, sel: null, k: 1, tx: 0, ty: 0};
+if (!AREAS[st.area]) st.area = firstArea;
+if (!SCE.has(st.sce)) st.sce = SCES[0].key;
+st.hops = AREAS[st.area].default_hops;
+const cur = () => D.states[st.set + '|' + st.sce];
+const base = () => D.states[BASE + '|' + st.sce];
+const hopOf = s => AREAS[st.area].hop[s.id];
+const kvClass = kv => kv >= 700 ? 765 : kv >= 300 ? 345 : kv >= 100 ? 138 : 69;
+st.layer = 'all'; st.focus = null; st.fhops = 2; let FH = null;
+const inLayer = b => b.kv >= 60 && (st.layer === 'all' || kvClass(b.kv) === st.layer);
+const subInLayer = s => s.buses.some(inLayer);
+const inArea = s => { const h = hopOf(s); return h != null && h <= st.hops; };
+const vis = s => inArea(s) && subInLayer(s) && (!FH || FH.has(s.id));
+const pairInLayer = p => st.layer === 'all' || p.kc === st.layer;
+function setFocus(id, h) {
+  st.focus = id; st.fhops = h || st.fhops; FH = null;
+  if (id != null) { FH = new Map([[id, 0]]); let fr = [id];
+    for (let d = 1; d <= st.fhops; d++) { const nx = []; for (const x of fr) for (const p of S.get(x).links) { const o = p.a === x ? p.c : p.a; if (!FH.has(o)) { FH.set(o, d); nx.push(o); } } fr = nx; } }
+  $('banner').hidden = id == null;
+  if (id != null) $('bannerTx').textContent = `${S.get(id).name} and everything within ${st.fhops} hop${st.fhops > 1 ? 's' : ''}`;
+}
+const kvColor = {765: 'var(--kv765)', 345: 'var(--kv345)', 138: 'var(--kv138)', 69: 'var(--kv69)'};
+const kvWidth = {765: 3.2, 345: 2.3, 138: 1.5, 69: 0.9};
+
+// ---------- measured designs (optional): overlay voltages for an outage and/or a candidate
+const DZ = D.designs || null;
+const AIDX = new Map(); if (DZ) DZ.area_idx.forEach((bi, k) => AIDX.set(bi, k));
+const OUTN = DZ ? Object.fromEntries([['n0', 'N-0 (nothing out)']].concat(DZ.outages.map(o => [o.key, o.label]))) : {};
+st.outage = 'n0'; st.mode = 'before'; st.cand = null;
+const desActive = () => !!DZ && st.area === DZ.area;
+function overlay() {
+  if (!desActive() || st.set !== BASE) return null;
+  const di = st.mode === 'after' && st.cand ? st.cand : 0;
+  if (di === 0 && st.outage === 'n0') return null;
+  const r = DZ.res[st.sce] && DZ.res[st.sce][di];
+  return r && r.v && r.v[st.outage] ? r.v[st.outage] : 'unsolved';   // never show as-built voltages under an outage label
+}
+const V = b => { const o = overlay(); if (o) { const k = AIDX.get(b.i); if (k != null) return o === 'unsolved' ? null : o[k]; } const x = cur().v[b.i]; return x == null ? null : x; };
+function islandedSub(s) { const o = overlay(); if (!o || o === 'unsolved') return false; const nb = s.buses.filter(b => b.kv >= 60 && AIDX.has(b.i)); return nb.length > 0 && nb.every(b => V(b) == null); }
+const EXCL = new RegExp('^(' + D.exclude_prefixes.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')');
+const netBus = b => b.kv >= D.min_net_kv && !(D.exclude_prefixes.length && EXCL.test(b.name));
+function subHiV(s) { let m = null; for (const b of s.buses) { if (!netBus(b) || !inLayer(b)) continue; const v = V(b); if (v != null && (m == null || v > m)) m = v; } return m; }
+function subLoV(s) { let m = null; for (const b of s.buses) { if (!netBus(b) || !inLayer(b)) continue; const v = V(b); if (v != null && (m == null || v < m)) m = v; } return m; }
+const vFill = (hi, lo) => lo != null && lo < LO ? 'var(--v-low)' : hi == null ? 'var(--grid)' : hi > CRIT ? 'var(--v-crit)' : hi > HI ? 'var(--v-hot)' : hi > WARM ? 'var(--v-warm)' : 'var(--v-ok)';
+function brState(br) { const r = cur().br[br.i]; return r ? {on: !!r[0], mw: r[1], qf: r[2], qt: r[3], pct: r[4]} : {on: false}; }
+function charging(br) { if (br.xf || br.w) return 0; const f = B.get(br.f), t = B.get(br.t); const vf = V(f) || 1, vt = V(t) || 1; return br.b / 2 * (vf * vf + vt * vt) * 100; }
+function genState(g) { const r = cur().gen[g.i]; return r ? {on: !!r[0], mw: r[1], q: r[2], vs: r[3]} : {on: false}; }
+function shState(h) { const r = cur().sh[h.i]; return r ? {on: !!r[0], q: r[1], lo: r[2], hi: r[3]} : {on: false}; }
+function qClass(g, gs) {
+  if (!gs.on) return null;
+  if (Math.abs(g.qmax - g.qmin) < 0.5) return 'zero';
+  if (gs.q <= g.qmin + 1) return 'pin';
+  return gs.q > 1 ? 'inj' : 'room';
+}
+const qColor = {pin: 'var(--q-pin)', room: 'var(--q-room)', inj: 'var(--q-inj)', zero: 'var(--q-zero)'};
+
+// ---------- build SVG once
+const gE = $('gEdges'), gH = $('gHi'), gN = $('gNodes'), gD = $('gDev'), gL = $('gLabels');
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; };
+for (const p of P.sort((u, v) => u.kv - v.kv)) {
+  const a = S.get(p.a), c = S.get(p.c); p.kc = kvClass(p.kv);
+  p.line = el('line', {x1: a.x, y1: a.y, x2: c.x, y2: c.y, 'stroke-width': kvWidth[p.kc] + (p.ckts.length > 1 ? 0.8 : 0), 'vector-effect': 'non-scaling-stroke', 'stroke-linecap': 'round'}, gE);
+  p.hit = el('line', {x1: a.x, y1: a.y, x2: c.x, y2: c.y, stroke: 'transparent', 'stroke-width': 10, 'vector-effect': 'non-scaling-stroke'}, gE);
+  p.hit.style.cursor = 'pointer';
+  p.hit.addEventListener('click', ev => { ev.stopPropagation(); select({type: 'pair', p}); });
+  p.hit.addEventListener('pointermove', ev => { const ch = p.ckts.reduce((t, b) => t + charging(b), 0);
+    tip(ev, `<b>${esc(a.name)} – ${esc(c.name)}</b><div class="m">${p.ckts.length} ckt · ${fmt(p.kv, 0)} kV · ${fmt(p.ckts[0].mi)} mi</div><div class="m">charging ${fmt(ch)} MVAr · X ${fmt(Math.min(...p.ckts.map(b => b.x)), 4)} pu</div>`); });
+  p.hit.addEventListener('pointerleave', untip);
+}
+const SEEDSUBS = new Set(); for (const a of Object.values(AREAS)) a.roots.forEach(r => SEEDSUBS.add(r));
+for (const s of [...S.values()].sort((u, v) => u.maxKv - v.maxKv)) {
+  s.dot = el('circle', {cx: s.x, cy: s.y, r: 1, 'stroke-width': 0.8, 'vector-effect': 'non-scaling-stroke'}, gN);
+  s.dot.style.cursor = 'pointer';
+  s.dot.addEventListener('click', ev => { ev.stopPropagation(); select({type: 'sub', s}); });
+  s.dot.addEventListener('pointermove', ev => { const hi = subHiV(s), lo = subLoV(s);
+    tip(ev, `<b>${esc(s.name)}</b><div class="m">hop ${hopOf(s) ?? '–'} · ${[...new Set(s.buses.filter(b => b.kv >= 60).map(b => b.kv.toFixed(0)))].join('/')} kV</div><div class="m">V ${lo == null ? '–' : lo.toFixed(4)} to ${hi == null ? '–' : hi.toFixed(4)} pu</div>`); });
+  s.dot.addEventListener('pointerleave', untip);
+  s.lbl = el('text', {class: 'lbl'}, gL); s.lbl.textContent = s.name;
+}
+
+// ---------- render
+let colorScale = null;
+function lineColor(p) {
+  if (st.lmode === 'kv') return kvColor[p.kc];
+  const val = st.lmode === 'chg' ? p.ckts.reduce((t, b) => t + charging(b), 0) : Math.min(...p.ckts.map(b => b.x));
+  const [t1, t2, t3] = colorScale;
+  if (st.lmode === 'chg') return val >= t3 ? 'var(--c3)' : val >= t2 ? 'var(--c2)' : val >= t1 ? 'var(--c1)' : 'var(--c0)';
+  return val <= t1 ? 'var(--c3)' : val <= t2 ? 'var(--c2)' : val <= t3 ? 'var(--c1)' : 'var(--c0)';
+}
+function render() {
+  if (st.lmode === 'chg') colorScale = [5, 20, 50];
+  else if (st.lmode === 'x') colorScale = [0.005, 0.02, 0.06];
+  $('legC').hidden = st.lmode === 'kv';
+  if (st.lmode === 'chg') { ['< 5', '5–20', '20–50', '≥ 50 MVAr'].forEach((t, i) => $('legC' + i).textContent = t); }
+  if (st.lmode === 'x') { ['> 0.06', '0.02–0.06', '0.005–0.02', '≤ 0.005 pu X'].forEach((t, i) => $('legC' + i).textContent = t); }
+  for (const p of P) {
+    const on = vis(S.get(p.a)) && vis(S.get(p.c)) && pairInLayer(p) && p.ckts.some(b => brState(b).on);
+    p.line.style.display = p.hit.style.display = on ? '' : 'none';
+    if (on) { p.line.setAttribute('stroke', lineColor(p)); p.line.setAttribute('opacity', st.lmode === 'kv' ? 0.85 : 1); }
+  }
+  for (const s of S.values()) {
+    const on = vis(s); s.dot.style.display = on ? '' : 'none';
+    const hi = subHiV(s), lo = subLoV(s);
+    s.dot.setAttribute('fill', vFill(hi, lo));
+    s.dot.setAttribute('stroke', (hi != null && hi > WARM) || (lo != null && lo < LO) ? 'transparent' : 'var(--v-ok-edge)');
+    const show = on && (SEEDSUBS.has(s.id) || (hi != null && hi > HI) || (lo != null && lo < LO) || (FH ? FH.get(s.id) <= 1 : hopOf(s) <= 1) || (st.sel && st.sel.type === 'sub' && st.sel.s === s));
+    s.lbl.style.display = show ? '' : 'none';
+  }
+  drawDevices();
+  gH.replaceChildren();
+  for (const s of S.values()) s._sel = null;
+  if (st.sel && st.sel.type === 'sub') { const s = st.sel.s; s._sel = el('circle', {cx: s.x, cy: s.y, r: 1, fill: 'none', stroke: 'var(--sel)', 'stroke-width': 2.2, 'vector-effect': 'non-scaling-stroke'}, gH); }
+  if (st.sel && st.sel.type === 'pair') { const p = st.sel.p, a = S.get(p.a), c = S.get(p.c);
+    el('line', {x1: a.x, y1: a.y, x2: c.x, y2: c.y, stroke: 'var(--sel)', 'stroke-width': 8, opacity: .35, 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none'}, gH); }
+  drawDesignLayer();
+  $('hopsv').textContent = st.hops;
+  sizeMarks();
+  panel();
+}
+function drawDesignLayer() {
+  const g = $('gCand'); g.replaceChildren();
+  for (const s of S.values()) { s._isl = null; s._il = null; s._dev2 = null; s._dl = null; }
+  if (!desActive() || st.set !== BASE) return;
+  if (st.outage !== 'n0') { const o = DZ.outages.find(x => x.key === st.outage), fb = B.get(o.f), tb = B.get(o.t);
+    if (fb && tb) { const a = S.get(fb.sub), c = S.get(tb.sub);
+      const p = pairs.get(Math.min(a.id, c.id) + '-' + Math.max(a.id, c.id)); if (p && p.ckts.length === 1) { p.line.style.display = 'none'; }
+      el('line', {x1: a.x, y1: a.y, x2: c.x, y2: c.y, stroke: 'var(--ink-3)', 'stroke-width': 2.2, 'stroke-dasharray': '5 4', 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none'}, g); } }
+  for (const s of S.values()) if (vis(s) && islandedSub(s)) {
+    s._isl = el('circle', {cx: s.x, cy: s.y, r: 1, fill: 'var(--v-crit)', 'fill-opacity': .12, stroke: 'var(--v-crit)', 'stroke-width': 1.6, 'stroke-dasharray': '4 3', 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none'}, g);
+    s._il = el('text', {class: 'isllbl'}, g); s._il.textContent = 'ISLANDED'; s.dot.setAttribute('fill', 'var(--panel)'); s.dot.setAttribute('stroke', 'var(--v-crit)'); }
+  if (!st.cand) return;
+  const d = DZ.candidates[st.cand], after = st.mode === 'after', col = after ? 'var(--new)' : 'var(--sel)';
+  if (d.kind === 'shunt' && B.get(d.bus)) { const s = S.get(B.get(d.bus).sub);
+    s._dev2 = el('rect', {fill: 'none', stroke: col, 'stroke-width': 2.4, 'stroke-dasharray': after ? null : '4 3', 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none'}, g);
+    s._dl = el('text', {class: 'lbl cl'}, g); s._dl.style.fill = col;
+    s._dl.textContent = `${after ? 'NEW ' : 'proposed '}${d.mvar < 0 ? -d.mvar + ' MVAr reactor' : d.mvar + ' MVAr capacitor'}`; }
+  if (d.kind === 'line' && S.get(d.fid) && S.get(d.tid)) {
+    const a = S.get(d.fid), c = S.get(d.tid), r = DZ.res[st.sce][st.cand];
+    if (after) el('line', {x1: a.x, y1: a.y, x2: c.x, y2: c.y, stroke: 'var(--new)', 'stroke-width': 9, opacity: .22, 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none'}, g);
+    el('line', {x1: a.x, y1: a.y, x2: c.x, y2: c.y, stroke: col, 'stroke-width': after ? 3.6 : 2.4, 'stroke-dasharray': after ? null : '6 4', 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none'}, g);
+    const tx = el('text', {class: 'lbl cl', x: (a.x + c.x) / 2, y: (a.y + c.y) / 2}, g); tx.style.fill = col;
+    const nl = r && r.new_line; tx.textContent = after ? `NEW ${fmt(d.kv, 0)} kV · ${fmt(d.mi)} mi${nl ? ` · ${fmt(nl.mw, 0)} MW · ${fmt(nl.pct, 0)}%` : ''}` : `proposed ${fmt(d.kv, 0)} kV · ${fmt(d.mi)} mi`; }
+}
+function drawDevices() {
+  gD.replaceChildren();
+  for (const s of S.values()) { s._dev = []; s._ql = null; }
+  if (!st.devs) return;
+  for (const s of S.values()) {
+    if (!vis(s)) continue;
+    let gi = 0;
+    for (const g of s.gens) { const gs = genState(g), qc = qClass(g, gs); if (!qc) continue;
+      const t = el('path', {fill: qc === 'zero' ? 'none' : qColor[qc], stroke: qc === 'zero' ? 'var(--q-zero)' : 'var(--halo)', 'stroke-width': 0.8, 'vector-effect': 'non-scaling-stroke'}, gD);
+      t.style.cursor = 'pointer'; t.addEventListener('click', ev => { ev.stopPropagation(); select({type: 'sub', s}); });
+      t.addEventListener('pointermove', ev => tip(ev, `<b>Gen ${g.bus} #${esc(g.id)}</b> <span class="m">${esc(g.fuel)}</span><div class="m">Q ${fmt(gs.q)} MVAr in [${fmt(g.qmin, 0)}, ${fmt(g.qmax, 0)}] · Vset ${fmt(gs.vs, 3)}</div><div class="m">${qc === 'pin' ? 'pinned at absorbing limit' : qc === 'room' ? 'room ' + fmt(gs.q - g.qmin, 0) + ' MVAr' : qc === 'inj' ? 'injecting' : 'no Q range'}</div>`));
+      t.addEventListener('pointerleave', untip);
+      s._dev.push({kind: 'gen', node: t, n: gi++, q: gs.q});
+    }
+    let hi = 0;
+    for (const h of s.shunts) { const hs = shState(h); if (!hs.on || Math.abs(hs.q) < 0.5) continue;
+      const r = el('rect', {fill: hs.q < 0 ? 'var(--sh-rea)' : 'var(--sh-cap)', stroke: 'var(--halo)', 'stroke-width': 0.8, 'vector-effect': 'non-scaling-stroke'}, gD);
+      r.style.cursor = 'pointer'; r.addEventListener('click', ev => { ev.stopPropagation(); select({type: 'sub', s}); });
+      r.addEventListener('pointermove', ev => tip(ev, `<b>Shunt ${h.bus} #${esc(h.id)}</b> <span class="m">${esc(h.mode)}</span><div class="m">${fmt(hs.q)} MVAr of [${fmt(h.qmin, 0)}, ${fmt(h.qmax, 0)}] · band ${fmt(hs.lo, 3)}–${fmt(hs.hi, 3)}</div>`));
+      r.addEventListener('pointerleave', untip);
+      s._dev.push({kind: 'sh', node: r, n: hi++, q: hs.q});
+    }
+    const tot = s._dev.reduce((t, d) => t + d.q, 0);
+    if (s._dev.length && Math.abs(tot) >= 20) { s._ql = el('text', {class: 'qlbl'}, gD); s._ql.textContent = (tot > 0 ? '+' : '') + tot.toFixed(0);
+      s._ql.style.fill = tot < 0 ? 'var(--q-room)' : 'var(--q-inj)'; }
+  }
+}
+function sizeMarks() {
+  const k = st.k;
+  for (const s of S.values()) {
+    if (s.dot.style.display === 'none') continue;
+    const r = (s.maxKv >= 700 ? 5.5 : s.maxKv >= 300 ? 4.4 : s.maxKv >= 100 ? 3.4 : 2.6) / k;
+    s.dot.setAttribute('r', r);
+    s.lbl.setAttribute('x', s.x + r + 3 / k); s.lbl.setAttribute('y', s.y - r - 1 / k); s.lbl.style.fontSize = (11 / k) + 'px'; s.lbl.style.strokeWidth = (3.2 / k) + 'px';
+    if (s._sel) s._sel.setAttribute('r', r + 4.5 / k);
+    if (s._isl) s._isl.setAttribute('r', r + 8 / k);
+    if (s._dev2) { const h = r + 7 / k; s._dev2.setAttribute('x', s.x - h); s._dev2.setAttribute('y', s.y - h); s._dev2.setAttribute('width', 2 * h); s._dev2.setAttribute('height', 2 * h);
+      s._dl.setAttribute('x', s.x + h + 3 / k); s._dl.setAttribute('y', s.y + h + 11 / k); }
+    if (s._il) { s._il.setAttribute('x', s.x - 22 / k); s._il.setAttribute('y', s.y - r - 11 / k); s._il.style.fontSize = (10 / k) + 'px'; s._il.style.strokeWidth = (3 / k) + 'px'; }
+    if (s._dev && st.devs) {
+      const u = 4.2 / k;
+      for (const d of s._dev) {
+        if (d.kind === 'gen') { const cx = s.x - r - u * (1.3 + 2.1 * d.n), cy = s.y + r + u * 0.4;
+          d.node.setAttribute('d', `M${cx} ${cy - u} L${cx + u} ${cy + u} L${cx - u} ${cy + u} Z`); }
+        else { const cx = s.x + r + u * (1.3 + 2.1 * d.n), cy = s.y + r + u * 0.4;
+          d.node.setAttribute('x', cx - u * .85); d.node.setAttribute('y', cy - u * .85); d.node.setAttribute('width', u * 1.7); d.node.setAttribute('height', u * 1.7); }
+      }
+      if (s._ql) { s._ql.setAttribute('x', s.x + r + 3 / k); s._ql.setAttribute('y', s.y + r + 12 / k); s._ql.style.fontSize = (10 / k) + 'px'; s._ql.style.strokeWidth = (3 / k) + 'px'; }
+    }
+  }
+  document.querySelectorAll('#gCand text.cl').forEach(tx => { tx.style.fontSize = (11.5 / k) + 'px'; tx.style.strokeWidth = (3.2 / k) + 'px'; });
+  $('world').setAttribute('transform', `translate(${st.tx} ${st.ty}) scale(${k})`);
+  const target = 90 / k, steps = [1, 2, 5, 10, 20, 25, 50, 100, 200];
+  const mi = steps.reduce((b, x) => Math.abs(x - target) < Math.abs(b - target) ? x : b, 1);
+  $('scale').innerHTML = `<span style="display:inline-block;width:${mi * k}px;border-bottom:2px solid var(--ink-2);height:6px;vertical-align:middle;margin-right:6px"></span>${mi} mi`;
+}
+
+// ---------- panel
+function inside() {
+  const subs = [...S.values()].filter(vis), ids = new Set(subs.map(s => s.id));
+  const brs = D.branches.filter(b => ids.has(b.sf) && ids.has(b.st) && brState(b).on);
+  const gens = subs.flatMap(s => s.gens).map(g => ({g, gs: genState(g)})).filter(x => x.gs.on);
+  const shs = subs.flatMap(s => s.shunts).map(h => ({h, hs: shState(h)})).filter(x => x.hs.on);
+  return {subs, ids, brs, gens, shs};
+}
+function panel() {
+  renderProblems();
+  renderDesigns();
+  const A = AREAS[st.area], I = inside();
+  $('subtitle').textContent = `${A.title} · ${SCE.get(st.sce).label} · ${SETL.get(st.set)} · ${I.subs.length} substations within ${st.hops} hops`;
+  const netBuses = I.subs.flatMap(s => s.buses).filter(netBus);
+  const over = netBuses.filter(b => V(b) > HI), under = netBuses.filter(b => V(b) != null && V(b) < LO);
+  const vmax = Math.max(...netBuses.map(b => V(b) || 0));
+  const pinned = I.gens.filter(x => qClass(x.g, x.gs) === 'pin').length;
+  $('kpis').innerHTML = [[over.length, `network buses over ${HI}`, over.length > 0], [fmt(vmax, 4), 'highest network V', vmax > HI],
+    [`${pinned}/${I.gens.length}`, 'generators pinned absorbing', pinned > I.gens.length / 2]]
+    .map(([n, l, bad]) => `<div class="kpi${bad ? ' bad' : ''}"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+  $('kpinote').textContent = under.length ? `${under.length} network bus(es) under ${LO} in this radius.` : `No network bus under ${LO} in this radius.`;
+  const chg = I.brs.reduce((t, b) => t + charging(b), 0);
+  const gAbs = I.gens.reduce((t, x) => t + Math.min(0, x.gs.q), 0), gInj = I.gens.reduce((t, x) => t + Math.max(0, x.gs.q), 0);
+  const gRoom = I.gens.reduce((t, x) => t + Math.max(0, x.gs.q - x.g.qmin), 0);
+  const rea = I.shs.filter(x => x.hs.q < 0), cap = I.shs.filter(x => x.hs.q > 0);
+  const reaQ = rea.reduce((t, x) => t + x.hs.q, 0), capQ = cap.reduce((t, x) => t + x.hs.q, 0);
+  const reaRoom = I.shs.reduce((t, x) => t + Math.max(0, x.hs.q - x.h.qmin), 0);
+  let ldQ = 0; for (const s of I.subs) for (const b of s.buses) { const l = cur().load[b.i]; if (l) ldQ += l[1]; }
+  const rows = [['hd', 'Sources (MVAr into the grid)', ''],
+    ['', 'Line charging', fmt(chg, 0)], ['', 'Capacitors in service', fmt(capQ, 0)], ['', 'Generators injecting', fmt(gInj, 0)],
+    ['hd', 'Sinks (MVAr out of the grid)', ''],
+    ['', 'Generators absorbing', fmt(-gAbs, 0)], ['', 'Reactors in service', fmt(-reaQ, 0)], ['', 'Load', fmt(ldQ, 0)],
+    ['', 'Remainder: line I²X losses and flow out of the radius', fmt(chg + capQ + gInj + gAbs + reaQ - ldQ, 0)],
+    ['hd', 'Room left to absorb more', ''],
+    ['', `Generators (${I.gens.length - pinned} not pinned)`, fmt(gRoom, 0)], ['', 'Switched shunts (reactors not at full, capacitors that could back off)', fmt(reaRoom, 0)]];
+  $('bal').innerHTML = rows.map(([c, a, b]) => c === 'hd' ? `<div class="hd">${a}</div><div class="hd"></div>` : `<div>${a}</div><div class="v">${b}</div>`).join('');
+  const hb = netBuses.slice().sort((u, v) => (V(v) || 0) - (V(u) || 0)).slice(0, 10);
+  $('hiList').innerHTML = hb.map(b => { const v0 = base().v[b.i], v = V(b);
+    return `<div class="row" role="button" tabindex="0" data-sub="${b.sub}"><span>${esc(b.name)}</span><span class="x">${fmt(v, 4)}</span>`
+      + `<span class="d">${fmt(b.kv, 0)} kV · hop ${hopOf(S.get(b.sub))}${st.set !== BASE ? ' · ' + esc(SETL.get(BASE)) + ' ' + fmt(v0, 4) : ''}</span></div>`; }).join('');
+  const gl = I.gens.slice().sort((u, v) => Math.abs(v.gs.q) - Math.abs(u.gs.q)).slice(0, 12);
+  $('genList').innerHTML = gl.map(({g, gs}) => { const qc = qClass(g, gs), b0 = base().gen[g.i];
+    const dv = b0 ? gs.vs - b0[3] : 0; const reg = B.get(g.reg);
+    return `<div class="row" role="button" tabindex="0" data-sub="${B.get(g.bus).sub}"><span>${esc(S.get(B.get(g.bus).sub).name)} #${esc(g.id)} <span class="chip${qc === 'pin' ? ' pin' : qc === 'room' ? ' room' : ''}">${qc === 'pin' ? 'pinned' : qc === 'room' ? 'room ' + fmt(gs.q - g.qmin, 0) : qc === 'inj' ? 'injecting' : 'no Q'}</span></span>`
+      + `<span class="x">${fmt(gs.q, 0)} MVAr</span><span class="d">${esc(g.fuel)} · ${fmt(gs.mw, 0)} MW · Q [${fmt(g.qmin, 0)}, ${fmt(g.qmax, 0)}] · Vset ${fmt(gs.vs, 3)}${Math.abs(dv) > 1e-4 ? ' (' + (dv > 0 ? '+' : '') + dv.toFixed(3) + ')' : ''} at ${reg ? esc(reg.name) : g.reg}</span></div>`; }).join('');
+  const cl = I.brs.filter(b => !b.xf && !b.w).map(b => ({b, q: charging(b)})).sort((u, v) => v.q - u.q).slice(0, 10);
+  $('chgList').innerHTML = cl.map(({b, q}) => { const p = pairs.get(Math.min(b.sf, b.st) + '-' + Math.max(b.sf, b.st));
+    return `<div class="row" role="button" tabindex="0" data-pair="${p ? p.a + '-' + p.c : ''}"><span>${esc(S.get(b.sf).name)} – ${esc(S.get(b.st).name)}</span><span class="x">${fmt(q, 0)} MVAr</span>`
+      + `<span class="d">${fmt(b.kv, 0)} kV · ${fmt(b.mi)} mi · B ${fmt(b.b, 3)} · X ${fmt(b.x, 4)} pu · ${fmt(brState(b).mw, 0)} MW</span></div>`; }).join('');
+  document.querySelectorAll('.row[data-sub]').forEach(r => { const go = () => { const s = S.get(+r.dataset.sub); select({type: 'sub', s}); center(s); };
+    r.onclick = go; r.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }; });
+  document.querySelectorAll('.row[data-pair]').forEach(r => { const go = () => { const p = pairs.get(r.dataset.pair); if (p) select({type: 'pair', p}); };
+    r.onclick = go; r.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }; });
+  showDetails();
+}
+// ---------- problems: every network bus in the area outside the band, worst first
+st.pi = -1;
+function problems() {
+  const out = [];
+  for (const s of S.values()) { const h = hopOf(s); if (h == null) continue;
+    for (const b of s.buses) { if (!netBus(b)) continue; const v = V(b); if (v == null) continue;
+      if (v > HI) out.push({b, s, v, sev: v - HI, kind: 'high'}); else if (v < LO) out.push({b, s, v, sev: LO - v, kind: 'low'}); } }
+  return out.sort((u, w) => w.sev - u.sev);
+}
+function renderProblems() {
+  const pr = problems(); st.plist = pr;
+  $('probList').innerHTML = pr.length ? pr.map((p, i) => `<button type="button" class="prob${i === st.pi ? ' on' : ''}" data-pi="${i}">`
+    + `<span class="sev" style="background:${p.kind === 'low' ? 'var(--v-low)' : p.v > CRIT ? 'var(--v-crit)' : 'var(--v-hot)'}"></span>`
+    + `<span>${esc(p.b.name)}</span><span class="x">${p.v.toFixed(4)}</span>`
+    + `<span class="d">${fmt(p.b.kv, 0)} kV · ${esc(p.s.name)} · hop ${hopOf(p.s)} · ${p.kind === 'high' ? '+' + (p.v - HI).toFixed(4) + ' over ' + HI : (LO - p.v).toFixed(4) + ' under ' + LO}</span></button>`).join('')
+    : `<div class="empty">No network bus outside ${LO}–${HI} in this area for this dispatch and state.</div>`;
+  $('probNote').textContent = pr.length ? `${pr.length} bus${pr.length > 1 ? 'es' : ''} in ${pr.reduce((a, p) => a.add(p.s.id), new Set()).size} substation(s). Network buses ≥${D.min_net_kv} kV only; ${D.exclude_prefixes.length ? 'names starting ' + D.exclude_prefixes.join(', ') + ' are left out.' : ''}` : '';
+  document.querySelectorAll('.prob').forEach(r => r.onclick = () => goProblem(+r.dataset.pi));
+}
+function goProblem(i) {
+  const pr = st.plist || problems(); if (!pr.length) return;
+  st.pi = ((i % pr.length) + pr.length) % pr.length;
+  const p = pr[st.pi];
+  if (!subInLayer(p.s) || !inLayer(p.b)) { st.layer = 'all'; syncSeg('segKv', 'all'); }
+  if (hopOf(p.s) > st.hops) { st.hops = hopOf(p.s); $('hops').value = st.hops; }
+  if (FH && !FH.has(p.s.id)) setFocus(null);
+  st.sel = {type: 'sub', s: p.s}; render(); zoomTo(p.s);
+}
+function zoomTo(s) {
+  const ids = [s.id]; for (const p of s.links) { const o = p.a === s.id ? p.c : p.a; if (vis(S.get(o))) ids.push(o); }
+  fit(ids, 90); if (st.k > 30) { st.k = 30; center(s); }
+}
+
+// ---------- measured designs: outage and mode switches, as-built vs with-design bars, ranked list, choose
+let DB = null; st.chosen = null; st.pickMsg = '';
+const DOC = DZ ? 'choice/design_' + DZ.area : null;
+(async () => { try { DB = window.claude && window.claude.use ? await window.claude.use('db') : null; } catch (e) { DB = null; }
+  if (DB && DOC) { try { DB.doc(DOC).onSnapshot(s => { st.chosen = s.exists ? s.data() : null; renderDesigns(); }, () => {}); } catch (e) {} } })();
+// the watched value that is furthest outside its band, and by how much
+function watchOf(o, post) {
+  if (!o || !o.solved || o.watch == null) return null;
+  const hi = post ? BAND.post_hi : HI, lo = post ? BAND.post_lo : LO;
+  const up = o.watch - hi, dn = lo - o.watch_min;
+  return up >= dn ? {v: o.watch, ex: up, lim: hi} : {v: o.watch_min, ex: dn, lim: lo};
+}
+function desStats(di, sce) {
+  const r = DZ.res[sce] && DZ.res[sce][di]; if (!r || r.error || !r.n0) return null;
+  const outs = DZ.outages.map(o => r[o.key] || {});
+  const n0 = watchOf(r.n0, false), post = outs.map(o => watchOf(o, true)).filter(Boolean);
+  return {nout: r.n0.n_out, w: n0 ? n0.v : null, isl: outs.reduce((t, o) => t + ((o.islanded || []).length), 0),
+          pw: post.length ? post.reduce((a, b) => b.ex > a.ex ? b : a).v : null, unsolved: outs.filter(o => !o.solved).length};
+}
+function renderDesigns() {
+  const sec = $('desSec'); sec.hidden = !desActive(); if (!desActive()) return;
+  $('segOut').innerHTML = Object.entries(OUTN).map(([k, t]) => `<button type="button" data-o="${k}" aria-pressed="${st.outage === k}">${esc(t)}</button>`).join('');
+  $('segOut').querySelectorAll('button').forEach(b => b.onclick = () => { st.outage = b.dataset.o; st.set = BASE; syncSeg('segSet', BASE); render(); });
+  const d = st.cand ? DZ.candidates[st.cand] : null;
+  $('segMode').innerHTML = `<button type="button" data-m="before" aria-pressed="${st.mode === 'before'}">Before (as built)</button>`
+    + `<button type="button" data-m="after" aria-pressed="${st.mode === 'after'}"${d ? '' : ' disabled'}>${d ? 'After: ' + esc(d.short) : 'After (pick a design)'}</button>`;
+  $('segMode').querySelectorAll('button').forEach(b => b.onclick = () => { if (b.disabled) return; st.mode = b.dataset.m; st.set = BASE; syncSeg('segSet', BASE); render(); });
+  const a = desStats(0, st.sce), f = st.cand ? desStats(st.cand, st.sce) : null;
+  const bar = (title, sub, av, fv, lo, hi, lim, fm, isGood) => {
+    const w = v => v == null ? 0 : Math.max(1.5, Math.min(100, (v - lo) / (hi - lo) * 100));
+    const row = (who, v) => v == null ? '' : `<div class="bar"><span class="who">${who}</span><span class="track"><span class="fill ${isGood(v) ? 'good' : 'bad'}" style="width:${w(v)}%"></span>${lim != null ? `<span class="limit" style="left:${(lim - lo) / (hi - lo) * 100}%"></span>` : ''}</span><span class="val">${fm(v)}</span></div>`;
+    return `<div class="metric"><div class="mt">${title}<small>${sub}</small></div>${row('As built', av)}${f ? row('With fix', fv) : ''}</div>`; };
+  const inBand = (v, post) => v >= (post ? BAND.post_lo : LO) && v <= (post ? BAND.post_hi : HI);
+  const vr = (lo, hi) => [Math.min(lo, 0.85), Math.max(hi, 1.15)];
+  const [a0, a1] = vr(LO, HI), [p0, p1] = vr(BAND.post_lo, BAND.post_hi);
+  $('cmp').innerHTML = !a ? '' : `<div class="note" style="margin:0">${esc(SCE.get(st.sce).label)} · ${f ? 'as built vs ' + esc(d.short) : 'pick a design below to compare'}</div>`
+    + bar('Network buses out of band', 'N-0 · whole area', a.nout, f && f.nout, 0, Math.max(4, a.nout, f ? f.nout : 0), null, v => String(v), v => v === 0)
+    + bar(`Worst ${esc(DZ.watch_label)}`, `N-0 · band ${LO}–${HI}`, a.w, f && f.w, a0, a1, a.w != null && a.w < LO ? LO : HI, v => v.toFixed(4), v => inBand(v, false))
+    + (DZ.outages.length ? bar('Islanded buses', 'summed over the outages', a.isl, f && f.isl, 0, Math.max(4, a.isl), null, v => String(v), v => v === 0)
+      + bar(`Worst ${esc(DZ.watch_label)} after an outage`, `band ${BAND.post_lo}–${BAND.post_hi}`, a.pw, f && f.pw, p0, p1, a.pw != null && a.pw < BAND.post_lo ? BAND.post_lo : BAND.post_hi, v => v.toFixed(4), v => inBand(v, true)) : '');
+  const cols = `grid-template-columns:minmax(0,74px) repeat(${SCES.length},minmax(0,1fr))`;
+  $('dList').innerHTML = DZ.rank.map((rk, n) => {
+    const di = rk.di, dd = DZ.candidates[di], on = st.cand === di;
+    let grid = '';
+    if (on) {
+      grid = `<p class="note" style="margin:6px 0 0">Worst ${esc(DZ.watch_label)} · band ${LO}–${HI} at N-0, ${BAND.post_lo}–${BAND.post_hi} after an outage · ISL = something islands</p><div class="dgrid" style="${cols}"><span></span>` + SCES.map(s => `<span class="h" title="${esc(s.label)}">${esc(s.short)}</span>`).join('')
+        + Object.keys(OUTN).map(k => `<span class="o" title="${esc(OUTN[k])}">${k === 'n0' ? 'N-0' : esc(OUTN[k])}</span>` + SCES.map(sc => {
+          const r = DZ.res[sc.key] && DZ.res[sc.key][di], o = r && !r.error ? r[k] : null, post = k !== 'n0';
+          let cls = 'na', tx = '–', tt = 'not measured';
+          if (o && !o.solved) { cls = 'fail'; tx = '×'; tt = 'does not solve'; }
+          else if (o && o.islanded && o.islanded.length) { cls = 'isl'; tx = 'ISL'; tt = 'islands ' + o.islanded.slice(0, 8).join(', '); }
+          else if (o) { const w = watchOf(o, post); if (w) { cls = w.ex <= 0 ? 'pass' : w.ex <= 0.01 ? 'soft' : 'fail'; tx = w.v.toFixed(3);
+            tt = `worst ${DZ.watch_label} ${w.v.toFixed(4)} (limit ${w.lim}) · whole area ${fmt(o.vmin, 4)}–${fmt(o.vmax, 4)}, ${o.n_out} bus(es) out of band`; } }
+          return `<button type="button" class="cell ${cls}" data-sc="${sc.key}" data-ok="${k}" title="${esc(sc.label + ' · ' + OUTN[k] + ': ' + tt)}">${tx}</button>`; }).join('')).join('') + '</div>';
+      const r0 = DZ.res[st.sce] && DZ.res[st.sce][di], nl = r0 && r0.new_line;
+      grid += `<p class="note">${dd.kind === 'line' ? `Template ${esc(dd.tmpl_name)} (${fmt(dd.tmpl_mi)} mi), impedance scaled to ${fmt(dd.mi)} mi, rating kept at ${fmt(dd.tmpl_rate, 0)} MVA. ` : ''}${nl ? `In ${esc(SCE.get(st.sce).label)} the new line carries ${fmt(nl.mw, 0)} MW and ${fmt(nl.qf, 0)} / ${fmt(nl.qt, 0)} MVAr at its ends (${fmt(nl.pct, 0)}% of rating). ` : ''}Only the listed outages were tested: a full N-1 has not been run with this design.</p>`;
+      if (DB) { const mine = st.chosen && st.chosen.design === dd.name;
+        grid += `<div class="pick"><button type="button" id="pickbtn"${mine ? ' disabled' : ''}>${mine ? 'Chosen' : 'Choose this design'}</button><span class="msg">${esc(st.pickMsg || (mine ? 'recorded ' + new Date(st.chosen.chosen_at).toLocaleString() : ''))}</span></div>`; }
+      else grid += `<p class="note">To pick this one, tell your agent its name.</p>`;
+    }
+    const chosen = st.chosen && st.chosen.design === dd.name ? ' <span class="chip room">chosen</span>' : '';
+    return `<div><button type="button" class="drow" data-di="${di}" aria-current="${on}"><span class="rk">${n + 1}</span><span class="n">${esc(dd.name)}${chosen}</span>`
+      + `<span class="d"><span class="pill ${rk.cls}">${esc(rk.verdict)}</span><br>${esc(rk.note)}</span></button>${grid}</div>`; }).join('');
+  $('dList').querySelectorAll('.drow').forEach(b => b.onclick = () => { const di = +b.dataset.di;
+    if (st.cand === di) { st.cand = null; st.mode = 'before'; } else { st.cand = di; st.mode = 'after'; }
+    st.set = BASE; syncSeg('segSet', BASE); st.pickMsg = ''; render();
+    if (st.cand) { const dd = DZ.candidates[di]; const ids = [...DZ.focus_subs]; if (dd.fid) ids.push(dd.fid, dd.tid); if (dd.bus && B.get(dd.bus)) ids.push(B.get(dd.bus).sub); fit(ids, 80); } });
+  $('dList').querySelectorAll('.cell').forEach(c => c.onclick = ev => { ev.stopPropagation(); st.sce = c.dataset.sc; syncSeg('segSce', st.sce); st.outage = c.dataset.ok; st.mode = 'after'; render(); });
+  const pb = $('pickbtn'); if (pb) pb.onclick = () => choose(DZ.candidates[st.cand]);
+  $('desNote').textContent = `Measured in memory on the ${SETL.get(BASE)} cases, every dispatch, a fresh case per design; nothing saved. Voltages on the map switch to the measured state; generator and shunt labels, the balance table and the lists stay as built.`;
+}
+async function choose(dd) {
+  if (!DB || !dd) return;
+  st.pickMsg = 'saving…'; renderDesigns();
+  try {
+    const di = DZ.candidates.indexOf(dd);
+    await DB.doc(DOC).set({design: dd.name, kind: dd.kind, kv: dd.kv || null, from_bus: dd.from_bus || null, to_bus: dd.to_bus || null,
+      bus: dd.bus || null, mvar: dd.mvar || null, miles: dd.mi || null,
+      per_scenario: SCES.map(sc => ({scenario: sc.key, ...(desStats(di, sc.key) || {})})), chosen_at: new Date().toISOString()});
+    st.pickMsg = '';
+  } catch (e) { st.pickMsg = e && e.code ? `Could not save (${e.code}). Tell your agent the design name instead.` : 'Could not save. Tell your agent the design name instead.'; }
+  renderDesigns();
+}
+
+// ---------- the substation's own one-line: bus bars by voltage, transformers between, devices below, lines fanned above
+function oneLine(s) {
+  const vc = v => v == null ? 'var(--ink-3)' : v > CRIT ? 'var(--v-crit)' : v > HI ? 'var(--v-hot)' : v < LO ? 'var(--v-low)' : v > WARM ? 'var(--warn-ink)' : 'var(--ink)';
+  const kvs = [...new Set(s.buses.map(b => b.kv))].sort((a, b) => b - a);
+  const W = 360, RH = 118, top = 56, pos = new Map();
+  kvs.forEach((kv, r) => { const row = s.buses.filter(b => b.kv === kv), n = row.length, span = (W - 24) / n;
+    row.forEach((b, i) => pos.set(b.num, {x0: 12 + i * span + 6, x1: 12 + (i + 1) * span - 6, y: top + r * RH})); });
+  const H = top + (kvs.length - 1) * RH + 64;
+  let g = '';
+  const xf = s.intra.filter(b => (b.xf || b.w) && pos.has(b.f) && pos.has(b.t));
+  xf.forEach((b, k) => { const a = pos.get(b.f), c = pos.get(b.t); const bs = brState(b);
+    const xa = a.x0 + (a.x1 - a.x0) * (0.2 + 0.12 * (k % 5)), xc = c.x0 + (c.x1 - c.x0) * (0.2 + 0.12 * (k % 5));
+    const y0 = Math.min(a.y, c.y), y1 = Math.max(a.y, c.y), ym = (y0 + y1) / 2, xm = (xa + xc) / 2;
+    g += `<path d="M${xa} ${a.y} L${xm} ${ym - 7} M${xm} ${ym + 7} L${xc} ${c.y}" stroke="var(--ink-2)" stroke-width="1.3" fill="none" opacity="${bs.on ? 1 : .35}"/>`
+      + `<circle cx="${xm}" cy="${ym - 3}" r="5" fill="none" stroke="var(--ink-2)" stroke-width="1.2"/><circle cx="${xm}" cy="${ym + 3}" r="5" fill="none" stroke="var(--ink-2)" stroke-width="1.2"/>`
+      + `<text class="oltx" x="${xm + 8}" y="${ym + 3}">X ${fmt(b.x, 4)} · ${fmt(bs.mw, 0)} MW / ${fmt(bs.qf, 0)} MVAr</text>`; });
+  for (const b of s.buses) { const p = pos.get(b.num); if (!p) continue; const v = V(b), kc = kvClass(b.kv);
+    g += `<line x1="${p.x0}" y1="${p.y}" x2="${p.x1}" y2="${p.y}" stroke="${b.kv >= 60 ? kvColor[kc] : 'var(--ink-3)'}" stroke-width="5" stroke-linecap="round"/>`
+      + `<text class="olbus" x="${p.x0}" y="${p.y + 16}">${esc(b.name)}</text>`
+      + `<text class="oltx" x="${p.x0}" y="${p.y + 28}" style="fill:${vc(v)};font-weight:600">${fmt(v, 4)} pu</text>`;
+    const outs = s.links.flatMap(pp => pp.ckts.filter(c => c.f === b.num || c.t === b.num).map(c => ({c, o: S.get(pp.a === s.id ? pp.c : pp.a)})));
+    const n = outs.length, span = (p.x1 - p.x0);
+    outs.forEach(({c, o}, i) => { const x = p.x0 + span * (n === 1 ? 0.8 : 0.45 + 0.55 * i / Math.max(1, n - 1)), ch = charging(c), bs = brState(c);
+      g += `<line x1="${x}" y1="${p.y}" x2="${x}" y2="${p.y - 14}" stroke="${kvColor[kvClass(c.kv)]}" stroke-width="1.6" opacity="${bs.on ? 1 : .35}"/>`
+        + `<text class="oltx" transform="translate(${x + 2} ${p.y - 16}) rotate(-55)"><title>${esc(o.name)} · ${fmt(c.mi)} mi · X ${fmt(c.x, 4)} · charging ${fmt(ch, 0)} MVAr · ${fmt(bs.mw, 0)} MW</title>${esc(o.name.length > 16 ? o.name.slice(0, 15) + '…' : o.name)}${ch >= 20 ? ' ' + fmt(ch, 0) + 'Mv' : ''}</text>`; });
+    let dx = p.x0 + (p.x1 - p.x0) * 0.55;
+    for (const gg of s.gens.filter(x => x.bus === b.num)) { const gs = genState(gg), qc = qClass(gg, gs); if (!gs.on) continue;
+      g += `<path d="M${dx} ${p.y + 34} L${dx + 6} ${p.y + 45} L${dx - 6} ${p.y + 45} Z" fill="${qc === 'zero' ? 'none' : qColor[qc]}" stroke="${qc === 'zero' ? 'var(--q-zero)' : 'none'}"/>`
+        + `<text class="oltx" x="${dx + 9}" y="${p.y + 44}">${esc(gg.fuel)} ${fmt(gs.q, 0)}Mv${qc === 'pin' ? ' pinned' : ''}</text>`; dx += 78; }
+    let sx = p.x0 + (p.x1 - p.x0) * 0.05;
+    for (const hh of s.shunts.filter(x => x.bus === b.num)) { const hs = shState(hh); if (!hs.on) continue;
+      g += `<rect x="${sx - 5}" y="${p.y + 36}" width="10" height="10" fill="${hs.q < 0 ? 'var(--sh-rea)' : hs.q > 0 ? 'var(--sh-cap)' : 'none'}" stroke="var(--ink-3)" stroke-width=".6"/>`
+        + `<text class="oltx" x="${sx + 8}" y="${p.y + 45}">${fmt(hs.q, 0)}Mv</text>`; sx += 52; }
+  }
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="One-line of ${esc(s.name)}">${g}</svg>`;
+}
+function select(x) { st.sel = x; render(); }
+function center(s) { const W = svg.clientWidth, H = svg.clientHeight; st.tx = W / 2 - st.k * s.x; st.ty = H / 2 - st.k * s.y; sizeMarks(); }
+function showDetails() {
+  const box = $('details');
+  if (!st.sel) { box.innerHTML = '<h2>Details</h2><div class="empty">Select a substation or a line on the map.</div>'; return; }
+  const cmpCol = st.set !== BASE;
+  if (st.sel.type === 'sub') {
+    const s = st.sel.s;
+    let h = `<h2>Substation</h2><div class="dh">${esc(s.name)}</div><div class="chips"><span class="chip">hop ${hopOf(s) ?? '–'}</span><span class="chip">${s.lat.toFixed(3)}, ${s.lon.toFixed(3)}</span></div>`;
+    h += `<div class="chips" style="align-items:center"><span style="font-size:12px;color:var(--ink-2)">Isolate its neighbourhood:</span>`
+      + [1, 2, 3].map(n => `<button type="button" class="dbtn" data-iso="${n}" aria-pressed="${st.focus === s.id && st.fhops === n}">${n} hop${n > 1 ? 's' : ''}</button>`).join('')
+      + `<button type="button" class="dbtn" id="zoomSel">Zoom here</button></div>`;
+    h += `<h2 style="margin-top:4px">Inside the substation</h2><div class="oneline">${oneLine(s)}</div>`;
+    h += `<div class="tbl"><table><tr><th>Bus</th><th>kV</th><th>V</th>${cmpCol ? `<th>V ${esc(SETL.get(BASE))}</th>` : ''}<th>Load MW / MVAr</th></tr>` + s.buses.map(b => { const l = cur().load[b.i];
+      return `<tr><td>${esc(b.name)}</td><td class="num">${fmt(b.kv, 0)}</td><td class="num">${fmt(V(b), 4)}</td>${cmpCol ? `<td class="num">${fmt(base().v[b.i], 4)}</td>` : ''}<td class="num">${l ? fmt(l[0], 0) + ' / ' + fmt(l[1], 0) : '–'}</td></tr>`; }).join('') + '</table></div>';
+    if (s.gens.length) h += `<div class="tbl"><table><tr><th>Gen</th><th>MW</th><th>Q</th><th>Q range</th><th>Vset</th><th>Regulates</th></tr>` + s.gens.map(g => { const gs = genState(g), qc = qClass(g, gs), reg = B.get(g.reg);
+      return `<tr><td>${g.bus} #${esc(g.id)} ${esc(g.fuel)}${gs.on ? '' : ' (off)'}${qc === 'pin' ? ' <span class="chip pin">pinned</span>' : ''}</td><td class="num">${fmt(gs.mw, 0)}</td><td class="num">${fmt(gs.q, 0)}</td><td class="num">${fmt(g.qmin, 0)} / ${fmt(g.qmax, 0)}</td><td class="num">${fmt(gs.vs, 3)}</td><td>${reg ? esc(reg.name) : g.reg}</td></tr>`; }).join('') + '</table></div>';
+    if (s.shunts.length) h += `<div class="tbl"><table><tr><th>Shunt</th><th>Mode</th><th>MVAr now</th><th>Range</th><th>Band</th></tr>` + s.shunts.map(x => { const hs = shState(x);
+      return `<tr><td>${x.bus} #${esc(x.id)}${hs.on ? '' : ' (open)'}</td><td>${esc(x.mode)}</td><td class="num">${fmt(hs.q, 0)}</td><td class="num">${fmt(x.qmin, 0)} / ${fmt(x.qmax, 0)}</td><td class="num">${fmt(hs.lo, 3)}–${fmt(hs.hi, 3)}</td></tr>`; }).join('') + '</table></div>';
+    h += `<div class="tbl"><table><tr><th>Line to</th><th>kV</th><th>mi</th><th>X pu</th><th>B pu</th><th>Chg MVAr</th><th>MW</th></tr>` + s.links.slice().sort((u, v) => v.kv - u.kv).map(p => {
+      const other = S.get(p.a === s.id ? p.c : p.a), b0 = p.ckts[0], mw = p.ckts.reduce((t, b) => t + (b.sf === s.id ? brState(b).mw : -brState(b).mw), 0), ch = p.ckts.reduce((t, b) => t + charging(b), 0);
+      return `<tr><td>${esc(other.name)}${p.ckts.length > 1 ? ' ×' + p.ckts.length : ''}</td><td class="num">${fmt(p.kv, 0)}</td><td class="num">${fmt(b0.mi)}</td><td class="num">${fmt(b0.x, 4)}</td><td class="num">${fmt(b0.b, 3)}</td><td class="num">${fmt(ch, 0)}</td><td class="num">${fmt(mw, 0)}</td></tr>`; }).join('') + '</table></div>';
+    const xf = s.intra.filter(b => b.xf);
+    if (xf.length) h += `<div class="tbl"><table><tr><th>Transformer</th><th>X pu</th><th>MW</th><th>MVAr</th></tr>` + xf.map(b => { const bs = brState(b);
+      return `<tr><td>${esc(B.get(b.f).name)} → ${esc(B.get(b.t).name)} #${esc(b.ckt)}</td><td class="num">${fmt(b.x, 4)}</td><td class="num">${fmt(bs.mw, 0)}</td><td class="num">${fmt(bs.qf, 0)}</td></tr>`; }).join('') + '</table></div>';
+    box.innerHTML = h;
+    box.querySelectorAll('[data-iso]').forEach(b => b.onclick = () => { const n = +b.dataset.iso;
+      if (st.focus === s.id && st.fhops === n) setFocus(null); else setFocus(s.id, n);
+      render(); fit([...S.values()].filter(vis).map(x => x.id), 60); });
+    $('zoomSel').onclick = () => zoomTo(s);
+  } else {
+    const p = st.sel.p, a = S.get(p.a), c = S.get(p.c);
+    let h = `<h2>Line</h2><div class="dh">${esc(a.name)} – ${esc(c.name)}</div><div class="chips"><span class="chip">${fmt(p.kv, 0)} kV</span><span class="chip">${fmt(p.ckts[0].mi)} mi straight-line</span><span class="chip">${p.ckts.length} circuit${p.ckts.length > 1 ? 's' : ''}</span></div>`;
+    h += `<div class="tbl"><table><tr><th>Ckt</th><th>R</th><th>X</th><th>B</th><th>Chg</th><th>MW</th><th>MVAr f / t</th><th>% A</th></tr>` + p.ckts.map(b => { const bs = brState(b);
+      return `<tr><td>${b.f}→${b.t} #${esc(b.ckt)}</td><td class="num">${fmt(b.r, 4)}</td><td class="num">${fmt(b.x, 4)}</td><td class="num">${fmt(b.b, 3)}</td><td class="num">${fmt(charging(b), 0)}</td><td class="num">${fmt(bs.mw, 0)}</td><td class="num">${fmt(bs.qf, 0)} / ${fmt(bs.qt, 0)}</td><td class="num">${fmt(bs.pct, 0)}</td></tr>`; }).join('') + '</table></div>';
+    h += `<p class="note">R, X and B in pu on 100 MVA. Charging is the MVAr the line's own capacitance produces at today's end voltages. Flow is measured at the first bus listed.</p>`;
+    box.innerHTML = h;
+  }
+}
+
+// ---------- controls
+function seg(id, items, get, set) {
+  const box = $(id); box.innerHTML = items.map(([v, t]) => `<button type="button" data-v="${esc(v)}" aria-pressed="${get() === v}">${esc(t)}</button>`).join('');
+  box.querySelectorAll('button').forEach(b => b.onclick = () => { set(b.dataset.v); box.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.v === get())); });
+}
+seg('segArea', Object.entries(AREAS).map(([k, a]) => [k, a.title]), () => st.area, v => { st.area = v; ls.set('area', v); st.hops = AREAS[v].default_hops; $('hops').value = st.hops; st.sel = null; st.pi = -1; st.cand = null; st.outage = 'n0'; st.mode = 'before'; setFocus(null); render(); fitCore(); });
+seg('segSce', SCES.map(s => [s.key, s.label]), () => st.sce, v => { st.sce = v; ls.set('sce', v); render(); });
+seg('segSet', SETS.map(s => [s.key, s.label]), () => st.set, v => { st.set = v; render(); });
+$('hops').max = D.max_hops; $('hops').value = st.hops;
+$('hops').oninput = e => { st.hops = +e.target.value; render(); };
+function syncSeg(id, v) { $(id).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.v === String(v))); }
+seg('segKv', [['all', 'All voltages'], ['765', '765 kV'], ['345', '345 kV'], ['138', '138 kV'], ['69', '≤69 kV']], () => String(st.layer),
+  v => { st.layer = v === 'all' ? 'all' : +v; render(); });
+$('prevP').onclick = () => goProblem(st.pi - 1);
+$('nextP').onclick = () => goProblem(st.pi + 1);
+$('bannerClear').onclick = () => { setFocus(null); render(); fitCore(); };
+$('lmode').onchange = e => { st.lmode = e.target.value; render(); };
+$('devs').onchange = e => { st.devs = e.target.checked; render(); };
+
+// ---------- pan / zoom
+const svg = $('map');
+function fit(ids, pad = 40) {
+  const ss = ids.map(i => S.get(i)).filter(s => s && isFinite(s.x) && isFinite(s.y)); if (!ss.length) return;
+  const xs = ss.map(s => s.x), ys = ss.map(s => s.y);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const W = svg.clientWidth || 800, H = svg.clientHeight || 600;
+  st.k = Math.min((W - 2 * pad) / Math.max(x1 - x0, 1), (H - 2 * pad) / Math.max(y1 - y0, 1), 60);
+  st.tx = W / 2 - st.k * (x0 + x1) / 2; st.ty = H / 2 - st.k * (y0 + y1) / 2; sizeMarks();
+}
+function zoomAt(f, cx, cy) { const k2 = Math.max(0.05, Math.min(400, st.k * f)); st.tx = cx - (cx - st.tx) * (k2 / st.k); st.ty = cy - (cy - st.ty) * (k2 / st.k); st.k = k2; sizeMarks(); }
+svg.addEventListener('wheel', e => { e.preventDefault(); const r = svg.getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top); }, {passive: false});
+const ptrs = new Map(); let pinch0 = null, moved = false;
+svg.addEventListener('pointerdown', e => { ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY}); moved = false; svg.setPointerCapture(e.pointerId); svg.classList.add('drag');
+  if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch0 = {d: Math.hypot(a.x - b.x, a.y - b.y), k: st.k}; } });
+svg.addEventListener('pointermove', e => {
+  if (!ptrs.has(e.pointerId)) return;
+  const prev = ptrs.get(e.pointerId), c = {x: e.clientX, y: e.clientY}; ptrs.set(e.pointerId, c);
+  if (ptrs.size === 1) { const dx = c.x - prev.x, dy = c.y - prev.y; if (Math.abs(dx) + Math.abs(dy) > 1) moved = true; st.tx += dx; st.ty += dy; sizeMarks(); }
+  else if (ptrs.size === 2 && pinch0) { const [a, b] = [...ptrs.values()], r = svg.getBoundingClientRect(); moved = true;
+    zoomAt((pinch0.k * Math.hypot(a.x - b.x, a.y - b.y) / pinch0.d) / st.k, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top); }
+});
+const up = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch0 = null; if (!ptrs.size) svg.classList.remove('drag'); };
+svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
+svg.addEventListener('click', () => { if (!moved && st.sel) { st.sel = null; render(); } });
+$('zin').onclick = () => zoomAt(1.5, svg.clientWidth / 2, svg.clientHeight / 2);
+$('zout').onclick = () => zoomAt(1 / 1.5, svg.clientWidth / 2, svg.clientHeight / 2);
+function fitCore() { fit([...S.values()].filter(s => { const h = hopOf(s); return h != null && h <= Math.min(2, st.hops); }).map(s => s.id), 70); }
+$('fitCore').onclick = fitCore;
+$('fitAll').onclick = () => fit([...S.values()].filter(vis).map(s => s.id));
+
+const T = $('tip');
+function tip(e, html) { const r = $('mapwrap').getBoundingClientRect(); T.innerHTML = html; T.hidden = false;
+  T.style.left = Math.min(e.clientX - r.left + 14, r.width - 290) + 'px'; T.style.top = Math.min(e.clientY - r.top + 14, r.height - 90) + 'px'; }
+function untip() { T.hidden = true; }
+
+// ---------- export: current view as PNG / SVG with a title band and baked colours; CSV of the problems or the designs
+let DL = null;
+const dlReady = (async () => { try { DL = window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch (e) { DL = null; } return DL; })();
+const note = m => { $('expMsg').textContent = m; };
+async function saveFile(name, data) {
+  await dlReady;
+  if (DL) { try { await DL.save({filename: name, data}); note('Saved ' + name); } catch (e) { note(e && e.code === 'declined' ? 'Save cancelled.' : 'Could not save. Try again.'); } return; }
+  const blob = data instanceof Blob ? data : new Blob([data]);
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000); note('Saved ' + name);
+}
+const PROPS = ['stroke', 'fill', 'stroke-width', 'stroke-dasharray', 'stroke-linecap', 'opacity', 'font-size', 'font-weight', 'paint-order', 'stroke-linejoin'];
+function exportSVG() {
+  const W = svg.clientWidth, H = svg.clientHeight, css = getComputedStyle(document.documentElement), tok = n => css.getPropertyValue(n).trim();
+  const clone = svg.cloneNode(true), src = svg.querySelectorAll('*'), dst = clone.querySelectorAll('*');
+  src.forEach((s, i) => { const d = dst[i], cs = getComputedStyle(s);
+    if (cs.display === 'none') { d.setAttribute('display', 'none'); return; }
+    for (const p of PROPS) { const v = cs.getPropertyValue(p); if (v) d.setAttribute(p, v); }
+    d.removeAttribute('class'); d.removeAttribute('style');
+    if (s.tagName === 'text') d.setAttribute('font-family', 'IBM Plex Sans Condensed, Arial Narrow, Arial, sans-serif'); });
+  const head = 64, foot = 46, total = H + head + foot, out = document.createElementNS(NS, 'svg');
+  out.setAttribute('xmlns', NS); out.setAttribute('width', W); out.setAttribute('height', total); out.setAttribute('viewBox', `0 0 ${W} ${total}`);
+  const add = (tag, a, txt) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; out.appendChild(e); return e; };
+  const ink = tok('--ink'), ink2 = tok('--ink-2'), font = 'IBM Plex Sans, Segoe UI, Arial, sans-serif';
+  add('rect', {x: 0, y: 0, width: W, height: total, fill: tok('--paper')});
+  add('text', {x: 16, y: 28, fill: ink, 'font-family': font, 'font-size': 20, 'font-weight': 600}, `${AREAS[st.area].title} · ${D.title}`);
+  const what = desActive() && st.set === BASE && (st.outage !== 'n0' || (st.mode === 'after' && st.cand)) ? ` · ${OUTN[st.outage]}${st.mode === 'after' && st.cand ? ' · with ' + DZ.candidates[st.cand].short : ''}` : '';
+  add('text', {x: 16, y: 50, fill: ink2, 'font-family': font, 'font-size': 12.5},
+    `${SCE.get(st.sce).label} · ${SETL.get(st.set)}${what} · ${st.hops} hops · exported ${new Date().toISOString().slice(0, 10)}`);
+  const g = document.createElementNS(NS, 'g'); g.setAttribute('transform', `translate(0 ${head})`);
+  const inner = document.createElementNS(NS, 'svg'); inner.setAttribute('width', W); inner.setAttribute('height', H); inner.setAttribute('overflow', 'hidden');
+  while (clone.firstChild) inner.appendChild(clone.firstChild); g.appendChild(inner); out.appendChild(g);
+  let x = 16; const y = head + H + 28;
+  const key = [[tok('--kv765'), 'line', '765 kV'], [tok('--kv345'), 'line', '345 kV'], [tok('--kv138'), 'line', '138 kV'],
+    [tok('--v-low'), 'dot', `<${LO}`], [tok('--v-ok'), 'dot', `≤${WARM.toFixed(2)}`], [tok('--v-warm'), 'dot', `≤${HI}`], [tok('--v-hot'), 'dot', `≤${CRIT.toFixed(2)}`], [tok('--v-crit'), 'dot', `>${CRIT.toFixed(2)}`],
+    [tok('--q-pin'), 'tri', 'gen pinned'], [tok('--q-room'), 'tri', 'gen w/ room'], [tok('--sh-rea'), 'sq', 'reactor'], [tok('--sh-cap'), 'sq', 'capacitor']];
+  for (const [c, kind, label] of key) {
+    if (kind === 'line') add('line', {x1: x, y1: y - 4, x2: x + 18, y2: y - 4, stroke: c, 'stroke-width': 3});
+    else if (kind === 'dot') add('circle', {cx: x + 6, cy: y - 4, r: 5, fill: c, stroke: ink2, 'stroke-width': 0.5});
+    else if (kind === 'tri') add('path', {d: `M${x + 6} ${y - 10} L${x + 12} ${y + 1} L${x} ${y + 1} Z`, fill: c});
+    else add('rect', {x, y: y - 9, width: 10, height: 10, fill: c});
+    add('text', {x: x + 22, y, fill: ink2, 'font-family': font, 'font-size': 11.5}, label);
+    x += 22 + label.length * 6.2 + 12;
+  }
+  return new XMLSerializer().serializeToString(out);
+}
+const slug = s => String(s).replace(/[^A-Za-z0-9]+/g, '_');
+const fileBase = () => `voltage_${slug(st.area)}_${slug(st.sce)}_${slug(st.set)}_${st.hops}hop`;
+$('expSvg').onclick = () => saveFile(fileBase() + '.svg', exportSVG());
+$('expPng').onclick = () => {
+  const text = exportSVG(), img = new Image(), url = URL.createObjectURL(new Blob([text], {type: 'image/svg+xml'}));
+  img.onload = () => { const c = document.createElement('canvas'); c.width = img.width * 2; c.height = img.height * 2;
+    const ctx = c.getContext('2d'); ctx.scale(2, 2); ctx.drawImage(img, 0, 0); URL.revokeObjectURL(url);
+    c.toBlob(b => b ? saveFile(fileBase() + '.png', b) : note('Could not render the PNG.'), 'image/png'); };
+  img.onerror = () => note('Could not render the PNG.'); img.src = url;
+};
+$('expCsv').onclick = () => { const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  if (desActive()) {
+    const hdr = ['rank', 'design', 'verdict', 'scenario', 'buses_out_of_band_n0', 'worst_watched_n0', 'islanded_buses', 'worst_watched_post', 'unsolved_outages'];
+    const rows = DZ.rank.flatMap((rk, n) => SCES.map(sc => { const s = desStats(rk.di, sc.key) || {};
+      return [n + 1, DZ.candidates[rk.di].name, rk.verdict, sc.label, s.nout, s.w, s.isl, s.pw, s.unsolved]; }));
+    saveFile(`designs_${slug(DZ.area)}.csv`, [hdr].concat(rows).map(r => r.map(q).join(',')).join('\n'));
+  } else {
+    const hdr = ['bus', 'name', 'kv', 'substation', 'hop', 'v_pu', 'kind'];
+    const rows = problems().map(p => [p.b.num, p.b.name, p.b.kv, p.s.name, hopOf(p.s), p.v, p.kind]);
+    saveFile(`problems_${slug(st.area)}_${slug(st.sce)}_${slug(st.set)}.csv`, [hdr].concat(rows).map(r => r.map(q).join(',')).join('\n'));
+  }
+};
+
+render();
+requestAnimationFrame(fitCore);
+window.addEventListener('resize', () => sizeMarks());
+})();
+</script>

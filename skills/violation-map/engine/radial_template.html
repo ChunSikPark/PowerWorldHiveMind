@@ -1,0 +1,459 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radial Ties Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F3F5F2; --panel:#FFFFFF; --ink:#18201C; --ink-2:#4B5751; --ink-3:#7D8983;
+  --rule:#D6DCD7; --grid:#E4E9E5; --halo:#F3F5F2; --chip:#EEF1EE;
+  --kv765:#1E9E48; --kv345:#C4353D; --kv138:#26302B; --kv69:#8A9A3C;
+  --load:#DD6B2E; --gen:#6A3FCF; --both:#8E1C6C; --none:#9AA6A0;
+  --pass:#0A8A8A; --soft:#EDB547; --fail:#C4353D; --isl:#8E1C6C;
+  --sel:#2F5BD3; --new:#D6247F;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --cond:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0F1412; --panel:#161D1A; --ink:#E3E9E5; --ink-2:#A3AFA9; --ink-3:#74807A;
+    --rule:#2A3430; --grid:#1B2320; --halo:#0F1412; --chip:#1F2824;
+    --kv765:#3CC66A; --kv345:#EC5B62; --kv138:#D3DAD6; --kv69:#AEBE5A;
+    --load:#F07A3C; --gen:#B394FF; --both:#D24BA6; --none:#6C7872;
+    --pass:#2EC4C4; --soft:#F0BE55; --fail:#EC5B62; --isl:#D24BA6;
+    --sel:#7E9CFF; --new:#FF5CB0;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0F1412; --panel:#161D1A; --ink:#E3E9E5; --ink-2:#A3AFA9; --ink-3:#74807A;
+  --rule:#2A3430; --grid:#1B2320; --halo:#0F1412; --chip:#1F2824;
+  --kv765:#3CC66A; --kv345:#EC5B62; --kv138:#D3DAD6; --kv69:#AEBE5A;
+  --load:#F07A3C; --gen:#B394FF; --both:#D24BA6; --none:#6C7872;
+  --pass:#2EC4C4; --soft:#F0BE55; --fail:#EC5B62; --isl:#D24BA6;
+  --sel:#7E9CFF; --new:#FF5CB0;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.45 var(--sans);}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 400px;height:100%}
+.mapwrap{position:relative;min-height:0;overflow:hidden;border-right:1px solid var(--rule)}
+svg#map{width:100%;height:100%;display:block;touch-action:none;cursor:grab;background:var(--paper)}
+svg#map.drag{cursor:grabbing}
+.mapbar{position:absolute;left:12px;top:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;max-width:calc(100% - 24px)}
+.mapbar button{font:500 12px var(--sans);color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:6px 10px;cursor:pointer}
+.mapbar button:hover{border-color:var(--ink-3)}
+.mapbar .sep{width:1px;height:22px;background:var(--rule)}
+.mapbar .msg{font-size:12px;color:var(--ink-2)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+.scale{position:absolute;left:12px;bottom:12px;font:11px var(--mono);color:var(--ink-2);background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:4px 8px}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:6px 8px;font:12px var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.12);max-width:300px}
+.tip b{font-family:var(--cond);font-weight:600;font-size:13px}
+.tip .m{font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.panel{overflow-y:auto;overflow-x:hidden;background:var(--panel);padding:18px 18px 28px;display:flex;flex-direction:column;gap:20px;min-height:0}
+.panel>*{min-width:0}
+h1{font:600 22px/1.15 var(--cond);margin:0;text-wrap:balance}
+.sub{color:var(--ink-2);font-size:12.5px;margin-top:4px}
+h2{font:600 11px var(--cond);text-transform:uppercase;letter-spacing:.9px;color:var(--ink-3);margin:0 0 8px}
+.note{font-size:12px;color:var(--ink-3);margin:6px 0 0}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{font:600 12.5px var(--cond);color:var(--ink-2);background:var(--chip);border:1px solid transparent;border-radius:999px;padding:5px 11px;cursor:pointer}
+.seg button[aria-pressed="true"]{color:var(--panel);background:var(--ink)}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th{font:600 10.5px var(--cond);text-transform:uppercase;letter-spacing:.6px;color:var(--ink-3);text-align:left;padding:4px 6px;border-bottom:1px solid var(--rule)}
+td{padding:5px 6px;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+td.num{font-family:var(--mono);text-align:right;white-space:nowrap}
+tr.pick{cursor:pointer} tr.pick:hover td{background:var(--chip)} tr.pick[aria-current="true"] td{background:var(--chip);font-weight:600}
+.ctl{display:grid;gap:8px}
+.ctl label{font-size:12.5px;color:var(--ink-2);display:flex;justify-content:space-between;gap:8px;align-items:center}
+select{font:13px var(--sans);color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:5px 8px}
+.tlist{display:grid;gap:5px;max-height:420px;overflow-y:auto}
+.trow{display:grid;grid-template-columns:10px 1fr auto;gap:2px 10px;align-items:center;padding:7px 9px;border:1px solid var(--rule);border-radius:7px;cursor:pointer;background:var(--panel);text-align:left;color:var(--ink);width:100%;font:inherit}
+.trow:hover{border-color:var(--ink-3)}
+.trow[aria-current="true"]{border-color:var(--sel);box-shadow:inset 3px 0 0 var(--sel)}
+.trow .sw{width:10px;height:10px;border-radius:2px}
+.trow .n{font:600 13px var(--cond);overflow-wrap:anywhere}
+.trow .x{font:500 12px var(--mono);text-align:right;white-space:nowrap}
+.trow .d{grid-column:2/-1;font-size:11.5px;color:var(--ink-2)}
+.pill{font:600 11px var(--mono);padding:2px 7px;border-radius:999px;display:inline-block}
+.pill.pass{background:var(--pass);color:var(--panel)} .pill.soft{background:var(--soft);color:#2B1D00} .pill.fail{background:var(--fail);color:var(--panel)} .pill.na{background:var(--chip);color:var(--ink-2)}
+.pill.acc{background:var(--new);color:var(--panel)}
+.dh{font:600 17px var(--cond)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 11px var(--mono);background:var(--chip);border-radius:999px;padding:1px 8px}
+.dcard{border:1px solid var(--rule);border-radius:8px;padding:10px;display:grid;gap:6px}
+.dcard.best{border-color:var(--pass)}
+.dcard .t{font:600 13.5px var(--cond);display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.dgrid{display:grid;gap:3px;font:500 10.5px var(--mono);align-items:center}
+.dgrid .h{text-align:center;font:600 10px var(--cond);text-transform:uppercase;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dgrid .o{color:var(--ink-2);font-family:var(--sans);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cell{height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--panel);min-width:0;overflow:hidden}
+.cell.pass{background:var(--pass)} .cell.soft{background:var(--soft);color:#2B1D00} .cell.fail{background:var(--fail)} .cell.isl{background:var(--isl)} .cell.na{background:var(--grid);color:var(--ink-3)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.acts button{font:600 12.5px var(--sans);border-radius:6px;padding:6px 11px;cursor:pointer;border:1px solid var(--rule);background:var(--panel);color:var(--ink)}
+.acts button.primary{background:var(--new);border-color:var(--new);color:var(--panel)}
+.acts button[disabled]{opacity:.55;cursor:default}
+.acts .msg{font-size:12px;color:var(--ink-2)}
+.legend{display:grid;gap:6px;font-size:12px;color:var(--ink-2)}
+.legend .r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ln{width:18px;height:3px;border-radius:2px;display:inline-block}
+.sq{width:11px;height:11px;border-radius:50%;display:inline-block}
+.lbl{font:600 11px var(--cond);fill:var(--ink);paint-order:stroke;stroke:var(--halo);stroke-width:3.2px;stroke-linejoin:round;pointer-events:none}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:62vh auto;height:auto}
+  html,body{height:auto}
+  .mapwrap{border-right:0;border-bottom:1px solid var(--rule);height:62vh}
+  .panel{overflow:visible;padding-inline:16px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <div class="mapwrap" id="mapwrap">
+    <svg id="map" role="img" aria-label="Map of the grid with every radial tree and its suggested tie">
+      <g id="world"><g id="gCtx"></g><g id="gTree"></g><g id="gTie"></g><g id="gNodes"></g><g id="gLabels"></g></g>
+    </svg>
+    <div class="mapbar">
+      <button id="prevT" type="button" aria-label="Previous tree">&#9664;</button>
+      <button id="nextT" type="button">Next tree &#9654;</button>
+      <span class="sep" aria-hidden="true"></span>
+      <button id="fitAll" type="button">Whole grid</button>
+      <button id="zin" type="button" aria-label="Zoom in">+</button>
+      <button id="zout" type="button" aria-label="Zoom out">&minus;</button>
+      <span class="sep" aria-hidden="true"></span>
+      <button id="expPng" type="button">Export PNG</button>
+      <button id="expSvg" type="button">SVG</button>
+      <button id="expCsv" type="button">CSV</button>
+      <span class="msg" id="expMsg"></span>
+    </div>
+    <div class="scale" id="scale">&nbsp;</div>
+    <div class="tip" id="tip" hidden></div>
+  </div>
+
+  <aside class="panel">
+    <header>
+      <h1 id="title"></h1>
+      <div class="sub" id="subtitle"></div>
+    </header>
+
+    <section>
+      <h2>Radial trees by voltage level &mdash; click a row to filter</h2>
+      <div style="overflow-x:auto"><table id="kvTable"></table></div>
+      <p class="note" id="kvNote"></p>
+    </section>
+
+    <section>
+      <h2>Portfolios</h2>
+      <div style="overflow-x:auto"><table id="pfTable"></table></div>
+      <div class="acts" style="margin-top:8px" id="pfActs"></div>
+      <p class="note" id="pfNote"></p>
+      <div class="tlist" id="pfList" style="margin-top:8px"></div>
+    </section>
+
+    <section class="ctl">
+      <h2>Show</h2>
+      <div class="seg" id="segKind"></div>
+      <label for="minMw"><span>Stranded MW at least</span><select id="minMw"><option value="0">any</option><option value="1" selected>&gt; 0</option><option value="50">50</option><option value="200">200</option><option value="500">500</option></select></label>
+    </section>
+
+    <section>
+      <h2 id="listH">Trees</h2>
+      <div class="tlist" id="tList"></div>
+    </section>
+
+    <section id="detail">
+      <h2>Selected tree</h2>
+      <div class="note" style="margin:0">Pick a tree from the list or the map.</div>
+    </section>
+
+    <section class="legend">
+      <h2>Legend</h2>
+      <div class="r"><span class="ln" style="background:var(--kv765)"></span>765 kV <span class="ln" style="background:var(--kv345)"></span>345 kV <span class="ln" style="background:var(--kv138)"></span>138 kV <span class="ln" style="background:var(--kv69)"></span>&le;69 kV &nbsp;every line in its own kV colour; thick = a bridge, faded = the rest of the grid</div>
+      <div class="r"><span class="sq" style="background:var(--load)"></span>strands load <span class="sq" style="background:var(--gen)"></span>strands generation <span class="sq" style="background:var(--both)"></span>both <span class="sq" style="background:var(--none)"></span>nothing in service</div>
+      <div class="r"><svg width="22" height="8" aria-hidden="true"><line x1="0" y1="4" x2="22" y2="4" stroke="var(--sel)" stroke-width="2.4" stroke-dasharray="5 3"/></svg>suggested tie
+        <svg width="22" height="8" aria-hidden="true"><line x1="0" y1="4" x2="22" y2="4" stroke="var(--new)" stroke-width="3.4"/></svg>accepted tie</div>
+      <div class="r" id="legPass"></div>
+    </section>
+  </aside>
+</div>
+
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script>
+(() => {
+const D = JSON.parse(document.getElementById('data').textContent);
+const NS = 'http://www.w3.org/2000/svg';
+const $ = id => document.getElementById(id);
+const fmt = (x, d = 0) => (x == null || isNaN(x)) ? '–' : Number(x).toFixed(d);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SC = D.scenarios, NSC = SC.length, BAND = D.band;
+const S = new Map(D.subs.map(s => [s.id, s]));
+const TR = D.trees; const TBY = new Map(TR.map(t => [t.id, t]));
+const kvClass = kv => kv >= 700 ? 765 : kv >= 300 ? 345 : kv >= 100 ? 138 : 69;
+const kvColor = {765: 'var(--kv765)', 345: 'var(--kv345)', 138: 'var(--kv138)', 69: 'var(--kv69)'};
+document.title = D.title; $('title').textContent = D.title;
+$('subtitle').textContent = `Every substation one outage can cut off from the meshed grid, and the tie that closes it · ${NSC} dispatch${NSC > 1 ? 'es' : ''}`;
+$('kvNote').textContent = `${D.levels.length ? Math.min(...D.levels) + ' kV and above' : 'No radial trees found'}. A bridge is an in-service line between two substations whose loss splits the grid (a double circuit never counts). A tree is everything hanging off the meshed core behind one bridge; nested bridges are grouped under it. Transformer-only islanding inside a substation, such as a generator step-up, is left out. Load and generation are the worst dispatch.`;
+$('legPass').innerHTML = `<span class="pill pass">${NSC}/${NSC}</span> the tie removes the islanding and keeps the pocket within ${BAND.post_lo}–${BAND.post_hi} pu and every pocket branch within rating after each bridge outage, in that many dispatches`;
+const GEO = D.subs.filter(s => s.lat != null && s.lon != null);   // a substation with no coordinates is not drawn
+const lat0 = GEO.reduce((t, s) => t + s.lat, 0) / Math.max(1, GEO.length) * Math.PI / 180;
+for (const s of D.subs) { s.x = s.lon * 69.17 * Math.cos(lat0); s.y = -s.lat * 69.17; }
+const st = {kv: 'all', kind: 'all', minMw: 1, sel: null, mode: 'before', k: 1, tx: 0, ty: 0, acc: {}};
+const kindOf = t => t.max_load > 0 && t.max_gen > 0 ? 'both' : t.max_load > 0 ? 'load' : t.max_gen > 0 ? 'gen' : 'none';
+const kindColor = {load: 'var(--load)', gen: 'var(--gen)', both: 'var(--both)', none: 'var(--none)'};
+const visT = t => (st.kv === 'all' || t.kv === st.kv) && (st.kind === 'all' || kindOf(t) === st.kind) && t.stake >= st.minMw;
+const treeName = t => { const n = t.subs.map(i => S.get(i).name); return n.length > 2 ? `${n[0]}, ${n[1]} +${n.length - 2}` : n.join(', '); };
+
+// ---- design verdicts from the AC measurement
+function cellOf(m, which) {
+  if (!m) return {cls: 'na', tx: '–', tt: 'not measured'};
+  if (m.error) return {cls: 'na', tx: '!', tt: 'build failed: ' + m.error};
+  const o = which === 'n0' ? m.n0 : m.outs[which];
+  if (!o || !o.solved) return {cls: 'fail', tx: '×', tt: 'does not solve'};
+  if (o.islanded && o.islanded.length) return {cls: 'isl', tx: 'ISL', tt: 'still islands ' + o.islanded.slice(0, 6).join(', ')};
+  const lo = which === 'n0' ? BAND.lo : BAND.post_lo, hi = which === 'n0' ? BAND.hi : BAND.post_hi;
+  const vOk = o.vmin == null || (o.vmin >= lo && o.vmax <= hi), tOk = (o.worst_pct || 0) <= 100;
+  const tt = `pocket ${fmt(o.vmin, 3)}–${fmt(o.vmax, 3)} pu · worst pocket branch ${fmt(o.worst_pct)}% · new tie ${fmt(o.new_mw)} MW (${fmt(o.new_pct)}%)`;
+  return {cls: vOk && tOk ? 'pass' : (o.worst_pct || 0) > 110 || (o.vmin != null && (o.vmin < lo - 0.02 || o.vmax > hi + 0.02)) ? 'fail' : 'soft',
+          tx: (o.worst_pct || 0) > 100 ? fmt(o.worst_pct) + '%' : fmt(o.vmin, 2), tt};
+}
+function passCount(d) {
+  let n = 0, m = 0;
+  for (const sc of SC) { const me = d.meas && d.meas[sc.key]; if (!me || me.error) continue; m++;
+    if (me.outs.every((_, i) => cellOf(me, i).cls === 'pass')) n++; }
+  return {n, m};
+}
+for (const t of TR) {
+  t.designs.forEach((d, i) => { d.pc = passCount(d); d.i = i; });
+  const ds = t.designs.filter(d => d.pc.m).sort((a, b) => b.pc.n - a.pc.n || a.mi - b.mi);
+  t.best = ds[0] || t.designs[0] || null; }
+
+// ---- SVG
+const el = (tag, a, p) => { const e = document.createElementNS(NS, tag); for (const k in a) if (a[k] != null) e.setAttribute(k, a[k]); p && p.appendChild(e); return e; };
+const gC = $('gCtx'), gT = $('gTree'), gI = $('gTie'), gN = $('gNodes'), gL = $('gLabels');
+const inTree = new Map(); for (const t of TR) for (const s of t.subs) inTree.set(s, t);
+for (const p of D.pairs) { const a = S.get(p[0]), c = S.get(p[1]);
+  p.el = el('line', {x1: a.x, y1: a.y, x2: c.x, y2: c.y, stroke: kvColor[kvClass(p[2])], opacity: .22, 'stroke-width': p[2] >= 300 ? 1.2 : 0.8, 'vector-effect': 'non-scaling-stroke'}, gC); p.kv = p[2];
+  const ta = inTree.get(p[0]), tc = inTree.get(p[1]); if (ta && ta === tc) { p.el.setAttribute('opacity', .95); p.el.setAttribute('stroke-width', 1.8); } }
+for (const t of TR) {
+  t.lines = t.bridges.map(b => { const a = S.get(b.sa), c = S.get(b.sc);
+    const ln = el('line', {x1: a.x, y1: a.y, x2: c.x, y2: c.y, stroke: kvColor[kvClass(b.kv)], 'stroke-width': 4, 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke'}, gT);
+    const hit = el('line', {x1: a.x, y1: a.y, x2: c.x, y2: c.y, stroke: 'transparent', 'stroke-width': 12, 'vector-effect': 'non-scaling-stroke'}, gT);
+    hit.style.cursor = 'pointer'; hit.addEventListener('click', ev => { ev.stopPropagation(); pick(t); });
+    hit.addEventListener('pointermove', ev => tip(ev, `<b>${esc(a.name)} – ${esc(c.name)}</b><div class="m">${t.kv} kV bridge · ${fmt(b.mi, 1)} mi</div><div class="m">its loss strands ${b.pocket.length} substation(s): load ${fmt(Math.max(...b.load))} MW, gen ${fmt(Math.max(...b.gen))} MW</div>`));
+    hit.addEventListener('pointerleave', untip); return [ln, hit]; });
+  t.dots = t.subs.map(i => { const s = S.get(i);
+    const c = el('circle', {cx: s.x, cy: s.y, r: 1, fill: kindColor[kindOf(t)], stroke: 'var(--halo)', 'stroke-width': 0.8, 'vector-effect': 'non-scaling-stroke'}, gN);
+    c.style.cursor = 'pointer'; c.addEventListener('click', ev => { ev.stopPropagation(); pick(t); });
+    c.addEventListener('pointermove', ev => tip(ev, `<b>${esc(s.name)}</b><div class="m">${t.kv} kV radial tree · ${t.subs.length} substation(s)</div><div class="m">stranded: load ${fmt(t.max_load)} MW, gen ${fmt(t.max_gen)} MW</div>`));
+    c.addEventListener('pointerleave', untip); return c; });
+}
+
+function render() {
+  for (const p of D.pairs) p.el.style.display = st.kv === 'all' || kvClass(p.kv) === st.kv ? '' : 'none';
+  for (const t of TR) { const on = visT(t) || st.sel === t;
+    t.lines.forEach(([l, h]) => { l.style.display = h.style.display = on ? '' : 'none'; l.setAttribute('opacity', st.sel && st.sel !== t ? .45 : 1); });
+    t.dots.forEach(d => { d.style.display = on ? '' : 'none'; }); }
+  gI.replaceChildren(); gL.replaceChildren();
+  for (const [id, a] of Object.entries(st.acc)) { const t = TBY.get(+id); if (!t || st.sel === t) continue; const d = t.designs[a.design]; if (!d) continue;
+    const s1 = S.get(d.frm), s2 = S.get(d.to); el('line', {x1: s1.x, y1: s1.y, x2: s2.x, y2: s2.y, stroke: 'var(--new)', 'stroke-width': 2.6, 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none'}, gI); }
+  if (st.sel) { const t = st.sel;
+    for (const i of t.subs) { const s = S.get(i); const tx = el('text', {class: 'lbl', x: s.x, y: s.y}, gL); tx.textContent = s.name; }
+    const nr = S.get(t.near); const tn = el('text', {class: 'lbl', x: nr.x, y: nr.y}, gL); tn.textContent = nr.name;
+    const d = st.di != null ? t.designs[st.di] : t.best;
+    if (d) { const s1 = S.get(d.frm), s2 = S.get(d.to), after = st.mode === 'after';
+      if (after) el('line', {x1: s1.x, y1: s1.y, x2: s2.x, y2: s2.y, stroke: 'var(--new)', 'stroke-width': 9, opacity: .2, 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none'}, gI);
+      el('line', {x1: s1.x, y1: s1.y, x2: s2.x, y2: s2.y, stroke: after ? 'var(--new)' : 'var(--sel)', 'stroke-width': after ? 3.4 : 2.4, 'stroke-dasharray': after ? null : '6 4', 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none'}, gI);
+      const l2 = el('text', {class: 'lbl', x: s2.x, y: s2.y}, gL); l2.textContent = s2.name;
+      const m = el('text', {class: 'lbl', x: (s1.x + s2.x) / 2, y: (s1.y + s2.y) / 2}, gL); m.textContent = `${after ? 'NEW' : 'suggested'} ${t.kv} kV · ${d.mi} mi`; m.style.fill = after ? 'var(--new)' : 'var(--sel)'; }
+  }
+  drawPf(); sizeMarks(); panel(); renderPf();
+}
+function sizeMarks() {
+  const k = st.k;
+  for (const t of TR) t.dots.forEach(d => d.setAttribute('r', (st.sel === t ? 5.2 : 3.6) / k));
+  gL.querySelectorAll('text').forEach(tx => { if (!tx._o) tx._o = [+tx.getAttribute('x'), +tx.getAttribute('y')];
+    tx.setAttribute('x', tx._o[0] + 6 / k); tx.setAttribute('y', tx._o[1] - 5 / k); tx.style.fontSize = (11 / k) + 'px'; tx.style.strokeWidth = (3.2 / k) + 'px'; });
+  $('world').setAttribute('transform', `translate(${st.tx} ${st.ty}) scale(${k})`);
+  const target = 90 / k, steps = [1, 2, 5, 10, 20, 25, 50, 100, 200];
+  const mi = steps.reduce((b, x) => Math.abs(x - target) < Math.abs(b - target) ? x : b, 1);
+  $('scale').innerHTML = `<span style="display:inline-block;width:${mi * k}px;border-bottom:2px solid var(--ink-2);height:6px;vertical-align:middle;margin-right:6px"></span>${mi} mi`;
+}
+
+// ---- panel
+function panel() {
+  const rows = D.levels.map(kv => { const ts = TR.filter(t => t.kv === kv);
+    return {kv, n: ts.length, br: ts.reduce((a, t) => a + t.bridges.length, 0), subs: ts.reduce((a, t) => a + t.subs.length, 0),
+            load: ts.reduce((a, t) => a + t.max_load, 0), gen: ts.reduce((a, t) => a + t.max_gen, 0),
+            ok: ts.filter(t => t.best && t.best.pc.m && t.best.pc.n === t.best.pc.m).length}; });
+  const all = rows.reduce((a, r) => ({n: a.n + r.n, br: a.br + r.br, subs: a.subs + r.subs, load: a.load + r.load, gen: a.gen + r.gen, ok: a.ok + r.ok}), {n: 0, br: 0, subs: 0, load: 0, gen: 0, ok: 0});
+  $('kvTable').innerHTML = '<tr><th>Bridge kV</th><th>Trees</th><th>Bridges</th><th>Subs</th><th>Load MW</th><th>Gen MW</th><th>Tie passes</th></tr>'
+    + [...rows, Object.assign({kv: 'all'}, all)].map(r => `<tr class="pick" data-kv="${r.kv}" aria-current="${String(st.kv) === String(r.kv)}"><td>${r.kv === 'all' ? 'All' : r.kv}</td><td class="num">${r.n}</td><td class="num">${r.br}</td><td class="num">${r.subs}</td><td class="num">${fmt(r.load)}</td><td class="num">${fmt(r.gen)}</td><td class="num">${r.ok}</td></tr>`).join('');
+  $('kvTable').querySelectorAll('tr.pick').forEach(r => r.onclick = () => { st.kv = r.dataset.kv === 'all' ? 'all' : +r.dataset.kv; render(); });
+  const vs = TR.filter(visT).sort((a, b) => b.stake - a.stake);
+  $('listH').textContent = `Trees shown: ${vs.length} · biggest stake first`;
+  $('tList').innerHTML = vs.map(t => { const b = t.best, acc = st.acc[t.id];
+    const pc = b && b.pc.m ? `<span class="pill ${b.pc.n === b.pc.m ? 'pass' : b.pc.n ? 'soft' : 'fail'}">${b.pc.n}/${b.pc.m}</span>` : '<span class="pill na">topology only</span>';
+    return `<button type="button" class="trow" data-id="${t.id}" aria-current="${st.sel === t}"><span class="sw" style="background:${kindColor[kindOf(t)]}"></span><span class="n">${esc(treeName(t))}</span><span class="x">${acc ? '<span class="pill acc">accepted</span> ' : ''}${pc}</span>`
+      + `<span class="d">${t.kv} kV · ${t.bridges.length} bridge${t.bridges.length > 1 ? 's' : ''} (${fmt(Math.max(...t.bridges.map(b => b.mi)), 1)} mi longest) · load ${fmt(t.max_load)} / gen ${fmt(t.max_gen)} MW${b ? ` · tie ${esc(S.get(b.frm).name)} → ${esc(S.get(b.to).name)} ${b.mi} mi` : ''}</span></button>`; }).join('')
+    || '<div class="note">No tree matches these filters.</div>';
+  $('tList').querySelectorAll('.trow').forEach(r => r.onclick = () => pick(TBY.get(+r.dataset.id)));
+  detail();
+}
+function detail() {
+  const box = $('detail'), t = st.sel;
+  if (!t) { box.innerHTML = '<h2>Selected tree</h2><div class="note" style="margin:0">Pick a tree from the list or the map.</div>'; return; }
+  let h = `<h2>Selected tree</h2><div class="dh">${esc(treeName(t))}</div><div class="chips"><span class="chip">${t.kv} kV</span><span class="chip">${t.subs.length} substation(s)</span><span class="chip">hangs off ${esc(S.get(t.near).name)}</span><span class="chip">load ${fmt(t.max_load)} MW</span><span class="chip">gen ${fmt(t.max_gen)} MW</span></div>`;
+  h += `<div style="overflow-x:auto"><table><tr><th>Bridge (loss of)</th><th>mi</th><th>Strands</th><th>Load</th><th>Gen</th></tr>` + t.bridges.map(b =>
+    `<tr><td>${esc(S.get(b.sa).name)} – ${esc(S.get(b.sc).name)}</td><td class="num">${fmt(b.mi, 1)}</td><td>${b.pocket.map(i => esc(S.get(i).name)).join(', ')}</td><td class="num">${fmt(Math.max(...b.load))}</td><td class="num">${fmt(Math.max(...b.gen))}</td></tr>`).join('') + '</table></div>';
+  h += `<div class="seg" id="segMode"><button type="button" data-m="before" aria-pressed="${st.mode === 'before'}">Before (as built)</button><button type="button" data-m="after" aria-pressed="${st.mode === 'after'}">After (tie built)</button></div>`;
+  if (!t.designs.length) h += `<p class="note">${esc(t.why || 'No design.')}</p>`;
+  const cols = `grid-template-columns:minmax(0,92px) repeat(${NSC},minmax(0,1fr))`;
+  t.designs.forEach(d => { const isBest = d === t.best, acc = st.acc[t.id] && st.acc[t.id].design === d.i, shown = (st.di != null ? st.di : t.best && t.best.i) === d.i;
+    const hdr = `<span></span>${SC.map(s => `<span class="h" title="${esc(s.label)}">${esc(s.short)}</span>`).join('')}`;
+    const rowsG = d.meas ? [['n0', 'N-0']].concat(t.bridges.map((b, i) => [i, 'Lose ' + S.get(b.sa).name + ' – ' + S.get(b.sc).name])).map(([w, lab]) =>
+      `<span class="o" title="${esc(lab)}">${esc(lab)}</span>` + SC.map(sc => { const c = cellOf(d.meas[sc.key], w); return `<span class="cell ${c.cls}" title="${esc(sc.label + ': ' + c.tt)}">${c.tx}</span>`; }).join('')).join('') : '';
+    h += `<div class="dcard${isBest ? ' best' : ''}"><div class="t"><span>${esc(S.get(d.frm).name)} → ${esc(S.get(d.to).name)} · ${t.kv} kV · ${d.mi} mi${d.long ? ' (long)' : ''}</span>`
+      + (d.pc.m ? `<span class="pill ${d.pc.n === d.pc.m ? 'pass' : d.pc.n ? 'soft' : 'fail'}">passes ${d.pc.n}/${d.pc.m}</span>` : '<span class="pill na">not AC-measured</span>') + '</div>'
+      + `<div class="note" style="margin:0">Closes ${d.covers} of ${d.of} bridge${d.of > 1 ? 's' : ''} in this tree. Template ${esc(d.tmpl_name)} (${fmt(d.tmpl_mi, 1)} mi, ${fmt(d.tmpl_rate)} MVA${d.rate_clears ? '' : ', below the stranded MW'}), impedance scaled to ${d.mi} mi.</div>`
+      + (d.meas ? `<div class="dgrid" style="${cols}">${hdr}${rowsG}</div><div class="note" style="margin:0">Cells show the lowest pocket voltage (or the worst pocket branch loading when it is over 100%). N-0 is judged on ${BAND.lo}–${BAND.hi}, the outages on ${BAND.post_lo}–${BAND.post_hi}. Hover for detail.</div>` : '')
+      + `<div class="acts"><button type="button" data-show="${d.i}"${shown ? ' disabled' : ''}>${shown ? 'On the map' : 'Show on map'}</button>`
+      + (DB ? `<button type="button" class="${acc ? '' : 'primary'}" data-acc="${d.i}">${acc ? 'Accepted (click to undo)' : 'Accept this tie'}</button>` : '<span class="msg">To accept, tell your agent the tree and tie.</span>')
+      + `<span class="msg" id="accMsg${d.i}"></span></div></div>`; });
+  h += `<p class="note">Measured in memory on the base cases: the tie built, then each bridge opened in turn, in every dispatch. Nothing saved. A full N-1 with any accepted tie is still to be run.</p>`;
+  box.innerHTML = h;
+  box.querySelectorAll('#segMode button').forEach(b => b.onclick = () => { st.mode = b.dataset.m; render(); });
+  box.querySelectorAll('[data-show]').forEach(b => b.onclick = () => { st.di = +b.dataset.show; render(); });
+  box.querySelectorAll('[data-acc]').forEach(b => b.onclick = () => accept(t, +b.dataset.acc));
+}
+function pick(t) { st.sel = t; st.di = null; st.mode = 'before'; render(); zoomTree(t); }
+function zoomTree(t) { const ids = [...t.subs, t.near]; for (const d of t.designs) ids.push(d.to); fit(ids, 90); if (st.k > 25) { st.k = 25; const s = S.get(t.subs[0]); st.tx = svg.clientWidth / 2 - st.k * s.x; st.ty = svg.clientHeight / 2 - st.k * s.y; sizeMarks(); } }
+function step(dir) { const vs = TR.filter(visT).sort((a, b) => b.stake - a.stake); if (!vs.length) return;
+  const i = st.sel ? vs.indexOf(st.sel) : -1; pick(vs[((i + dir) % vs.length + vs.length) % vs.length]); }
+$('prevT').onclick = () => step(-1); $('nextT').onclick = () => step(1);
+
+// ---- portfolios
+const PF = D.portfolios || []; st.pf = null; st.pfChosen = null;
+function pfStats(p) {
+  return {lines: p.lines.length, mi: p.lines.reduce((a, l) => a + l.mi, 0),
+          pass: p.lines.filter(l => l.m && l.n === l.m).length, meas: p.lines.filter(l => l.m).length};
+}
+function renderPf() {
+  $('pfTable').innerHTML = `<tr><th>Portfolio</th><th>Lines</th><th>Miles</th><th>Pass ${NSC}/${NSC}</th></tr>` + PF.map(p => { const s = pfStats(p);
+    return `<tr class="pick" data-pf="${p.key}" aria-current="${st.pf === p.key}"><td>${esc(p.name)}${st.pfChosen === p.key ? ' <span class="pill acc">accepted</span>' : ''}</td><td class="num">${s.lines}</td><td class="num">${fmt(s.mi)}</td><td class="num">${s.pass}/${s.meas}</td></tr>`; }).join('');
+  $('pfTable').querySelectorAll('tr.pick').forEach(r => r.onclick = () => { st.pf = st.pf === r.dataset.pf ? null : r.dataset.pf; st.sel = null; render(); if (st.pf) fitPf(); });
+  const p = PF.find(x => x.key === st.pf);
+  if (!p) { $('pfNote').textContent = 'Click a portfolio to draw all its lines on the map.'; $('pfList').innerHTML = ''; $('pfActs').innerHTML = ''; return; }
+  $('pfNote').textContent = `${p.note}.${p.left ? ` ${p.left} bridge(s) left open (no line within reach).` : ''} A line passes when, in a dispatch, every bridge it closes can open with nothing islanded, pocket voltages within ${BAND.post_lo}–${BAND.post_hi} and no pocket branch over its rating.`;
+  $('pfActs').innerHTML = DB ? `<button type="button" class="${st.pfChosen === p.key ? '' : 'primary'}" id="pfAcc">${st.pfChosen === p.key ? 'Accepted (click to undo)' : 'Accept this portfolio'}</button><span class="msg" id="pfMsg"></span>` : '<span class="msg">To accept, tell your agent the portfolio name.</span>';
+  const pa = $('pfAcc'); if (pa) pa.onclick = () => acceptPf(p);
+  const sorted = p.lines.slice().sort((a, b) => (b.closes_mw || 0) - (a.closes_mw || 0));
+  $('pfList').innerHTML = sorted.map((l, i) => {
+    const names = l.trees.map(id => TBY.get(id) ? treeName(TBY.get(id)) : '?').join(' + ');
+    const pc = l.m ? `<span class="pill ${l.n === l.m ? 'pass' : l.n ? 'soft' : 'fail'}">${l.n}/${l.m}</span>` : '<span class="pill na">not measured</span>';
+    return `<button type="button" class="trow" data-pl="${i}"><span class="sw" style="background:var(--sel)"></span><span class="n">${esc(S.get(l.frm).name)} → ${esc(S.get(l.to).name)}</span><span class="x">${pc}</span>`
+      + `<span class="d">${l.kv} kV · ${fmt(l.mi, 1)} mi · closes ${esc(names)}${l.m ? ` · worst branch ${fmt(l.worst)}%` : ''}</span></button>`; }).join('');
+  $('pfList').querySelectorAll('.trow').forEach(r => r.onclick = () => { const l = sorted[+r.dataset.pl];
+    fit([l.frm, l.to, ...l.trees.flatMap(id => TBY.get(id) ? TBY.get(id).subs : [])], 90); });
+}
+function fitPf() { const p = PF.find(x => x.key === st.pf); if (p) fit(p.lines.flatMap(l => [l.frm, l.to]), 40); }
+function drawPf() {
+  const p = PF.find(x => x.key === st.pf); if (!p) return;
+  for (const l of p.lines) { const a = S.get(l.frm), c = S.get(l.to); if (!a || !c) continue;
+    el('line', {x1: a.x, y1: a.y, x2: c.x, y2: c.y, stroke: 'var(--sel)', 'stroke-width': 2.4, 'stroke-dasharray': '5 3', 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none'}, gI); }
+}
+async function acceptPf(p) {
+  if (!DB) return; const undo = st.pfChosen === p.key, m = $('pfMsg'); if (m) m.textContent = 'saving…';
+  try { const ref = DB.doc('portfolio/choice');
+    if (undo) await ref.delete();
+    else await ref.set({portfolio: p.key, name: p.name, lines: p.lines.map(l => ({from: S.get(l.frm).name, to: S.get(l.to).name, kv: l.kv, miles: l.mi, passes: `${l.n}/${l.m}`})), accepted_at: new Date().toISOString()});
+    if (m) m.textContent = ''; } catch (e) { if (m) m.textContent = 'Could not save. Tell your agent instead.'; }
+}
+
+// ---- accept ties: one doc per tree in the page's store, read back by the agent
+let DB = null;
+(async () => { try { DB = window.claude && window.claude.use ? await window.claude.use('db') : null; } catch (e) { DB = null; }
+  if (DB) { try { DB.doc('portfolio/choice').onSnapshot(s => { st.pfChosen = s.exists ? s.data().portfolio : null; renderPf(); }, () => {}); } catch (e) {} }
+  if (DB) { try { DB.collection('accepted_ties').onSnapshot(q => { const a = {}; (q.docs || []).forEach(x => { const v = x.data ? x.data() : x; if (v && v.tree != null) a[v.tree] = v; }); st.acc = a; render(); }, () => {}); } catch (e) {} render(); } })();
+async function accept(t, di) {
+  if (!DB) return; const d = t.designs[di], msg = $('accMsg' + di), undo = st.acc[t.id] && st.acc[t.id].design === di;
+  if (msg) msg.textContent = 'saving…';
+  try {
+    const ref = DB.doc('accepted_ties/t' + t.id);
+    if (undo) await ref.delete();
+    else await ref.set({tree: t.id, design: di, name: treeName(t), kv: t.kv, from: S.get(d.frm).name, from_bus: d.fb, to: S.get(d.to).name, to_bus: d.tb,
+      miles: d.mi, passes: `${d.pc.n}/${d.pc.m}`, accepted_at: new Date().toISOString()});
+    if (msg) msg.textContent = '';
+  } catch (e) { if (msg) msg.textContent = `Could not save${e && e.code ? ' (' + e.code + ')' : ''}. Tell your agent instead.`; }
+}
+
+// ---- controls
+const seg = (id, items, get, set) => { const box = $(id); const draw = () => { box.innerHTML = items.map(([v, tx]) => `<button type="button" data-v="${v}" aria-pressed="${String(get()) === String(v)}">${tx}</button>`).join('');
+  box.querySelectorAll('button').forEach(b => b.onclick = () => { set(b.dataset.v); draw(); render(); }); }; draw(); };
+seg('segKind', [['all', 'All'], ['load', 'Strands load'], ['gen', 'Strands generation'], ['both', 'Both'], ['none', 'Nothing in service']], () => st.kind, v => { st.kind = v; });
+$('minMw').onchange = e => { st.minMw = +e.target.value; render(); };
+
+// ---- pan / zoom
+const svg = $('map');
+function fit(ids, pad = 40) { const ss = ids.map(i => S.get(i)).filter(s => s && isFinite(s.x) && isFinite(s.y)); if (!ss.length) return;
+  const xs = ss.map(s => s.x), ys = ss.map(s => s.y), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const W = svg.clientWidth || 800, H = svg.clientHeight || 600;
+  st.k = Math.min((W - 2 * pad) / Math.max(x1 - x0, 1), (H - 2 * pad) / Math.max(y1 - y0, 1)); st.tx = W / 2 - st.k * (x0 + x1) / 2; st.ty = H / 2 - st.k * (y0 + y1) / 2; sizeMarks(); }
+function zoomAt(f, cx, cy) { const k2 = Math.max(0.05, Math.min(400, st.k * f)); st.tx = cx - (cx - st.tx) * (k2 / st.k); st.ty = cy - (cy - st.ty) * (k2 / st.k); st.k = k2; sizeMarks(); }
+svg.addEventListener('wheel', e => { e.preventDefault(); const r = svg.getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top); }, {passive: false});
+const ptrs = new Map(); let pinch0 = null;
+svg.addEventListener('pointerdown', e => { ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY}); svg.setPointerCapture(e.pointerId); svg.classList.add('drag');
+  if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch0 = {d: Math.hypot(a.x - b.x, a.y - b.y), k: st.k}; } });
+svg.addEventListener('pointermove', e => { if (!ptrs.has(e.pointerId)) return; const p = ptrs.get(e.pointerId), c = {x: e.clientX, y: e.clientY}; ptrs.set(e.pointerId, c);
+  if (ptrs.size === 1) { st.tx += c.x - p.x; st.ty += c.y - p.y; sizeMarks(); }
+  else if (ptrs.size === 2 && pinch0) { const [a, b] = [...ptrs.values()], r = svg.getBoundingClientRect(); zoomAt((pinch0.k * Math.hypot(a.x - b.x, a.y - b.y) / pinch0.d) / st.k, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top); } });
+const up = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch0 = null; if (!ptrs.size) svg.classList.remove('drag'); };
+svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
+$('zin').onclick = () => zoomAt(1.5, svg.clientWidth / 2, svg.clientHeight / 2);
+$('zout').onclick = () => zoomAt(1 / 1.5, svg.clientWidth / 2, svg.clientHeight / 2);
+$('fitAll').onclick = () => { st.sel = null; render(); fit(D.subs.map(s => s.id), 30); };
+const T = $('tip');
+function tip(e, html) { const r = $('mapwrap').getBoundingClientRect(); T.innerHTML = html; T.hidden = false; T.style.left = Math.min(e.clientX - r.left + 14, r.width - 310) + 'px'; T.style.top = Math.min(e.clientY - r.top + 14, r.height - 90) + 'px'; }
+function untip() { T.hidden = true; }
+
+// ---- export
+let DL = null; const dlReady = (async () => { try { DL = window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch (e) { DL = null; } })();
+const note = m => { $('expMsg').textContent = m; };
+async function saveFile(name, data) { await dlReady;
+  if (DL) { try { await DL.save({filename: name, data}); note('Saved ' + name); } catch (e) { note(e && e.code === 'declined' ? 'Save cancelled.' : 'Could not save.'); } return; }
+  const blob = data instanceof Blob ? data : new Blob([data]); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000); note('Saved ' + name); }
+const PROPS = ['stroke', 'fill', 'stroke-width', 'stroke-dasharray', 'stroke-linecap', 'opacity', 'font-size', 'font-weight', 'paint-order', 'stroke-linejoin'];
+function exportSVG() { const W = svg.clientWidth, H = svg.clientHeight, css = getComputedStyle(document.documentElement), tok = n => css.getPropertyValue(n).trim();
+  const clone = svg.cloneNode(true), src = svg.querySelectorAll('*'), dst = clone.querySelectorAll('*');
+  src.forEach((s, i) => { const d = dst[i], cs = getComputedStyle(s); if (cs.display === 'none') { d.setAttribute('display', 'none'); return; }
+    for (const p of PROPS) { const v = cs.getPropertyValue(p); if (v) d.setAttribute(p, v); } d.removeAttribute('class'); d.removeAttribute('style');
+    if (s.tagName === 'text') d.setAttribute('font-family', 'IBM Plex Sans Condensed, Arial Narrow, Arial, sans-serif'); });
+  const head = 60, total = H + head, out = document.createElementNS(NS, 'svg');
+  out.setAttribute('xmlns', NS); out.setAttribute('width', W); out.setAttribute('height', total); out.setAttribute('viewBox', `0 0 ${W} ${total}`);
+  const add = (tag, a, txt) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; out.appendChild(e); return e; };
+  const font = 'IBM Plex Sans, Segoe UI, Arial, sans-serif';
+  add('rect', {x: 0, y: 0, width: W, height: total, fill: tok('--paper')});
+  add('text', {x: 16, y: 26, fill: tok('--ink'), 'font-family': font, 'font-size': 19, 'font-weight': 600}, st.sel ? `${treeName(st.sel)} — radial ${st.sel.kv} kV tree` : D.title);
+  add('text', {x: 16, y: 46, fill: tok('--ink-2'), 'font-family': font, 'font-size': 12}, `${st.sel ? (st.mode === 'after' ? 'with the suggested tie built' : 'as built, suggested tie dashed') : `voltage layer ${st.kv}`} · exported ${new Date().toISOString().slice(0, 10)}`);
+  const g = document.createElementNS(NS, 'g'); g.setAttribute('transform', `translate(0 ${head})`); const inner = document.createElementNS(NS, 'svg'); inner.setAttribute('width', W); inner.setAttribute('height', H);
+  while (clone.firstChild) inner.appendChild(clone.firstChild); g.appendChild(inner); out.appendChild(g);
+  return new XMLSerializer().serializeToString(out); }
+const base = () => st.sel ? `radial_${treeName(st.sel).replace(/[^A-Za-z0-9]+/g, '_')}_${st.mode}` : `radial_trees_${st.kv}`;
+$('expSvg').onclick = () => saveFile(base() + '.svg', exportSVG());
+$('expPng').onclick = () => { const img = new Image(), url = URL.createObjectURL(new Blob([exportSVG()], {type: 'image/svg+xml'}));
+  img.onload = () => { const c = document.createElement('canvas'); c.width = img.width * 2; c.height = img.height * 2; const x = c.getContext('2d'); x.scale(2, 2); x.drawImage(img, 0, 0); URL.revokeObjectURL(url);
+    c.toBlob(b => b ? saveFile(base() + '.png', b) : note('Could not render the PNG.'), 'image/png'); }; img.onerror = () => note('Could not render the PNG.'); img.src = url; };
+$('expCsv').onclick = () => { const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const hdr = ['tree', 'kv', 'substations', 'bridges', 'longest_bridge_mi', 'max_load_mw', 'max_gen_mw', 'hangs_off', 'tie_from', 'tie_to', 'tie_mi', 'passes', 'accepted'];
+  const rows = TR.slice().sort((a, b) => b.stake - a.stake).map(t => { const b = t.best; return [treeName(t), t.kv, t.subs.map(i => S.get(i).name).join('; '), t.bridges.length, Math.max(...t.bridges.map(x => x.mi)), t.max_load, t.max_gen, S.get(t.near).name,
+    b ? S.get(b.frm).name : '', b ? S.get(b.to).name : '', b ? b.mi : '', b && b.pc.m ? `${b.pc.n}/${b.pc.m}` : '', st.acc[t.id] ? 'yes' : '']; });
+  saveFile('radial_trees.csv', [hdr].concat(rows).map(r => r.map(q).join(',')).join('\n')); };
+
+render();
+requestAnimationFrame(() => fit(D.subs.map(s => s.id), 30));
+window.addEventListener('resize', () => sizeMarks());
+})();
+</script>

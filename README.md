@@ -131,7 +131,8 @@ installed Python or used an AI coding agent.
 This depends on which route you took, and the two are not the same.
 
 **On the plugin route**, a plugin ships skills and commands, not instruction files. Claude
-Code loads `skills/powerworld/SKILL.md` and `skills/knowledge-base-page/SKILL.md`, and
+Code loads `skills/powerworld/SKILL.md`, `skills/knowledge-base-page/SKILL.md` and
+`skills/violation-map/SKILL.md`, and
 registers `/powerworld-hivemind:powerworld-setup` and `/powerworld-hivemind:kb-page`. It
 does **not** load `CLAUDE.md` or `AGENTS.md` from the plugin. `SKILL.md` carries the rules that matter
 and points at the pages; the routing table in `AGENTS.md` stays on disk for the agent to
@@ -263,6 +264,7 @@ Recent builds only; see
 | Contingency analysis | Building contingency sets, reading violations, ranking devices by severity |
 | **Multi-case comparison** | **Diffing two planning vintages, classifying NEW / RETIRED / UPGRADED / RENUMBERED, and generating contingency sets for just the new devices** |
 | **Violation remediation** | **Diagnosing the cause, proposing reinforcements or redispatch, applying them, and re-verifying N-1** |
+| **Violation maps** | **An interactive map of out-of-band voltages with the reactive balance around them, or of the radial lines one outage can island, with candidate fixes measured and a Before/After switch** |
 | PowerWorld weather features | The PWW format, and fetching `.pww` files with the TeamOverbyeWeather client |
 | Timestep simulation | Driving PowerWorld's TimeStep feature for hourly renewable output, and reading the result CSVs |
 | Script actions | 198 PowerWorld SCRIPT commands, organized by task |
@@ -344,7 +346,7 @@ open a pull request.
 ## See it as a graph
 
 Open the repository folder as a vault in [Obsidian](https://obsidian.md) — *Open folder
-as vault*, then **Ctrl/Cmd+G** — to see the 47 pages and the links between them.
+as vault*, then **Ctrl/Cmd+G** — to see the 50 pages and the links between them.
 Nothing to install or convert. The repo ships `.obsidian/graph.json`, so the graph
 arrives coloured by folder with `index.md` filtered out, since it links to every page
 and would swamp the view.
