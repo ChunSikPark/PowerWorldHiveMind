@@ -46,7 +46,7 @@ knew.
 
 ## How to find the page — and how much of it to read
 
-The kit is 41 pages — 15 in `concepts/`, 15 in `methods/`, 7 in `demos/`, 4 in
+The kit is 50 pages — 20 in `concepts/`, 18 in `methods/`, 8 in `demos/`, 4 in
 `references/` — and you will need three to five of them. The ladder below is about
 **finding** the right page cheaply. It is not a budget on how much of that page you read.
 
@@ -59,14 +59,18 @@ The kit is 41 pages — 15 in `concepts/`, 15 in `methods/`, 7 in `demos/`, 4 in
    of five terms on one page is your page; one common word is noise.
 
    Whatever your tool calls it, you want a full-text search across `concepts/`,
-   `methods/`, `demos/` and `references/`:
+   `methods/`, `demos/` and `references/` — **all four relative to the kit root, not to the
+   working directory.** The kit root is `${CLAUDE_PLUGIN_ROOT}` when installed as a plugin,
+   and otherwise the directory holding this file. `$KIT` below means that path: substitute
+   it before running anything, or the search hits the wrong tree and returns nothing.
    - **Claude Code** — the `Grep` tool with `path` set to the kit root and
      `output_mode: "files_with_matches"`, one call per term or an alternation.
-   - **Any shell with ripgrep** — `rg -il "savecase|save the case" concepts methods demos references`
+   - **Any shell with ripgrep** — `rg -il "savecase|save the case" "$KIT/concepts" "$KIT/methods" "$KIT/demos" "$KIT/references"`
    - **Cursor** — project-wide find (Ctrl+Shift+F), or a codebase search scoped to those
      four directories.
    - **Windows with neither `rg` nor `grep`** — PowerShell:
-     `Select-String -Pattern "SaveCase" -Path concepts\*.md,methods\*.md,demos\*.md,references\*.md`
+     `Select-String -Pattern "SaveCase" -Path $KIT\concepts\*.md,$KIT\methods\*.md,$KIT\demos\*.md,$KIT
+eferences\*.md`
 
    Search is step one because it was measured against the alternatives. 48 agents, 16
    questions with human-written answers, 2026-09-07: searching found the right page 10
@@ -141,6 +145,8 @@ Say what you tested, what you rejected, and what you did **not** save.
 | To know what a term or acronym means | [concepts/glossary.md](concepts/glossary.md) |
 | To compare two cases / find what a plan builds | [demos/comparing-planning-cases.md](demos/comparing-planning-cases.md) |
 | To fix violations, not just report them | [demos/violation-remediation.md](demos/violation-remediation.md) |
+| To see violations or islanding on a map | [methods/violation-network-map.md](methods/violation-network-map.md), built by the `violation-map` skill |
+| Which object, field or command to use, and what the kit says about it | `python "$KIT/skills/schema-lookup/engine/lookup.py"`, see [skills/schema-lookup/SKILL.md](skills/schema-lookup/SKILL.md) |
 | A worked example of any of this | [demos/start-here.md](demos/start-here.md) |
 | **Anything to fail, at any point** | [methods/handling-errors.md](methods/handling-errors.md) |
 | Anything at all, first | [methods/preflight-powerworld.md](methods/preflight-powerworld.md) |
@@ -157,6 +163,7 @@ Say what you tested, what you rejected, and what you did **not** save.
 | Devices ranked by violation severity | [methods/ranking-new-devices-by-severity.md](methods/ranking-new-devices-by-severity.md) |
 | To change limit-monitoring thresholds | [methods/powerworld-limitset-setdata.md](methods/powerworld-limitset-setdata.md) |
 | To reclassify lines as transformers | [methods/converting-lines-to-transformers.md](methods/converting-lines-to-transformers.md) |
+| To drive Simulator without SimAuto, by dropping aux files | [methods/aux-file-mode.md](methods/aux-file-mode.md) for the rules and a working template; [concepts/powerworld-script-transfer.md](concepts/powerworld-script-transfer.md) for how the channel itself works. Read the first one before writing a script |
 | A SCRIPT action but does not know its name | [references/aux-script-commands.md](references/aux-script-commands.md) |
 | Exact field names and signatures | [references/esapp-schema-reference.md](references/esapp-schema-reference.md) |
 

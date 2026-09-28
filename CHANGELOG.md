@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **A fourth skill, `schema-lookup`, and the kit's first agent, `schema-librarian`.** Answers which
+  PowerWorld object, field or SCRIPT command to use from the Simulator 25 field export
+  (`references/powerworld-object-fields-v25.xlsx`), and prints what
+  `references/powerworld-study-options.md` says about the field verbatim — including rows that
+  call a field a decoy or a trap. Key fields, required fields, writability, concise and colon
+  names, and a ranked search across ~100,000 fields; no PowerWorld needed. `powerworld-setup` now
+  installs `openpyxl`. Also fixed: two pages still said islanding is undetectable after
+  `CTGSolveAll`, and the parallel-contingency page lacked the rule to `.exit()` instances you own.
+
 - **A third skill, `violation-map`, and the method page behind it.** It builds two
   single-file HTML maps from a case: a **voltage page** (the substations around the
   out-of-band buses, every line in its own kV colour, a click-to-zoom problem list,

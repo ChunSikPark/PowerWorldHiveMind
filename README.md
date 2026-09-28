@@ -131,8 +131,9 @@ installed Python or used an AI coding agent.
 This depends on which route you took, and the two are not the same.
 
 **On the plugin route**, a plugin ships skills and commands, not instruction files. Claude
-Code loads `skills/powerworld/SKILL.md`, `skills/knowledge-base-page/SKILL.md` and
-`skills/violation-map/SKILL.md`, and
+Code loads `skills/powerworld/SKILL.md`, `skills/knowledge-base-page/SKILL.md`,
+`skills/violation-map/SKILL.md` and `skills/schema-lookup/SKILL.md`, registers the
+`schema-librarian` agent from `agents/`, and
 registers `/powerworld-hivemind:powerworld-setup` and `/powerworld-hivemind:kb-page`. It
 does **not** load `CLAUDE.md` or `AGENTS.md` from the plugin. `SKILL.md` carries the rules that matter
 and points at the pages; the routing table in `AGENTS.md` stays on disk for the agent to
