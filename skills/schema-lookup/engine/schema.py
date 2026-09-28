@@ -192,3 +192,21 @@ def split_words(name: str) -> list[str]:
     """SCOPFMaxInnerLoopItr -> ['scopf', 'max', 'inner', 'loop', 'itr']."""
     parts = re.findall(r"[A-Z]+(?=[A-Z][a-z])|[A-Z]?[a-z]+|[A-Z]+|\d+", name)
     return [p.lower() for p in parts]
+
+
+def search(query: str, obj: str | None = None, limit: int = 20,
+           fields: dict | None = None) -> list[Field]:
+    terms = [t for t in re.split(r"\W+", query.lower()) if t]
+    if not terms:
+        return []
+    fields = fields if fields is not None else load_fields()
+    pool = object_fields(obj, fields) if obj else [f for fs in fields.values() for f in fs]
+    scored = []
+    for f in pool:
+        names = f"{f.variable} {f.concise}".lower()
+        text = f"{names} {f.dialog_path} {f.description}".lower()
+        hits = sum(t in text for t in terms)
+        if hits:
+            scored.append((-hits, -sum(t in names for t in terms), f.object, f.variable, f))
+    scored.sort(key=lambda s: s[:4])
+    return [s[4] for s in scored[:limit]]

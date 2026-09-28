@@ -143,3 +143,19 @@ def test_absent_field_returns_none(fields):
 
 def test_split_words():
     assert schema.split_words("SCOPFMaxInnerLoopItr") == ["scopf", "max", "inner", "loop", "itr"]
+
+
+# ---- Task 4: search
+
+def test_search_finds_island_reporting(fields):
+    top = [f.variable for f in schema.search("island violations", obj="CTG_Options", fields=fields)[:3]]
+    assert "Include" in top
+
+
+def test_search_across_all_objects_respects_limit(fields):
+    assert len(schema.search("voltage", limit=7, fields=fields)) == 7
+    assert len({f.object for f in schema.search("voltage", limit=50, fields=fields)}) > 1
+
+
+def test_search_empty_query_returns_nothing(fields):
+    assert schema.search("  ", fields=fields) == []
