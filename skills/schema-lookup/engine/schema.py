@@ -130,3 +130,65 @@ def load_fields(xlsx: Path | str = DEFAULT_XLSX) -> dict[str, list[Field]]:
         _write_cache(cache, objs)
     _MEMO[key] = objs
     return objs
+
+
+class UnknownObject(SchemaError):
+    def __init__(self, name: str, suggestions: list[str]):
+        self.name = name
+        self.suggestions = suggestions
+        hint = f" Did you mean: {', '.join(suggestions)}?" if suggestions else ""
+        super().__init__(f"No object type {name!r} in the field export.{hint}")
+
+
+def resolve_object(name: str, fields: dict | None = None) -> str:
+    fields = fields if fields is not None else load_fields()
+    if name in fields:
+        return name
+    lower = {o.lower(): o for o in fields}
+    if name.lower() in lower:
+        return lower[name.lower()]
+    near = difflib.get_close_matches(name.lower(), list(lower), n=3, cutoff=0.6)
+    raise UnknownObject(name, [lower[n] for n in near])
+
+
+def object_fields(name: str, fields: dict | None = None) -> list[Field]:
+    fields = fields if fields is not None else load_fields()
+    return fields[resolve_object(name, fields)]
+
+
+def keys(name: str, fields: dict | None = None) -> list[Field]:
+    return sorted((f for f in object_fields(name, fields) if f.key_index), key=lambda f: f.key_index)
+
+
+def required(name: str, fields: dict | None = None) -> list[Field]:
+    return [f for f in object_fields(name, fields) if f.is_required]
+
+
+def normalize_field_name(name: str) -> str:
+    """Accept the Python attribute spelling: MaxItr__1 -> MaxItr:1."""
+    return re.sub(r"__(\d+)$", r":\1", name.strip())
+
+
+def find_field(obj: str, name: str, fields: dict | None = None) -> Field | None:
+    """Match on variable name first, then concise name, case-insensitively."""
+    want = normalize_field_name(name).lower()
+    fs = object_fields(obj, fields)
+    for f in fs:
+        if f.variable.lower() == want:
+            return f
+    for f in fs:
+        if f.concise and f.concise.lower() == want:
+            return f
+    return None
+
+
+def close_field_names(obj: str, name: str, fields: dict | None = None) -> list[str]:
+    """Spelling neighbours only — not substitutes for the field that was asked for."""
+    names = [f.variable for f in object_fields(obj, fields)]
+    return difflib.get_close_matches(normalize_field_name(name), names, n=3, cutoff=0.6)
+
+
+def split_words(name: str) -> list[str]:
+    """SCOPFMaxInnerLoopItr -> ['scopf', 'max', 'inner', 'loop', 'itr']."""
+    parts = re.findall(r"[A-Z]+(?=[A-Z][a-z])|[A-Z]?[a-z]+|[A-Z]+|\d+", name)
+    return [p.lower() for p in parts]

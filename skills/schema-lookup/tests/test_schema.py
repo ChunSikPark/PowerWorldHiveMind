@@ -100,3 +100,46 @@ def test_unwritable_cache_dir_still_answers(tmp_path, monkeypatch):
     schema._MEMO.clear()
     monkeypatch.setattr(schema, "_read_xlsx", lambda p: {"Z": []})
     assert schema.load_fields(src) == {"Z": []}
+
+
+# ---- Task 3: lookups
+
+def test_shunt_keys_required_and_area_fields(fields):
+    assert [f.variable for f in schema.keys("Shunt", fields)] == ["BusNum", "ShuntID"]
+    req = {f.variable for f in schema.required("Shunt", fields)}
+    assert {"SSCMode", "SSNMVR", "SSStatus"} <= req
+    own = schema.find_field("Shunt", "AreaNum", fields)
+    bus = schema.find_field("Shunt", "AreaNum:1", fields)
+    assert own.writable == "yes" and "of Shunt" in own.dialog_path
+    assert bus.writable == "read-only" and "of Bus" in bus.dialog_path
+
+
+def test_resolve_object_case_insensitive(fields):
+    assert schema.resolve_object("ctg_options", fields) == "CTG_Options"
+
+
+def test_unknown_object_suggests(fields):
+    with pytest.raises(schema.UnknownObject) as e:
+        schema.resolve_object("Shunts", fields)
+    assert "Shunt" in e.value.suggestions
+    assert "Shunt" in str(e.value)
+
+
+def test_find_field_colon_python_and_concise_forms(fields):
+    a = schema.find_field("Sim_Solution_Options", "MaxItr:1", fields)
+    b = schema.find_field("Sim_Solution_Options", "MaxItr__1", fields)
+    c = schema.find_field("Sim_Solution_Options", "MaxItrVoltLoop", fields)
+    assert a is not None and a == b == c
+    assert a.variable == "MaxItr:1"
+
+
+def test_concise_name_is_the_same_field(fields):
+    assert schema.find_field("Sim_Solution_Options", "DCApprox", fields).variable == "DCPFMode"
+
+
+def test_absent_field_returns_none(fields):
+    assert schema.find_field("OPF_Options", "SCOPFMaxInnerLoopItr", fields) is None
+
+
+def test_split_words():
+    assert schema.split_words("SCOPFMaxInnerLoopItr") == ["scopf", "max", "inner", "loop", "itr"]
