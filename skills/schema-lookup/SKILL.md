@@ -8,18 +8,20 @@ description: "Answer which PowerWorld object, field or SCRIPT command to use, an
 Answer from the kit's own sources, never from memory. PowerWorld has about 1,000 object types
 and 100,000 fields; a guessed field name fails silently.
 
-## 0. Resolve the kit root once
+## 0. The kit root
 
-`KIT` is `${CLAUDE_PLUGIN_ROOT}` when the kit is installed as a Claude Code plugin; anywhere else
-it is the directory holding `AGENTS.md`. Resolve it to an absolute path first. Every command below
-uses `"$KIT/..."`; a bare `skills/...` path runs against the user's working directory and fails.
+Installed as a Claude Code plugin, `${CLAUDE_PLUGIN_ROOT}` in this file is replaced with the kit's
+absolute path before you read it, so the commands below run as written. It is **not** an
+environment variable: in any other harness, or if you still see the literal text
+`${CLAUDE_PLUGIN_ROOT}`, type the absolute path of the directory holding `AGENTS.md` in its place.
+A bare `skills/...` path runs against the user's working directory and fails.
 
 ## 1. Look it up
 
 ```
-python "$KIT/skills/schema-lookup/engine/lookup.py" object <Object>
-python "$KIT/skills/schema-lookup/engine/lookup.py" field <Object> <Field>
-python "$KIT/skills/schema-lookup/engine/lookup.py" search "<words>" [--object <Object>] [--limit 10]
+python "${CLAUDE_PLUGIN_ROOT}/skills/schema-lookup/engine/lookup.py" object <Object>
+python "${CLAUDE_PLUGIN_ROOT}/skills/schema-lookup/engine/lookup.py" field <Object> <Field>
+python "${CLAUDE_PLUGIN_ROOT}/skills/schema-lookup/engine/lookup.py" search "<words>" [--object <Object>] [--limit 10]
 ```
 
 - Don't know the object? `search` without `--object`, then `object` on the best hit.
@@ -36,9 +38,10 @@ python "$KIT/skills/schema-lookup/engine/lookup.py" search "<words>" [--object <
   using it.
 - The row's words decide the answer. A row that says **decoy** or **trap** overrides everything else;
   the tag (`V` verified on a live case, `D` documented, `S` schema only) rates the row's claim.
+- A row marked `paragraph` is prose from the hub that names `Object.Field`; quote it the same way.
 - No hub rows: say "field export only — PowerWorld describes it; its behaviour is untested here".
 
-For exact SCRIPT syntax and defaults, read `$KIT/references/powerworld-study-commands.md`,
+For exact SCRIPT syntax and defaults, read `${CLAUDE_PLUGIN_ROOT}/references/powerworld-study-commands.md`,
 including its "Surprises" section before recommending any command.
 
 ## 3. When the field does not exist
@@ -56,6 +59,10 @@ what it does: <one line, from the description>
 how to set it: SetData(<Object>, [<Field>], [<value>]);   — then read it back
 the kit says: <the hub row, quoted, with its tag> | field export only
 ```
+
+The `how to set it` line depends on `writable`: yes — as above; aux-only — only from an aux file;
+edit-mode — only in EDIT mode; depends — say so and quote the export's condition;
+read-only: say it cannot be written, and give no SetData line.
 
 For "what do I need to create an X": the keys in order and the required fields.
 

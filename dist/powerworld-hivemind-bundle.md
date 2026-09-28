@@ -73,8 +73,7 @@ The kit is 50 pages — 20 in `concepts/`, 18 in `methods/`, 8 in `demos/`, 4 in
    - **Cursor** — project-wide find (Ctrl+Shift+F), or a codebase search scoped to those
      four directories.
    - **Windows with neither `rg` nor `grep`** — PowerShell:
-     `Select-String -Pattern "SaveCase" -Path $KIT\concepts\*.md,$KIT\methods\*.md,$KIT\demos\*.md,$KIT
-eferences\*.md`
+     `Select-String -Pattern "SaveCase" -Path $KIT\concepts\*.md,$KIT\methods\*.md,$KIT\demos\*.md,$KIT\references\*.md`
 
    Search is step one because it was measured against the alternatives. 48 agents, 16
    questions with human-written answers, 2026-09-07: searching found the right page 10

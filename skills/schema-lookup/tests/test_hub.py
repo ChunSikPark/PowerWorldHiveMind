@@ -15,7 +15,8 @@ def test_untagged_table_rows_carry_no_tag(fields):
 
 def test_other_objects_dotted_row_is_not_returned(fields):
     rows = hub_rows("SuperArea", "BGAGC", fields)
-    assert [r.tag[:1] for r in rows] == ["S"]
+    assert [r.tag[:1] for r in rows if r.tag] == ["S"]
+    assert not [r for r in rows if "Off AGC" in r.text]  # the Area row's value list
 
 
 def test_decoy_text_reaches_the_reader(fields):
@@ -40,3 +41,8 @@ def test_field_absent_from_export_returns_nothing(fields):
 def test_passages_answer_the_inner_loop_question():
     top = hub_passages(schema.split_words("SCOPFMaxInnerLoopItr"))
     assert top and "OPF_MaxLPIterations" in top[0]
+
+
+def test_prose_paragraph_naming_object_field_is_an_exact_row(fields):
+    rows = hub_rows("Contingency", "LoadMW", fields)
+    assert any(r.match == "exact" and "2026-09-28" in r.text for r in rows)

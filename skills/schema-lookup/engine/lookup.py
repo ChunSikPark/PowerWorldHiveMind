@@ -64,9 +64,10 @@ def show_field(obj: str, name: str, fields: dict) -> tuple[int, str]:
     rows = hub_rows(obj, f.variable, fields)
     if rows:
         lines.append("hub rows (verbatim; 'name' rows may concern another object):")
-        lines += [f"  [{r.match}] {r.section} :: {r.text} :: tag {r.tag}" for r in rows]
+        lines += [f"  [{r.match}] {r.section} :: {r.text} :: {f'tag {r.tag}' if r.tag else 'paragraph'}"
+                  for r in rows]
     else:
-        lines.append("hub: not mentioned - field export only, behaviour not tested here")
+        lines.append("hub: no row or paragraph names it - field export only, behaviour not tested here")
     return 0, "\n".join(lines)
 
 

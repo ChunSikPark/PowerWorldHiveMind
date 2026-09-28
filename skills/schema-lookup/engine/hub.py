@@ -54,8 +54,33 @@ def _table_rows(hub: Path):
         prev_table = is_table
 
 
+def _blocks(hub: Path):
+    """(section, text, is_table_row) for every paragraph and table row, in file order."""
+    section, para = "", []
+    for line in hub.read_text(encoding="utf-8").splitlines() + [""]:
+        if line.strip() and not line.startswith(("#", "|")):
+            para.append(line.strip())
+            continue
+        if para:
+            yield section, " ".join(para), False
+            para = []
+        if line.startswith("#"):
+            section = line.lstrip("#").strip()
+        elif line.startswith("|"):
+            yield section, line, True
+
+
+def _names_exactly(text: str, obj: str, names: set[str]) -> bool:
+    for tok in _tokens(text):
+        if "." in tok:
+            o, fld = tok.split(".", 1)
+            if o.lower() == obj.lower() and fld in names:
+                return True
+    return False
+
+
 def hub_rows(obj: str, field_name: str, fields: dict | None = None, hub: Path = HUB) -> list[HubRow]:
-    """Hub table rows that name this field: exact Object.Field matches first."""
+    """Hub table rows that name this field, then paragraphs that name Object.Field; exact first."""
     f = find_field(obj, field_name, fields)
     if f is None:
         return []
@@ -74,24 +99,16 @@ def hub_rows(obj: str, field_name: str, fields: dict | None = None, hub: Path = 
                 match = "name"
         if match:
             found.append(HubRow(section, body, tag, match))
+    for section, text, is_table in _blocks(hub):
+        if not is_table and _names_exactly(text, f.object, names):
+            found.append(HubRow(section, text, "", "exact"))
     return sorted(found, key=lambda r: r.match != "exact")
 
 
 def hub_passages(words: list[str], hub: Path = HUB, limit: int = 3) -> list[str]:
     """Paragraphs and table rows mentioning at least two of `words`, most matches first."""
     words = [w.lower() for w in words if len(w) >= 3]
-    blocks, para = [], []
-    for line in hub.read_text(encoding="utf-8").splitlines():
-        if line.startswith("|"):
-            blocks.append(line)
-        elif line.strip() and not line.startswith("#"):
-            para.append(line.strip())
-            continue
-        if para:
-            blocks.append(" ".join(para))
-            para = []
-    if para:
-        blocks.append(" ".join(para))
+    blocks = [text for _, text, _ in _blocks(hub)]
     scored = [(sum(w in b.lower() for w in set(words)), i, b) for i, b in enumerate(blocks)]
     scored = [s for s in scored if s[0] >= 2]
     scored.sort(key=lambda s: (-s[0], s[1]))

@@ -159,3 +159,12 @@ def test_search_across_all_objects_respects_limit(fields):
 
 def test_search_empty_query_returns_nothing(fields):
     assert schema.search("  ", fields=fields) == []
+
+
+def test_corrupt_export_is_a_schema_error(tmp_path, monkeypatch):
+    bad = tmp_path / "bad.xlsx"
+    bad.write_bytes(b"not a zip file")
+    monkeypatch.setattr(schema, "CACHE_DIR", tmp_path / "cache")
+    schema._MEMO.clear()
+    with pytest.raises(schema.SchemaError, match="not a readable xlsx"):
+        schema.load_fields(bad)

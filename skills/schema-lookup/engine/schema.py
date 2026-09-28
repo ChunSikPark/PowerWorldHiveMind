@@ -6,6 +6,7 @@ import gzip
 import json
 import os
 import re
+import zipfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -70,7 +71,12 @@ def _read_xlsx(path: Path) -> dict[str, list[Field]]:
         raise SchemaError(
             "openpyxl is needed to read the field export: python -m pip install openpyxl"
         ) from e
-    wb = openpyxl.load_workbook(path, read_only=True)
+    from openpyxl.utils.exceptions import InvalidFileException
+
+    try:
+        wb = openpyxl.load_workbook(path, read_only=True)
+    except (zipfile.BadZipFile, InvalidFileException, KeyError, OSError, ValueError) as e:
+        raise SchemaError(f"{path} is not a readable xlsx export ({e})") from e
     objs: dict[str, list[Field]] = {}
     cur = None
     for row in wb.worksheets[0].iter_rows(min_row=2, values_only=True):

@@ -69,3 +69,18 @@ def test_cli_survives_cp1252_console():
 def test_cli_runs_from_outside_the_kit(tmp_path):
     code, out, _ = run("object", "Shunt", cwd=tmp_path)
     assert code == 0 and "BusNum" in out
+
+
+def test_cli_corrupt_export_exit_2(tmp_path):
+    bad = tmp_path / "bad.xlsx"
+    bad.write_bytes(b"not a zip file")
+    code, _, err = run("--xlsx", str(bad), "object", "Shunt")
+    assert code == 2 and "not a readable xlsx" in err
+    assert "Traceback" not in err
+
+
+def test_field_named_in_hub_prose_is_not_called_untested():
+    code, out, _ = run("field", "Contingency", "LoadMW")
+    assert code == 0
+    assert "field export only" not in out
+    assert "2026-09-28" in out
