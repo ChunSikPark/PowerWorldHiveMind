@@ -31,7 +31,7 @@ speedup scales with per-contingency solve cost because each worker pays a fixed 
   computing can't be relied on (no DS server infrastructure).
 - **Across:** [esapp](esapp.md) (the SimAuto wrapper each worker process opens independently) ·
   [powerworld-simauto](powerworld-simauto.md) (the COM server underneath — proven safe to open multiple independent
-  instances concurrently, the real rule is just "never call `.exit()`")
+  instances concurrently; the rule is never `.exit()` a shared instance, always `.exit()` one you own)
 
 ## Content
 
@@ -70,6 +70,15 @@ the earlier assumption of "single-instance SimAuto" was proven wrong by a live p
 handles, isolated reads+writes); the real rule is just **never call `.exit()`** on a shared/ambient
 instance, not "one instance only." Each worker here opens and owns its own instance for its own
 process lifetime, so that's a non-issue.
+
+**The rule cuts the other way for an instance you own and reopen in a loop.** A worker that opens a
+fresh case per candidate — the pattern a measurement harness uses so no tap or shunt state carries
+between candidates — must call `.exit()` on **its own** instance before the next open. Dropping the
+Python reference (`del pw`) does not release the COM server: measured 2026-09-28, each open left one
+`pwrworld.exe` of ~1 GB running, and a run of four workers reached sixteen stray servers in a few
+minutes, starving the other sweep on the machine. So: never `.exit()` a shared instance; always
+`.exit()` one you opened and are done with. Killing the Python process eventually frees them too, but
+only once COM notices the client is gone.
 
 ### CPU/RAM headroom — don't naively use `os.cpu_count()` workers
 

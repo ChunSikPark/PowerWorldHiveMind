@@ -90,7 +90,10 @@ flags it before any solve is attempted. On Synth8k: **420 of 13,470** outages, f
 
 This is a **correctness fix, not a speed optimisation**, and it plugs a real hole: in a
 PowerWorld CTG sweep, islanded buses read 0 and get skipped, so stranding a 138 kV pocket
-**reports CLEAN**. A free connectivity check turns that silent failure into an explicit list.
+**reports CLEAN in `ViolationCTG`**. PowerWorld does record it elsewhere — `Contingency.LoadMW` /
+`GenMW` and the *Island Solved* rows of `CTG_Options.Include`, see
+[reading-violationctg](../methods/reading-violationctg.md) — but only for whoever reads those. A
+free connectivity check turns it into an explicit list before any solve.
 
 ### Building it (measured recipe, Synth8k: 8,483 buses / 13,470 branches)
 

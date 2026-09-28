@@ -2758,7 +2758,7 @@ works equally well.
 **Never parse the `CTGLabel` string.** It embeds *truncated* substation names
 (`L_001068MIDLAND10-001016GARDENCITY0C1`) and truncation collides.
 
-### Islanding is not detectable from `CTGSolveAll`
+### Islanding: invisible to `ViolationCTG`, visible through three other checks
 
 `CTGSolved` catches divergence reliably. Islanding it does not, and neither does anything
 else that was probed against eight outages that provably island a bus:
@@ -2774,7 +2774,7 @@ else that was probed against eight outages that provably island a bus:
 - No `Bus Low Volts` row anywhere read near 0 pu (minimum 0.9312) — **islanded buses emit no
   violation rows at all.**
 
-If you need islanding detection, `CTGSolveAll` alone will not give it to you — **but
+If you need islanding detection, `ViolationCTG` alone will not give it to you — **and
 [lodf](../concepts/lodf.md) will, for free and without a solve.** When the LODF denominator `1 − ψ_kk → 0`
 there is no alternate path, i.e. outaging that branch splits the network; the math flags it
 before any solve is attempted. Measured on Synth8k: **420 of 13,470** outages, found in the
@@ -2783,8 +2783,24 @@ direction — *"in a PowerWorld CTG sweep, islanded buses read 0 and get skipped
 a 138 kV pocket reports CLEAN"* — and this page is the independent confirmation of that hole
 from inside `ViolationCTG`.
 
-**So the correct pairing is: `CTGSolveAll` for the violations, the LODF denominator for the
-islanding list.** Neither one covers the other.
+**Correction (2026-09-24, completed 2026-09-28): islanding *is* visible after `CTGSolveAll` —
+through three checks that each catch a different set, and no single one catches all.**
+
+- **`Contingency.LoadMW` / `GenMW`** hold the load and generation cut off by each outage and are
+  non-zero only on islanding outages — these are islands PowerWorld **drops**. Checked against a
+  direct `CTGApply` plus re-solve of every outage on a public 40-bus synthetic case (93 of 93
+  agreed). A generation-only pocket reads `LoadMW = 0`; catch it through `GenMW`.
+- **`CTG_Options.Include`** (concise `IslandViolations`) = YES, with `BGLoadMW` and
+  `IslandTotalBus` as minimum-size filters and `Sim_Solution_Options.EvalSolutionIsland` = YES as
+  its prerequisite, reports *Island Solved* rows for self-sustaining pockets PowerWorld keeps
+  **energized** — exactly the ones where `LoadMW` / `GenMW` read 0.
+- **`DetermineBranchesThatCreateIslands`** (script) is the structural check: it finds both kinds
+  plus 0-MW pockets whose generation is offline.
+
+Measured 2026-09-28 on a regional synthetic planning model. Gate an island check on MW only when
+the stranded pocket carries MW. The LODF denominator above remains the solve-free screen.
+`ViolationCTG` alone still ranks every one of these outages harmless — read the island checks
+alongside it.
 
 ### Rate sets on Synth2k series-24
 
