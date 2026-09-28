@@ -10,3 +10,6 @@ __pycache__/
 # Obsidian: ship the graph settings, ignore the per-machine workspace state
 .obsidian/*
 !.obsidian/graph.json
+
+# schema-lookup engine: rebuilt from the field export on first use
+skills/*/engine/.cache/

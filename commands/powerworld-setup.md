@@ -28,13 +28,14 @@ still be missing from `PATH`.
 ## 2. Install the packages
 
 ```bash
-python -m pip install --upgrade esapp TeamOverbyeWeather pywin32
+python -m pip install --upgrade esapp TeamOverbyeWeather pywin32 openpyxl
 ```
 
 - `esapp` drives PowerWorld through SimAuto.
 - `TeamOverbyeWeather` downloads the `.pww` weather files.
 - `pywin32` is the COM bridge esapp calls through. On non-Windows it will not install, and
   that is expected — see step 3.
+- `openpyxl` reads the PowerWorld field export behind the `schema-lookup` skill.
 
 If pip is missing, `python -m ensurepip --upgrade` first.
 
