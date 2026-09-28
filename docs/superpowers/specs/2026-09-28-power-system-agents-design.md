@@ -102,8 +102,19 @@ improvised.
 - The original case is never saved; variants run on fresh copies with their aux delta loaded and
   the case **solved after `LoadAux`** before anything is read.
 
-**v1 methods:** AC power flow, DC power flow, N-1 contingency. OPF and SCOPF follow once the
-auditor's opf profile exists; SCOPF has no dated end-to-end verification yet.
+**v1 methods:** AC power flow, DC power flow, N-1 contingency, OPF, SCOPF.
+
+- **OPF and SCOPF run only after the auditor returns READY on the opf profile.** Otherwise the
+  runner refuses; it never switches on `BGAGC`, AGC or a cost model to make a solve start.
+- OPF: `InitializePrimalLP` then `SolvePrimalLP`, fail handler always given; results from
+  `OPFSolutionSummary` (final cost is `LPOPFCostFunction:1`) and `Branch.LineLPUnenforceableMVA`.
+- SCOPF: `SolveFullSCOPF(POWERFLOW|OPF)`; `SCOPFMaxOuterLoopItr` and the other `SCOPF*` options
+  set through the configure phase like any other option. There is no inner-loop setting; a request
+  for one is answered with `OPF_MaxLPIterations` as the nearest real field.
+- **SCOPF has no dated end-to-end verification.** The first SCOPF run on a public case is its
+  verification spike, and its result is written back to `references/powerworld-study-options.md`.
+- **DC OPF / DC SCOPF** use `SolvePowerFlow(DC)` to enter DC mode (never the `DCPFMode` flag alone)
+  and `CTG_CalculationMethod = DC`; the AC re-solve guard applies afterwards.
 
 **N-1 engine:** OS-process parallelism as described in `concepts/parallel-contingency-solve.md`,
 re-implemented self-contained in the kit — contingency set split into chunks, one PowerWorld
@@ -188,6 +199,9 @@ All on public synthetic cases.
 | runner, manifest replay | two runs of one manifest give identical results |
 | runner, read-back | a write that does not stick fails the run loudly |
 | runner, coverage | a deliberately incomplete contingency set fails the guard |
+| runner, OPF gate | on a case with no cost data, OPF and SCOPF are refused, not run |
+| runner, OPF | on a case with cost data, OPF returns a solved status and a final cost, and binding lines match `LineLPUnenforceableMVA` |
+| runner, SCOPF | converges within `SCOPFMaxOuterLoopItr`; changing that option changes the recorded loop count; result recorded as the dated verification |
 | reviewer | a candidate that fixes the target but creates a new violation is REJECTed |
 | librarian | known lookups (shunt keys, island reporting, SCOPF outer loops, no SCOPF inner loop) answered correctly with the right confidence tag |
 
@@ -198,13 +212,13 @@ All on public synthetic cases.
    undetectable).
 1. schema-librarian — smallest, reads pages that already exist, and the runner depends on it.
 2. case-auditor — base, timestep, opf profiles.
-3. study-runner — ACPF, DCPF, N-1.
+3. study-runner — ACPF, DCPF, N-1, then OPF and SCOPF (behind the auditor's opf gate).
 4. fix-reviewer.
 
 ## 12. Out of scope for v1
 
-Transient stability, GIC, OPF/SCOPF execution (next release), an n1 audit profile, a
-visualisation adapter from runner output to `violation-map`.
+Transient stability, GIC, unit commitment, an n1 audit profile, a visualisation adapter from
+runner output to `violation-map`.
 
 ## 13. Open questions
 
