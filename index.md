@@ -75,7 +75,10 @@ Exact backend mechanics. Open ONLY when writing code, and only the one you need.
 
 | Page | What it covers |
 |---|---|
-| [aux-script-commands](references/aux-script-commands.md) | Which SCRIPT command does a job, organized by task. Argument lists and exact syntax live in PowerWorld's own *Auxiliary File Format* manual, not here. |
+| [aux-script-commands](references/aux-script-commands.md) | Which SCRIPT command does a job, organized by task. Argument lists and exact syntax for study commands are in [powerworld-study-commands](references/powerworld-study-commands.md). |
+| [powerworld-study-options](references/powerworld-study-options.md) | **Start here to change how a study runs.** Per study (power flow, DC, N-1, OPF, SCOPF, sensitivities, ATC, PV/QV, scaling, islands, time step, weather): the option object and command that control it, key fields tagged verified / documented / schema-only, and the silent behaviours. |
+| [powerworld-option-objects-v25](references/powerworld-option-objects-v25.md) | Generated: every field of all 32 `*_Options` objects from the Simulator 25 field export, with writability and PowerWorld's descriptions. |
+| [powerworld-study-commands](references/powerworld-study-commands.md) | Every study SCRIPT command with its parameters and defaults, how options are written in aux, and 29 silent behaviours. |
 | [esapp-package-backend](references/esapp-package-backend.md) | esapp internals: bracket-interface mechanics, SAW mixin composition, the component-generation pipeline, the schema model, and the exception hierarchy. |
 | [esapp-schema-reference](references/esapp-schema-reference.md) | The exact key fields and command names for writing esapp code. Open it when a read-modify-write has to round-trip. |
 | [time-step-simulation-backend](references/time-step-simulation-backend.md) | The timestep worker's PowerWorld call sequence, its generator field list, and the CSV post-processing that skips the 8 header rows. |
