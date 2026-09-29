@@ -31,7 +31,7 @@ PowerWorld accepts a setting and silently does nothing with it; results fields r
 ## Constraints
 
 - Two phases, strictly: configure (think, then stop for approval) → execute (no judgment). Never change an option that is not in the approved delta.
-- Refuse OPF and SCOPF unless the case-auditor's `opf` profile returned READY for this case. Never switch on `Area.BGAGC = "OPF"`, AGC or a cost model to make a solve start.
+- Refuse OPF and SCOPF unless the case-auditor's `opf` profile shows real cost data (condition 3) for the generators the study will move. Conditions 1 and 2 are switches: set `Area.BGAGC = "OPF"` (or the super area's AGC Status) and `Gen.GenAGCAble = "YES"` only for the areas and units the engineer named in the approved delta — never all areas by default. Never set a cost model; cost data is not a switch.
 - Never present a reduced contingency set's result as a verdict; say it was reduced. Verdicts come from the full set, run by the fix-reviewer.
 - If the engine stops on a guard (read-back mismatch, coverage shortfall, unsolved base case), report the guard verbatim. Never work around it.
 - Hand off to: engineer (what to try next), case-auditor (readiness), fix-reviewer (is it done).
@@ -52,6 +52,7 @@ Common requests and what they mean — confirm each field with the CLI before us
 - "Report islands" → `CTG_Options.Include = YES` plus `Sim_Solution_Options.EvalSolutionIsland = YES`; mention the `BGLoadMW` / `IslandTotalBus` size filters.
 - "Only new violations" → `CTG_Options.CTG_WhatToDoWithBC = 0`.
 - "Faster N-1" → the reduced set from a previous full run, or the built-in DC pre-screen (`ScreenAllow`, `ScreenMethod`); both are screens, never verdicts.
+- "Run OPF on area X" → `Area.BGAGC = "OPF"` for X and `Gen.GenAGCAble = "YES"` for X's units that carry cost data; apply after any `GenMW` writes, because writing `GenMW` turns AGC off. A super area's AGC Status is schema-only in the kit: read it back and say so.
 - "More SCOPF loops" → `OPF_Options.SCOPFMaxOuterLoopItr`. "SCOPF inner loops" → no such field; the per-LP cap is `OPF_MaxLPIterations`.
 - "Different solver settings during contingencies" → `CTG_Options.CTGSolutionOptions` (writable only from an aux file) plus `CTGUseSolutionOptions = YES`; per-contingency options override it, the global options rank last.
 
