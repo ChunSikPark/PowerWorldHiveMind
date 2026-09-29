@@ -144,6 +144,13 @@ headroom, not core count; every instance the runner opens is `.exit()`-ed.
 **Output:** `results/<run>/manifest.json`, `scoreboard.csv`, `violations.csv`, `islands.csv`,
 `rankings.csv`, `reduced_set.aux`, `REPORT.md`, and one status line to the engineer.
 
+**Heartbeat (for run supervision, §8a).** While a run is live the engine rewrites
+`results/<run>/heartbeat.json` at least once a minute: `state` (`running` / `finished` / `failed`),
+contingencies done and total, ETA, failed chunks, unsolved so far, the count of `pwrworld.exe`
+processes the run owns, and the time of the last completed solve. Written atomically (temp file,
+then replace) so a reader never sees half a file. Watching a run means reading this file, never the
+raw results.
+
 ## 6. network-visualizer
 
 *Replaced the fix-reviewer on 2026-09-28.* A standalone reviewer grading AI-proposed fixes was the
@@ -200,6 +207,34 @@ Answers "which object, field, command?" in a few lines, with a confidence tag.
    challenger on the full N-1, same settings, with a Before / Engineer / Challenger switch.
 6. Engineer decides from the side-by-side scoreboard.
 
+## 8a. Run supervision — a mode, not an agent
+
+Long runs — a full N-1 on a large case, a TimeStep year — take hours. Today the engineer starts one,
+trusts it, and finds out the next day whether it finished. Run supervision lets the engineer
+follow a run from anywhere and make each round's decision from a phone.
+
+It is a **mode of the main session** (a skill, `run-supervisor`), not a subagent: a subagent lives
+only while its parent task runs, so it cannot wait hours for a reply or reach a phone. The main
+session can — it runs the study in the background, wakes on events rather than polling, sends push
+notifications, and can be opened from the Claude mobile or web app through Remote Control.
+
+1. **Launch** the study-runner engine in the background with an approved manifest.
+2. **Watch** `heartbeat.json`, waking on events, not on a timer.
+3. **Alarm** (push notification) on: no progress for N minutes (default 15), any failed chunk,
+   an unsolved count above the manifest's threshold, more `pwrworld.exe` processes than workers
+   (a leak), the run failing, and the run finishing.
+4. **Round digest** when a round finishes: the scoreboard's headline, the worst offenders, islands,
+   and two to four concrete next moves — e.g. "measure the three cheapest candidates on the worst
+   corridor", "map the islanded pocket with the network-visualizer", "stop here".
+5. **The engineer decides** from the phone. The answer is a choice among the offered moves or free
+   text; nothing proceeds without it — no auto-approval, same as every other gate in this design.
+6. The chosen move launches the next round (study-runner or network-visualizer) and supervision
+   continues.
+
+Portability: the engine and the heartbeat file are plain files any harness can read. Push
+notifications, background watching and Remote Control are Claude Code features; other harnesses get
+the heartbeat and the digest, not the phone.
+
 ## 9. Kit layout
 
 ```
@@ -208,6 +243,7 @@ skills/case-audit/SKILL.md      engine/  tests/
 skills/study-runner/SKILL.md    engine/  tests/
 skills/violation-map/SKILL.md   engine/  (exists; extended in Plan 4)
 skills/schema-lookup/SKILL.md
+skills/run-supervisor/SKILL.md  (a main-session mode; no agent file)
 ```
 
 Engines are Python on esapp, matching `skills/violation-map/engine/`.
@@ -230,6 +266,9 @@ All on public synthetic cases.
 | runner, SCOPF | converges within `SCOPFMaxOuterLoopItr`; changing that option changes the recorded loop count; result recorded as the dated verification |
 | visualizer, parity | two designs measured in one comparison share one manifest hash and one contingency count |
 | visualizer, side effects | a design that clears the target but creates a new overload shows the new overload in the scoreboard |
+| runner, heartbeat | during a run the heartbeat advances; a killed worker shows up as a failed chunk within one heartbeat interval |
+| supervisor, stall | a run whose heartbeat stops advancing raises the stall alarm after the configured interval |
+| supervisor, gate | the next round never launches without an engineer's answer |
 | visualizer, large load | adding a load candidate changes N-0 flows and appears on the map's Before/Engineer switch |
 | librarian | known lookups (shunt keys, island reporting, SCOPF outer loops, no SCOPF inner loop) answered correctly with the right confidence tag |
 
@@ -242,6 +281,8 @@ All on public synthetic cases.
 2. case-auditor — base, timestep, opf profiles.
 3. study-runner — ACPF, DCPF, N-1, then OPF and SCOPF (behind the auditor's opf gate).
 4. network-visualizer — large-load candidate, thermal view, full-N-1 comparison through the study-runner engine.
+5. run supervision — the `run-supervisor` mode over the runner's heartbeat; after Plan 3, because it
+   supervises the runner's runs.
 
 ## 12. Out of scope for v1
 
@@ -253,5 +294,7 @@ Transient stability, GIC, unit commitment, an n1 audit profile.
   PFW models (the time-step demo's case), one with cost data if any public case carries it.
 - Whether the kit may redistribute PowerWorld's field export and a digest of the aux-file-format
   document; this decides whether the librarian's sources ship or are fetched by the user.
+- Does PowerWorld/SimAuto keep running with the PC locked, or the user logged out? Run supervision
+  assumes the machine stays up for hours; test this before building Plan 5.
 - ~~Plugin agent discovery~~ — answered 2026-09-28: `agents/` in the kit is loaded
   (`claude --plugin-dir <kit> plugin details powerworld-hivemind`, Claude Code 2.1.284).
