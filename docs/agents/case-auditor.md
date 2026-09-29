@@ -65,7 +65,8 @@ Most PowerWorld failures are silent. A case that converges can be a DC-only skel
 
 | rule | what it checks | severity | kit page |
 |---|---|---|---|
-| `mon.no_area_monitored` | every `Area.BGReportLimits` reads `NO` — an N-1 will report nothing | BLOCKER for N-1 / SCOPF | `methods/reading-violationctg.md` |
+| `mon.nothing_monitored` | every `Area.BGReportLimits` and `Zone.BGReportLimits` reads `NO`, or no branch and no bus reads *Will Monitor* (`Branch.LineMonEle:1`, `Bus.BusMonEle:1`) — an N-1 will report nothing | BLOCKER for N-1 / SCOPF | `methods/reading-violationctg.md` |
+| `mon.footprint` | the monitored footprint as the case holds it: areas and zones with `BGReportLimits = YES`, their kV windows (`BGReportLimMinKV` / `BGReportLimMaxKV`), element overrides (`LineMonEle`, `BusMonEle`), `Limit_Monitoring_Options.LMS_IgnoreRadial`, and the counts of branches and buses that *Will Monitor* | INFO — a restricted footprint is usually a deliberate planning choice; report it so nobody reads a clean result as system-wide | field export (schema-only) |
 | `mon.rate_set_empty` | the letter `LSLineRateSet` or `LSLineRateSet:1` points to carries no `LineAMVA:N` values | BLOCKER for N-1 / SCOPF | `methods/powerworld-limitset-setdata.md` |
 | `mon.rate_sets_populated` | which rate-set letters actually carry values; the `LSAmpMVA` split | INFO | `methods/reading-violationctg.md` |
 | `mon.bus_limit_overrides` | buses with `BusVoltLim = YES` whose limits differ from the band (relative tolerance) | INFO | `methods/ranking-new-devices-by-severity.md` |
@@ -79,7 +80,6 @@ Most PowerWorld failures are silent. A case that converges can be a DC-only skel
 |---|---|---|---|
 | `ts.pfw_missing` | a renewable with no PFW model — TimeStep reports success and outputs 0 MW for it | BLOCKER | defect |
 | `ts.latlon_missing` | a renewable at Lat/Lon 0,0 or blank | BLOCKER | defect |
-| `ts.iso_missing` | `CustomString:2` (ISO) blank — only the kit's CSV pipeline needs it | WARN | likely deliberate |
 | `ts.pww_footprint` | ask which `.pww` will be used; check its station footprint covers the units — a mismatch runs with no warning | BLOCKER if uncovered | needs you |
 
 ### opf — OPF and SCOPF readiness (`concepts/opf-preconditions.md`)
@@ -125,7 +125,7 @@ BLOCKER can be "needs you" (cost data), and a WARN can be a defect (an LTC targe
 - **Defect** — wrong in any reading: a regulated bus that does not exist; a renewable without a PFW
   model when a timestep study is requested; a DC-only skeleton offered for an AC study.
 - **Likely deliberate** — a modelling choice with a plausible reason: a 0-Mvar switched shunt with no
-  regulated bus (a placeholder); a generator off AGC in an area that is not under OPF; a blank ISO field.
+  regulated bus (a placeholder); a generator off AGC in an area that is not under OPF; monitoring restricted to a few areas or zones.
 - **Needs you** — cannot be decided from the case alone; say what would decide it: an LTC regulating
   its low-voltage side (right for a distribution tap, wrong for a bulk transformer); which areas the
   OPF may move; where cost data will come from.
@@ -159,7 +159,7 @@ BLOCKER can be "needs you" (cost data), and a WARN can be a defect (an LTC targe
 | area | on OPF | AGC-able units | with curve points | with GenMCost > 0 | cost models |
 
 ## Monitoring
-Areas monitored <n> of <n>; rate sets <normal>/<ctg>, populated letters <…>; bus limit overrides <n>.
+Footprint: areas <n> of <n>, zones <n> of <n>, kV window <…>; will monitor <n> branches, <n> buses. Rate sets <normal>/<ctg>, populated letters <…>; bus limit overrides <n>.
 
 ## Handoffs
 - <what is missing> → <where to get it> → re-audit the returned case
@@ -182,7 +182,8 @@ Full findings: <path to findings.md>. Case audited: <path>.
 - Reading `GenMCost > 0` on a few units as "the case has cost data", or `GenCostCurvePoints = 0` as "free".
 - Calling `opf` READY because one condition holds. All three must hold for the same generators.
 - Recommending "set every area to OPF" to clear condition 1. Which areas the OPF may redispatch is the engineer's study choice.
-- Passing a case for N-1 or SCOPF with every area unmonitored or a rate set that carries no ratings.
+- Passing a case for N-1 or SCOPF with nothing monitored or a rate set that carries no ratings.
+- Omitting the monitored footprint, so a later clean result is read as system-wide.
 - Treating a renewable as missing PFW because `GenFuelType` is not exactly `WND` — the value reads `WND (Wind)`.
 - Trusting a PFW insertion's "done". Insertion tools can skip units they cannot classify; always re-count coverage on the returned case.
 - Reading `ViolationCTG` rows left in the case by an earlier run as if they were current.

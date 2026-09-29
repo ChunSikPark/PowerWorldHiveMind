@@ -54,6 +54,7 @@ Common requests and what they mean — confirm each field with the CLI before us
 - "Report islands" → `CTG_Options.Include = YES` plus `Sim_Solution_Options.EvalSolutionIsland = YES`; mention the `BGLoadMW` / `IslandTotalBus` size filters.
 - "Only new violations" → `CTG_Options.CTG_WhatToDoWithBC = 0` — but never together with the ranking's base-case subtraction (see *Baselines, Δ and rankings*).
 - "Faster N-1" → the reduced set from a previous full run, or the built-in DC pre-screen (`ScreenAllow`, `ScreenMethod`); both are screens, never verdicts.
+- "Monitor only area X / zone Y / 138 kV and up" → the monitored footprint (see *Monitored footprint*): `Area.BGReportLimits` / `Zone.BGReportLimits` = YES for the study areas and zones and NO elsewhere, with a kV window `BGReportLimMinKV` / `BGReportLimMaxKV`. Confirm it by the *Will Monitor* counts, and say that violations outside the footprint will not be reported.
 - "Emergency ratings / a different rate set" → `LimitSet.LSLineRateSet:1` (contingency) and `LSLineRateSet` (normal); check which letters actually carry `LineAMVA:N` values first.
 - "Run OPF on area X" → `Area.BGAGC = "OPF"` for X and `Gen.GenAGCAble = "YES"` for X's units that carry cost data; apply after any `GenMW` writes, because writing `GenMW` turns AGC off. A super area's AGC Status is schema-only in the kit: read it back and say so.
 - "More SCOPF loops" → `OPF_Options.SCOPFMaxOuterLoopItr`. "SCOPF inner loops" → no such field; the per-LP cap is `OPF_MaxLPIterations`.
@@ -67,8 +68,22 @@ The engine enforces these; you check that its output shows they were followed, a
 
 - Record in the manifest before any N-1: `LimitSet.LSCtgPULow` / `LSCtgPUHigh`, `LSLinePercent`, `LSLineRateSet` and `LSLineRateSet:1` (set both to the same letter unless the engineer chose otherwise), and every `Area.BGReportLimits`.
 - A `LimitSet` write needs the **full row**: read it, change the field, write the row back.
-- `Area.BGReportLimits` is the real monitoring switch. If every area reads `NO`, stop — nothing will be reported. `CTG_Options.CTG_ReportMonitoredAreas` is a decoy: it only affects the text report.
+- `Area.BGReportLimits` is the real monitoring switch (verified). If nothing is monitored, stop — nothing will be reported. `CTG_Options.CTG_ReportMonitoredAreas` is a decoy: it only affects the text report.
 - Buses with `BusVoltLim = YES` carry their own limits (`BusVoltCtgLimLow` / `High`) that override the band.
+
+### Monitored footprint (planning studies usually restrict it)
+
+Planners typically monitor only the area or zone their work touches, on the assumption that the rest of the system is not affected. The runner supports that as a first-class setting and makes it visible, so a restricted result is never mistaken for a system-wide one.
+
+- **Levels** (field export; only the Area switch is verified on a live case, the rest are schema-only):
+  - `Area.BGReportLimits` and `Zone.BGReportLimits` — report limits for elements in that area / zone;
+  - `Area.BGReportLimMinKV` / `BGReportLimMaxKV` and the same on `Zone` — a kV window within it;
+  - `Branch.LineMonEle` and `Bus.BusMonEle` — per-element overrides;
+  - `Limit_Monitoring_Options.LMS_IgnoreRadial` — ignore radial elements;
+  - `ContingencyMonitoringException` objects with `Contingency.CTGUseMonExcept` (Use / Ignore / Only) — per-contingency exceptions.
+- **Verify, don't infer.** How area, zone, kV and element settings combine — and which area a tie line belongs to — is not documented in the kit. After writing them, read the read-only *Will Monitor* fields, `Branch.LineMonEle:1` and `Bus.BusMonEle:1`, and record the counts (and the tie lines at the footprint's boundary) in the manifest. Those counts are the footprint; the flags are only how it was set.
+- **The contingency set is separate from the footprint.** Restricting monitoring does not restrict which outages run: an outage outside the footprint can still violate inside it, and should stay in the set unless the engineer chose otherwise.
+- Every N-1 output states the footprint (areas, zones, kV window, element counts). "Clean" means clean **inside the footprint**.
 
 ### Contingency set and coverage (`methods/new-device-contingency-aux.md`)
 
@@ -147,7 +162,8 @@ The engine enforces these; you check that its output shows they were followed, a
 <study> <variants>: <contingencies run> of <in set>, <unsolved>; <one-line headline> → <results path>
 
 ## Settings
-Manifest <hash>; delta applied and read back: <n> of <n>. Limits: ctg band <lo>–<hi> pu, rate set <A/A>, areas monitored <n> of <n>.
+Manifest <hash>; delta applied and read back: <n> of <n>. Limits: ctg band <lo>–<hi> pu, rate set <A/A>.
+Footprint: areas <list>, zones <list>, kV window <…>; will monitor <n> branches, <n> buses (<n> boundary tie lines). Violations outside it are not reported.
 
 ## Coverage
 <n> contingencies; excluded by rule: <groups and counts>.
@@ -176,7 +192,10 @@ Reduced set used? Serial or parallel? Row-count mismatches? SCOPF unverified? An
 - Reading results after `LoadAux` without solving; you get the previous solution.
 - Accepting `CTGAutoInsert` output without counting it against the coverage rule.
 - Measuring against defaults nobody chose: an N-1 without the limit settings in the manifest.
-- Every area unmonitored and a "clean" N-1 as a result.
+- Nothing monitored and a "clean" N-1 as a result.
+- Reporting a restricted-footprint N-1 as system-wide clean, or dropping the footprint from the output.
+- Trusting the area/zone flags without reading the *Will Monitor* counts back.
+- Restricting the contingency set to the footprint when only monitoring was meant to be restricted.
 - Reading `ViolationCTG` bare, counting `Unsolved` as a violation, or assigning tie-line rows to area 0.
 - Calling an N-1 "clean" when outages strand load that `ViolationCTG` never reports.
 - Combining `CTG_WhatToDoWithBC = 0` with the base-case subtraction.
@@ -188,13 +207,14 @@ Reduced set used? Serial or parallel? Row-count mismatches? SCOPF unverified? An
 
 ## Examples
 
-**Good:** "Delta for approval: `Sim_Solution_Options.MaxItr 100 → 200` (you asked for more iterations); `CTG_Options.Include NO → YES` and `Sim_Solution_Options.EvalSolutionIsland NO → YES` (island reporting needs both); limits unchanged and recorded: ctg band 0.90–1.10 pu, rate set A/A, 12 of 12 areas monitored. Awaiting approval." … later: "n1_ac base+4: 5,344 of 5,344 ctgs (excluded by rule: 212 branches below 69 kV, 31 open), 0 unsolved; best = cand2 (thermal 42 → 0, no new islands) → results/r7. Delta read back 3/3. Parallel, 6 workers."
+**Good:** "Delta for approval: `Sim_Solution_Options.MaxItr 100 → 200` (you asked for more iterations); `CTG_Options.Include NO → YES` and `Sim_Solution_Options.EvalSolutionIsland NO → YES` (island reporting needs both); limits unchanged and recorded: ctg band 0.90–1.10 pu, rate set A/A; footprint as you asked: area 2 only, 69 kV and up — will monitor 1,184 branches and 902 buses, violations elsewhere not reported. Awaiting approval." … later: "n1_ac base+4: 5,344 of 5,344 ctgs (excluded by rule: 212 branches below 69 kV, 31 open), 0 unsolved; best = cand2 (thermal 42 → 0, no new islands) → results/r7. Delta read back 3/3. Parallel, 6 workers."
 
 **Bad:** "Ran N-1 with improved settings; the system looks secure." No delta shown, no approval, no limits, no coverage, no islands, no path.
 
 ## Final checklist
 
-- Was the delta approved before anything ran, with the monitoring settings recorded?
+- Was the delta approved before anything ran, with the monitoring settings and the footprint recorded?
+- Does the output state the footprint, with the Will Monitor counts?
 - Did every option read back within tolerance?
 - Is contingency coverage reported with the excluded groups?
 - Are islands reported alongside violations, from all three checks?

@@ -67,7 +67,7 @@ context isolation.
 | profile | checks |
 |---|---|
 | base | N-0 converges; switched shunt or LTC regulating nothing or an out-of-service bus; LTC `XFRegTargetType = Middle`; lightly loaded EHV radial stubs |
-| timestep | renewables have `GenFuelType` WND/SUN, a PFW model string, valid Lat/Lon, the ISO field |
+| timestep | renewables have `GenFuelType` WND/SUN, a PFW model string, valid Lat/Lon |
 | opf | an area on `BGAGC = "OPF"`; AGC-able gens; `GenCostModel` ≠ None with `GenCostCurvePoints > 0` and `GenMCost > 0` |
 
 Deferred: `n1` profile (with the runner's coverage guard), `transient` (out of scope).
@@ -285,6 +285,12 @@ All on public synthetic cases.
      `concepts/aux-only-powerworld.md` but `POLARNEWT` in `methods/handling-errors.md` and
      `concepts/lodf.md`; the coverage rule in `powerworld-study-options.md` ignores the autoinsert
      exclusions in `methods/new-device-contingency-aux.md`.
+   - **Not a PowerWorld prerequisite:** `methods/timestep-simulation-setup.md` lists an ISO region in
+     `CustomString:2` among TimeStep's per-unit prerequisites. It comes from one project's own
+     shapefile join, not from PowerWorld; reword the page so it reads as that pipeline's
+     convention.
+   - **Monitoring footprint:** document how area, zone, kV and element monitoring settings combine
+     and which area a tie line belongs to (today only `Area.BGReportLimits` is verified).
    - **Pages to write:** LTC and switched-shunt control rules (the auditor's four `none yet`
      rules); the PFW insertion tool; cost-model types, curve structure and the values
      `OPF_GenCostModel` / `OPF_PtsPerCurve` accept; OPF result fields (solve status, LMPs, detecting
