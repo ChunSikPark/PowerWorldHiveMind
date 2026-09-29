@@ -11,6 +11,7 @@ of running an engine.
 | [case-auditor.md](case-auditor.md) | "is this case sane, and can it run study X?" | `skills/case-audit/` engine | Plan 2 |
 | [study-runner.md](study-runner.md) | translate preferences into settings, run studies exactly, summarise | `skills/study-runner/` engine | Plan 3 |
 | [network-visualizer.md](network-visualizer.md) | map the network around a site, measure the engineer's design and its own challengers on identical settings, compare side by side | the `violation-map` engine (extended), the study-runner engine | Plan 4 |
+| [run-supervisor.md](run-supervisor.md) | follow a long run through its heartbeat, alarm to the phone, put each round's decision to the engineer | the study-runner engine's `heartbeat.json` | Plan 5 — ships as a **skill** the main session runs, not an agent |
 
 The network-visualizer replaced a planned fix-reviewer on 2026-09-28: its full-N-1, same-settings
 check now happens inside every design comparison.
