@@ -21,7 +21,7 @@ A design measured on one outage looks better than it is: the fix that clears the
 
 ## Success criteria
 
-- The map covers the site and N substation-hops around it (default 5), with the engineer's question visible on it.
+- The page opens on the **focus sub-network only** — the site and N substation-hops around it (default 6) — with the engineer's question visible on it. The whole case is never in the first render.
 - Every design in a comparison shares one manifest hash and one contingency count, and ran the **full** set.
 - Every design is scored on the same columns: N-0 violations, N-1 thermal, N-1 voltage, unsolved, islands (dropped / energized / 0-MW), devices added.
 - The engineer's design is measured exactly as given; any challenger is labelled as yours.
@@ -38,10 +38,31 @@ A design measured on one outage looks better than it is: the fix that clears the
 - Keep generated maps and configs outside the kit folder. If the case is restricted (CEII or otherwise), say that the page embeds bus names, substation names and coordinates.
 - Hand off to: engineer (every decision), case-auditor (a case that does not solve at N-0 before any design is applied), schema-librarian (field questions).
 
+## What the map shows — focus first
+
+The point of the map is to see what happens **around one place**. Drawing a whole large case (a
+10,000-bus synthetic grid) buries the question and makes the page slow, so:
+
+- **Default view = the focus sub-network:** the site — or the substation the engineer names — plus
+  N substation-hops around it. Default N = 6; a very meshed area explodes past a few hops, so drop to
+  2–3 there and say so.
+- **Boundary stubs, not the rest of the grid.** A line leaving the sub-network is drawn as a short
+  stub labelled with the far-end substation, so the connections out are visible without rendering
+  what is beyond them.
+- **Click to re-centre.** Clicking a substation opens *its* N-hop neighbourhood, with Back to return.
+  The problem list's click-to-zoom does the same.
+- **Whole network is a button,** off by default and loaded only when pressed; warn that it is heavy on
+  a large case. The initial page never embeds it.
+- **System-wide screens stay system-wide in the numbers, not in the drawing.** The radial-ties bridge
+  screen, for example, runs on the whole grid, but the map shows only the selected tree or
+  neighbourhood; the full result is a table.
+- Measurements are not limited by the view: every design is still measured on the full N-1 of the
+  whole case. The focus limits what is drawn, not what is computed.
+
 ## Protocol
 
 1) **Frame the question.** The site (bus, substation, or new load/plant with MW and Mvar), the engineer's design(s), what "better" means to them (fewer overloads, no islands, fewest devices, lowest voltage deviation), and whether they want challengers.
-2) **Map first.** Build the neighbourhood map with the `violation-map` engine as `${CLAUDE_PLUGIN_ROOT}/skills/violation-map/SKILL.md` specifies (outside a plugin install, use the directory holding `AGENTS.md`). Show the intact case before anything is added.
+2) **Map first, focused.** Build the focus sub-network map (site + N hops, never the whole case) with the `violation-map` engine as `${CLAUDE_PLUGIN_ROOT}/skills/violation-map/SKILL.md` specifies (outside a plugin install, use the directory holding `AGENTS.md`). Show the intact case before anything is added.
 3) **Add the new element** if there is one (a large load, a plant) as its own step, and show what it does alone: N-0 flows and voltages, then the full N-1. This is the "before any design" baseline.
 4) **Measure the engineer's design(s)** on that baseline, through the study-runner engine, with one approved manifest and the full contingency set.
 5) **Challengers, if asked.** Read what the baseline shows — the overloaded corridor, the island, the out-of-band pocket — and propose up to three designs that address it, cheapest first. Measure them exactly as in step 4.
@@ -98,6 +119,8 @@ A design measured on one outage looks better than it is: the fix that clears the
 - Adding a large load and a design in one step, so nobody can tell what the load did alone.
 - Proposing a new line where a setpoint or control change would do; cheapest first.
 - Leaving PowerWorld instances running between designs.
+- Rendering the whole case as the first view, so the site disappears in a 10,000-bus drawing.
+- Confusing the focus with the study: limiting the N-1 to the drawn neighbourhood because that is what is on screen.
 
 ## Examples
 
@@ -112,4 +135,5 @@ A design measured on one outage looks better than it is: the fix that clears the
 - New element measured alone before any design?
 - Islands reported from all three checks?
 - Where does the engineer's design win — stated?
+- Does the page open on the focus sub-network (site + N hops), with the whole network only behind a button?
 - Map screenshot checked; original case untouched; instances exited?

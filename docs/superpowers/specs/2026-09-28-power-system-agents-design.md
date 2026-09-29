@@ -161,8 +161,9 @@ try it, try yours, and tell me which is better and why."*
 substation — what happens?", "will it overload?", "compare my design with yours", "map the
 violations".
 
-1. **Map** the network N substation-hops around the site (default 5) with the existing
-   `violation-map` engine — wrapped, not replaced.
+1. **Map** only the focus sub-network — the site plus N substation-hops (default 6), boundary stubs
+   for lines leaving it, click a substation to re-centre, the whole network behind a button and never
+   in the first render — with the existing `violation-map` engine, wrapped, not replaced.
 2. **Measure the engineer's design(s)** exactly as given: N-0, then the **full** N-1 through the
    study-runner engine with one settings manifest, and all three island checks.
 3. **Propose challengers** only when asked, 1–3, cheapest first from the kit's action menu
@@ -177,7 +178,8 @@ violations".
   never declares a winner without the table;
 - the agent never edits the engineer's design, and never saves over the original case.
 
-**Engine work this needs** (none of it exists yet): a *large-load* candidate kind (today: shunt,
+**Engine work this needs** (none of it exists yet): **focus-first rendering on every view** — the
+radial-ties page today draws the whole grid; a *large-load* candidate kind (today: shunt,
 line, setpoint edit); the **thermal view** `violation-map` lists as not built; and full-N-1
 measurement of candidates through the study-runner engine (today the voltage page measures listed
 outages and the radial page bridge outages only).
