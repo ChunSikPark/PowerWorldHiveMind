@@ -60,6 +60,31 @@ Needs you — cannot be decided from the case alone; say what would decide it:
 - An LTC whose regulated bus is its low-voltage side while its high-voltage side is out of band: correct for a distribution tap, wrong for a bulk transformer.
 - Every unit's `GenCostModel = None`: not a defect, but OPF cannot run until cost data is sourced.
 
+### OPF and SCOPF readiness (the `opf` profile)
+
+PowerWorld refuses to start an OPF unless **all three** conditions hold at once
+(`concepts/opf-preconditions.md`); its error says *"No Areas or Super Areas set as OPF
+Constraints"*. Check each separately — they fail for different reasons and are triaged differently.
+
+| # | condition | field | nature | triage when it fails |
+|---|---|---|---|---|
+| 1 | at least one **area or super area** under OPF control | `Area.BGAGC = "OPF"`; for a super area, `SuperArea.BGAGC` (AGC Status) | switch | **needs you**: which areas may the OPF redispatch? A study choice, not a defect. Once chosen, the study-runner sets it. |
+| 2 | generators the OPF may move, inside those areas | `Gen.GenAGCAble = "YES"` | switch | **needs you**, same reasoning. If an OPF area has zero AGC-able units, say so — condition 1 alone does nothing. |
+| 3 | those generators carry real cost data | `GenCostModel` ≠ None, `GenCostCurvePoints > 0`, `GenMCost > 0` | **data** | **blocker**, handed off to a cost-data source. Never switched on. `GenCostCurvePoints = 0` means no curve, not a free unit. |
+
+Reporting rules:
+- READY for `opf` only when all three hold for the **same** set of generators. An area on OPF whose
+  AGC-able units have no cost data is NOT READY.
+- The Area path is verified on a live case (2026-09-11). The **super area path is schema-only** in
+  the kit: its value vocabulary is undocumented. If the case uses super areas, report which super
+  areas exist, what their `BGAGC` reads, and mark the finding *needs you* rather than guessing
+  whether it satisfies condition 1.
+- If AGC is off on every unit right after a dispatch was applied, say so: writing `GenMW` turns
+  `GenAGCAble` off, so the dispatch step is the likely cause, not the case's design.
+- SCOPF needs the same three conditions plus a contingency set whose coverage the study-runner can
+  count; report the contingency record count beside the verdict.
+- DC OPF needs the same three: a DC solve does not relax any of them.
+
 ## Tool usage
 
 - Bash: run the audit engine and the schema-lookup CLI only.
@@ -101,6 +126,8 @@ Full findings: <path to findings.md>. Case audited: <path>.
 
 - "It converged, so it's READY." Convergence is one base rule, not readiness for anything.
 - Clearing the OPF blocker by suggesting a default cost model. That makes OPF run and the answer meaningless.
+- Calling `opf` READY because one condition holds. All three must hold for the same generators.
+- Recommending "set every area to OPF" to clear condition 1. Which areas the OPF may redispatch is the engineer's study choice.
 - Trusting a PFW insertion's "done". Insertion tools skip units they cannot classify, silently; always re-count coverage on the returned case.
 - Dumping the engine's raw table as the answer. The engineer needs the verdict and the blockers, not a thousand rows.
 - Reading result fields from a case whose last change was never solved; the engine solves first — don't read around it.
