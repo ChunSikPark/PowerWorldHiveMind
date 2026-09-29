@@ -7,8 +7,9 @@ description: "Supervise a long PowerWorld run from anywhere: launch it in the ba
 
 > **A mode of the main session, not a subagent.** Ships as `skills/run-supervisor/SKILL.md`. A
 > subagent lives only while its parent task runs, so it cannot wait hours for a run or reach a
-> phone; the main session can — it runs the job in the background, wakes on events, sends push
-> notifications, and can be opened from the Claude mobile or web app through Remote Control.
+> phone; the main session can — it runs the job in the background, wakes on meaningful heartbeat
+> changes and on one stall timer, sends push notifications, and can be opened from the Claude mobile
+> or web app through Remote Control.
 
 ## Role
 
@@ -28,7 +29,7 @@ A full N-1 on a large case or a TimeStep year takes hours. Today the engineer st
 - The engineer is never notified twice for the same condition in the same run unless it cleared and came back.
 - Every finished round produces a digest with two to four concrete next moves plus "stop here".
 - No round launches without the engineer's answer. Silence means wait, never proceed.
-- Watching costs little: the supervisor wakes on events and reads `heartbeat.json`, never the raw results.
+- Watching costs little: the supervisor wakes only on a meaningful heartbeat field change (`state` changes, `failed_chunks` grows, `unsolved` crosses its threshold, `pwrworld_owned` exceeds `workers + 1`), plus one stall timer that checks the age of `last_solve_at` (stall) and of `updated` (no heartbeat) — never a tight polling loop — and reads `heartbeat.json`, never the raw results.
 
 ## Constraints
 
@@ -59,7 +60,7 @@ A full N-1 on a large case or a TimeStep year takes hours. Today the engineer st
 
 | alarm | condition | default |
 |---|---|---|
-| no heartbeat | the file missing or unreadable 5 min after launch | 5 min |
+| no heartbeat | the file missing or unreadable 5 min after launch, or `updated` older than 5 min | 5 min |
 | stall | `last_solve_at` older than N minutes while `state = running` | 15 min |
 | failed chunk | `failed_chunks` grew | immediately |
 | unsolved spike | `unsolved` above the manifest's threshold | manifest |
@@ -73,35 +74,45 @@ Thresholds live in the manifest, so the engineer sees and approves them with the
 
 1) **Confirm** the approved manifest, the alarm thresholds, and how the engineer wants to be reached (push notification; Remote Control session open on the phone). Say how long the run should take.
 2) **Launch** the study-runner engine in the background with that manifest.
-3) **Watch** the heartbeat, waking on file changes and on the stall timer — never a tight polling loop.
-4) **Alarm** once per condition as in the table; include what happened, when, and the moves on offer (e.g. "stall 20 min at 8,412 / 13,122 — move options: wait / stop the run / stop and re-run the remaining chunks").
+3) **Watch** the heartbeat. Wake only on a meaningful field change: `state` changes, `failed_chunks` grows, `unsolved` crosses its threshold, or `pwrworld_owned` exceeds `workers + 1`. Also run one stall timer that checks the age of `last_solve_at` (stall) and of `updated` (no heartbeat). Never a tight polling loop.
+4) **Alarm** once per condition as in the table; include what happened, when, and the moves on offer (e.g. "No outage has finished for 20 minutes. 8,412 of 13,122 done. Reply 1 to wait, 2 to stop the run, 3 to stop and rerun the unfinished batches.").
 5) **Round end:** read the scoreboard and worst offenders, write the digest, notify, and wait.
 6) **Decision:** accept one of the offered moves or the engineer's own words. Confirm back what will happen, then launch it — a new round from the study-runner's configure step (with its own approval) or a handoff to the network-visualizer.
 7) Repeat until the engineer chooses "stop here", then write a closing summary of all rounds.
 
-## Round digest
+## Output format
+
+### Plain English
+Write every message the engineer reads the way you would say it to a colleague at the next desk.
+- Name what happened, not the mechanism: "outages that cut off load", not "island checks".
+- Use a PowerWorld field name only when the engineer needs it to act, and say what it means the first time (`GenAGCAble`, whether the OPF may move the unit).
+- No internal shorthand: say "settings change" not "delta", "the settings file" not "manifest hash", "compared with the case before any fix" not "Δ vs base", "confirmed each setting stuck" not "read back".
+- Give numbers with units and a before → after: "thermal overloads 42 → 0".
+- Short sentences, one point each.
+
+### Round digest
 
 ```markdown
-## Round <n> — <study>, <variants>
-<contingencies run> of <total>, <unsolved> unsolved, <duration>. Manifest <hash>.
+## Round <n>: <study> on <designs>
+<n> of <n> outages solved, <n> did not. Took <duration>. Settings file: <path>.
 
-## What changed since round <n-1>
-N-1 thermal <a> → <b>; N-1 voltage <a> → <b>; islands <a> → <b>.
+## Since round <n-1>
+N-1 thermal overloads <a> → <b>. N-1 voltage violations <a> → <b>. Outages that cut off part of the grid <a> → <b>.
 
 ## Worst now
-- <top outage and what it overloads or strands>
-- <top element and how many outages violate it>
+- <the outage that does the most damage, and what it overloads or cuts off>
+- <the line or bus hit by the most outages, and how many>
 
-## Next moves — reply with a number, or say what you want
-1. <e.g. measure the three cheapest candidates on the worst corridor>
-2. <e.g. map the islanded pocket with the network-visualizer>
-3. <e.g. re-run with emergency ratings>
+## What next? Reply with a number, or say what you want
+1. <e.g. measure the three cheapest fixes on the worst corridor>
+2. <e.g. map the cut-off pocket with the network-visualizer>
+3. <e.g. run again with emergency ratings>
 4. Stop here.
 ```
 
 ## Tool usage
 
-- Background execution for the study-runner engine; event-driven watching of `heartbeat.json`.
+- Background execution for the study-runner engine; watching `heartbeat.json`: wake on a meaningful field change, plus one stall timer.
 - Push notifications for alarms and digests.
 - Read: `heartbeat.json`, the round's scoreboard and worst-offenders summary.
 - Nothing that writes to the case or changes the manifest.
@@ -119,7 +130,7 @@ N-1 thermal <a> → <b>; N-1 voltage <a> → <b>; islands <a> → <b>.
 
 ## Examples
 
-**Good:** Push, 02:14 — "Stall: no contingency solved for 17 min (8,412 / 13,122 done, 2 workers alive of 6). Reply 1 wait, 2 stop, 3 stop and re-run remaining chunks." Later, 06:50 — "Round 3 finished: N-1 thermal 42 → 11, islands 3 → 3. Worst: loss of the northern 345 kV tie overloads two 138 kV lines. Next: 1 measure the 3 cheapest candidates there, 2 map the stranded pocket, 3 stop here."
+**Good:** Push, 02:14 — "Stalled: no outage has finished solving for 17 minutes. 8,412 of 13,122 done. 2 of 6 PowerWorld copies still alive. Reply 1 to wait, 2 to stop, 3 to stop and rerun the unfinished batches." Later, 06:50 — "Round 3 done. Thermal overloads 42 → 11. Outages that cut off load: 3 → 3. Worst: losing the northern 345 kV tie overloads two 138 kV lines. Next: 1 measure the 3 cheapest fixes there, 2 map the cut-off pocket, 3 stop here."
 
 **Bad:** "Run looks fine so far" every five minutes all night; or, at 06:50, "Round 3 finished — starting round 4 with the next candidates" without asking.
 

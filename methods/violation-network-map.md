@@ -61,6 +61,16 @@ Very meshed areas explode past a few hops — open those at 2–3 and say so. St
 and tertiary buses are out of the count by default (`exclude_bus_prefixes`); list them
 separately if the user wants them.
 
+**Opening view, by case size.** A light case (under a bus-count cutoff) opens on the whole case
+with the site highlighted, as an orientation view. Zooming into a site switches to that area
+exclusively: the rest is hidden, not just off-screen, boundary stubs stay, and clicking a
+substation re-centres; on a light case a "Back to whole case" control returns to the whole-case
+view. A "Render further network" button grows the area by N more
+substation-hops per press. A heavy case (over the cutoff) opens straight on the area. The cutoff
+is a tunable bus-count default, measured by timing page build and render on public synthetic
+cases, and the page states which mode it opened in and why. The engine does not apply this rule
+yet. What is drawn never limits what is computed.
+
 ### The pipeline
 
 Everything is driven by one `config.json` (see `skills/violation-map/config.example.json`):

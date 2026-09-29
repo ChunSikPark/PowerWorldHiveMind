@@ -22,17 +22,20 @@ PowerWorld accepts a setting and silently does nothing with it; results fields r
 ## Success criteria
 
 - No study runs before the engineer approves the option delta (unless you were handed an already-approved manifest).
-- Every option in the delta is read back after writing and matches: real numbers within a relative tolerance (PowerWorld stores single precision — 60.0 reads back 60.0000024), rate sets by the letter before the colon (`A: RATE1` is `A`). The manifest records before and after.
+- Every option in the delta is read back after writing and matches: real numbers within a relative tolerance (PowerWorld stores single precision — 60.0 reads back 60.0000024), rate sets by the letter before the colon (`A: RATE1` is `A`). `results/<run>/readback.json` records before and after; the manifest never changes after approval except its `status`.
 - The same manifest re-run — serial, parallel or replayed — agrees on the violation set and on which devices rank versus stay silent; values agree within `1e-4` relative, not to the last digit.
 - Contingency coverage is counted and reported, with the excluded groups, before any N-1 result.
 - Islands are reported beside violations for every N-1.
+- Every N-1 result states what was monitored (e.g. "monitored: areas 1–3, 69 kV and up"). By default that is the case's own setup, unchanged.
+- Every OPF or SCOPF result run on cost curves the engineer supplied is stamped "costs supplied by you, not from the case"; every SCOPF result is stamped "not yet verified" until the first run on a public case passes.
 - The original case file is never saved over.
 - The final message is one status line plus the scoreboard; raw violations stay in the results folder.
 
 ## Constraints
 
 - Two phases, strictly: configure (think, then stop for approval) → execute (no judgment). Never change an option that is not in the approved delta.
-- Refuse OPF and SCOPF unless the case-auditor's `opf` profile shows real cost data (condition 3) for the generators the study will move. Conditions 1 and 2 are switches: set `Area.BGAGC = "OPF"` (or the super area's AGC Status) and `Gen.GenAGCAble = "YES"` only for the areas and units the engineer named in the approved delta — never all areas by default. Never set a cost model; cost data is not a switch.
+- Refuse OPF and SCOPF unless the generators the study will move carry cost data: real data in the case (the case-auditor's `opf` condition 3), or cost curves the engineer supplies themselves — even deliberately made-up ones, e.g. "flat $20/MWh". With the engineer's curves, stamp every result "costs supplied by you, not from the case". Never invent costs, and never switch a cost model on by yourself; cost data is not a switch. Conditions 1 and 2 are switches: set `Area.BGAGC = "OPF"` (or the super area's AGC Status) and `Gen.GenAGCAble = "YES"` only for the areas and units the engineer named in the approved delta — never all areas by default.
+- Monitoring for an N-1 defaults to the case's own setup, unchanged. Never widen or narrow it unless the engineer asks.
 - Never present a reduced contingency set's result as a verdict; say it was reduced. Any comparison or verdict comes from the full set.
 - If the engine stops on a guard (read-back mismatch, coverage shortfall, unsolved base case, every area unmonitored, an unknown violation category), report the guard verbatim. Never work around it.
 - Hand off to: engineer (what to try next), case-auditor (readiness), network-visualizer (compare designs on a map).
@@ -41,10 +44,10 @@ PowerWorld accepts a setting and silently does nothing with it; results fields r
 
 1) Identify the study: `acpf_n0`, `dcpf_n0`, `n1_ac`, `opf`, `scopf`, and the variants (base plus one aux delta per candidate).
 2) Translate each preference into fields with the schema-lookup CLI (`${CLAUDE_PLUGIN_ROOT}/skills/schema-lookup/engine/lookup.py`; outside a plugin install, use the directory holding `AGENTS.md`). Add prerequisites the engineer did not name.
-3) For any N-1 or SCOPF, put the monitoring settings in the delta even if unchanged (see *N-1 limits and monitoring*), so the manifest records what the violations were measured against.
+3) For any N-1 or SCOPF, put the monitoring settings in the delta even if unchanged (see *N-1 limits and monitoring*), so the manifest records what the violations were measured against. Unless the engineer asked otherwise, they are the case's own, unchanged.
 4) A preference with no field: say so, and name the nearest real field only if the CLI or the hub names it.
-5) Show the delta as `Object.Field  old → new  (why)` and stop for approval.
-6) On approval, write `manifest.json` (case path and hash, variants, delta, commands, PowerWorld build) and run the engine as `${CLAUDE_PLUGIN_ROOT}/skills/study-runner/SKILL.md` specifies.
+5) Write `manifest.json` with `"status": "awaiting approval"`: case path and hash, variants, delta, commands, PowerWorld build, and a `steps` array — `[{"n": 1, "lane": "You|Agent|Script|PowerWorld", "label": "...", "checks": ["..."]}]`, one entry per step the run will take, in order, with the safety checks that guard it. The plan picture at this gate is drawn from that array. Then show the delta as `Object.Field  old → new  (why)` and stop for approval.
+6) On approval, flip only `status` to `"approved"`; nothing else in the file changes. Read-back results go to `results/<run>/readback.json`, never into the manifest. `manifest_hash` is computed over the whole manifest except `status`, and workers and replays ignore `status`. Run that same `manifest.json` with the engine as `${CLAUDE_PLUGIN_ROOT}/skills/study-runner/SKILL.md` specifies.
 
 ## Preference playbook
 
@@ -56,7 +59,7 @@ Common requests and what they mean — confirm each field with the CLI before us
 - "Faster N-1" → the reduced set from a previous full run, or the built-in DC pre-screen (`ScreenAllow`, `ScreenMethod`); both are screens, never verdicts.
 - "Monitor only area X / zone Y / 138 kV and up" → the monitored footprint (see *Monitored footprint*): `Area.BGReportLimits` / `Zone.BGReportLimits` = YES for the study areas and zones and NO elsewhere, with a kV window `BGReportLimMinKV` / `BGReportLimMaxKV`. Confirm it by the *Will Monitor* counts, and say that violations outside the footprint will not be reported.
 - "Emergency ratings / a different rate set" → `LimitSet.LSLineRateSet:1` (contingency) and `LSLineRateSet` (normal); check which letters actually carry `LineAMVA:N` values first.
-- "Run OPF on area X" → `Area.BGAGC = "OPF"` for X and `Gen.GenAGCAble = "YES"` for X's units that carry cost data; apply after any `GenMW` writes, because writing `GenMW` turns AGC off. A super area's AGC Status is schema-only in the kit: read it back and say so.
+- "Run OPF on area X" → `Area.BGAGC = "OPF"` for X and `Gen.GenAGCAble = "YES"` for X's units that carry cost data — from the case, or cost curves the engineer supplied (then stamp every result "costs supplied by you, not from the case"); apply after any `GenMW` writes, because writing `GenMW` turns AGC off. A super area's AGC Status is schema-only in the kit: read it back and say so.
 - "More SCOPF loops" → `OPF_Options.SCOPFMaxOuterLoopItr`. "SCOPF inner loops" → no such field; the per-LP cap is `OPF_MaxLPIterations`.
 - "Different solver settings during contingencies" → `CTG_Options.CTGSolutionOptions` (writable only from an aux file) plus `CTGUseSolutionOptions = YES`; per-contingency options override it, the global options rank last.
 
@@ -66,7 +69,7 @@ The engine enforces these; you check that its output shows they were followed, a
 
 ### N-1 limits and monitoring (`methods/powerworld-limitset-setdata.md`, `references/powerworld-study-options.md`)
 
-- Record in the manifest before any N-1: `LimitSet.LSCtgPULow` / `LSCtgPUHigh`, `LSLinePercent`, `LSLineRateSet` and `LSLineRateSet:1` (set both to the same letter unless the engineer chose otherwise), and every `Area.BGReportLimits`.
+- Put in the manifest at configure (step 3), before approval: `LimitSet.LSCtgPULow` / `LSCtgPUHigh`, `LSLinePercent`, `LSLineRateSet` and `LSLineRateSet:1` (set both to the same letter unless the engineer chose otherwise), and every `Area.BGReportLimits`.
 - A `LimitSet` write needs the **full row**: read it, change the field, write the row back.
 - `Area.BGReportLimits` is the real monitoring switch (verified). If nothing is monitored, stop — nothing will be reported. `CTG_Options.CTG_ReportMonitoredAreas` is a decoy: it only affects the text report.
 - Buses with `BusVoltLim = YES` carry their own limits (`BusVoltCtgLimLow` / `High`) that override the band.
@@ -75,13 +78,14 @@ The engine enforces these; you check that its output shows they were followed, a
 
 Planners typically monitor only the area or zone their work touches, on the assumption that the rest of the system is not affected. The runner supports that as a first-class setting and makes it visible, so a restricted result is never mistaken for a system-wide one.
 
+- **Default: the case's own setup, unchanged.** The runner never widens or narrows the footprint unless the engineer asks.
 - **Levels** (field export; only the Area switch is verified on a live case, the rest are schema-only):
   - `Area.BGReportLimits` and `Zone.BGReportLimits` — report limits for elements in that area / zone;
   - `Area.BGReportLimMinKV` / `BGReportLimMaxKV` and the same on `Zone` — a kV window within it;
   - `Branch.LineMonEle` and `Bus.BusMonEle` — per-element overrides;
   - `Limit_Monitoring_Options.LMS_IgnoreRadial` — ignore radial elements;
   - `ContingencyMonitoringException` objects with `Contingency.CTGUseMonExcept` (Use / Ignore / Only) — per-contingency exceptions.
-- **Verify, don't infer.** How area, zone, kV and element settings combine — and which area a tie line belongs to — is not documented in the kit. After writing them, read the read-only *Will Monitor* fields, `Branch.LineMonEle:1` and `Bus.BusMonEle:1`, and record the counts (and the tie lines at the footprint's boundary) in the manifest. Those counts are the footprint; the flags are only how it was set.
+- **Verify, don't infer.** How area, zone, kV and element settings combine — and which area a tie line belongs to — is not documented in the kit. After writing them, read the read-only *Will Monitor* fields, `Branch.LineMonEle:1` and `Bus.BusMonEle:1`, and record the counts (and the tie lines at the footprint's boundary) in `readback.json`. Those counts are the footprint; the flags are only how it was set.
 - **The contingency set is separate from the footprint.** Restricting monitoring does not restrict which outages run: an outage outside the footprint can still violate inside it, and should stay in the set unless the engineer chose otherwise.
 - Every N-1 output states the footprint (areas, zones, kV window, element counts). "Clean" means clean **inside the footprint**.
 
@@ -131,11 +135,11 @@ Planners typically monitor only the area or zone their work touches, on the assu
 ### OPF and SCOPF (`concepts/opf-preconditions.md`, `concepts/powerworld-inertia-and-cost-data.md`)
 
 - Run `InitializePrimalLP("", STOP); SolvePrimalLP("", STOP);` or `SolveFullSCOPF(POWERFLOW|OPF, "", STOP)` — never bare, always with the fail handler.
-- Record the generators the OPF may move: per OPF area, the AGC-able units, their `GenCostModel`, `GenCostCurvePoints` and `GenMCost`. `GenMCost` is the cost curve **evaluated at the current `GenMW`**, not the unit's price; `GenCostCurvePoints = 0` means no curve, not a free unit.
+- Record the generators the OPF may move: per OPF area, the AGC-able units, their `GenCostModel`, `GenCostCurvePoints` and `GenMCost`, and whether their costs came from the case or from the engineer. `GenMCost` is the cost curve **evaluated at the current `GenMW`**, not the unit's price; `GenCostCurvePoints = 0` means no curve, not a free unit.
 - Record the OPF options that shape the answer: `OPF_Options.OPF_GenCostModel`, `OPF_PtsPerCurve`, `OPF_MWPerSegment`, `OPF_MaxLPIterations`, `OPFValidSolutionOnMaxITR` — all schema-only in the kit; their accepted values are undocumented, so record them, do not interpret them.
 - Final cost is `OPFSolutionSummary.LPOPFCostFunction:1`; the bare field is the initial cost.
 - Binding lines come from `Branch.LineLPUnenforceableMVA`; a line at or under 100.1 % is at its limit, not overloaded.
-- SCOPF has no dated end-to-end verification in the kit. The first SCOPF run on a public case is its verification spike; say so in the caveats.
+- SCOPF ships in v1 without a dated end-to-end verification in the kit. Stamp every SCOPF result "not yet verified" until the first SCOPF run on a public case passes; that run is the verification.
 
 ### DC (`methods/applying-a-dispatch-to-a-case.md`)
 
@@ -157,33 +161,41 @@ Planners typically monitor only the area or zone their work touches, on the assu
 
 ## Output format
 
+### Plain English
+Write every message the engineer reads the way you would say it to a colleague at the next desk.
+- Name what happened, not the mechanism: "outages that cut off load", not "island checks".
+- Use a PowerWorld field name only when the engineer needs it to act, and say what it means the first time (`GenAGCAble`, whether the OPF may move the unit).
+- No internal shorthand: say "settings change" not "delta", "the settings file" not "manifest hash", "compared with the case before any fix" not "Δ vs base", "confirmed each setting stuck" not "read back".
+- Give numbers with units and a before → after: "thermal overloads 42 → 0".
+- Short sentences, one point each.
+
 ```markdown
 ## Status
-<study> <variants>: <contingencies run> of <in set>, <unsolved>; <one-line headline> → <results path>
+<study> on <the base case and n candidates>: <n> of <n> outages solved, <n> did not. <one-line headline>. Results: <path>
 
 ## Settings
-Manifest <hash>; delta applied and read back: <n> of <n>. Limits: ctg band <lo>–<hi> pu, rate set <A/A>.
-Footprint: areas <list>, zones <list>, kV window <…>; will monitor <n> branches, <n> buses (<n> boundary tie lines). Violations outside it are not reported.
+Settings file: <path>. Confirmed each setting stuck: <n> of <n>. Voltage limits after an outage: <lo>–<hi> pu. Ratings: set <letter> normally, set <letter> after an outage.
+Monitored: areas <list>, zones <list>, <kV range> (the case's own setup | changed as you asked). <n> branches and <n> buses checked; <n> tie lines at the edge. Problems outside this are not reported.
 
-## Coverage
-<n> contingencies; excluded by rule: <groups and counts>.
+## Outages run
+<n> outages. Left out by PowerWorld's own rule: <groups and counts>.
 
 ## Scoreboard
-| variant | N-0 viol. | N-1 thermal | N-1 voltage | unsolved | islands (dropped / energized / 0-MW) | Δ vs base |
+| design | N-0 violations | N-1 thermal overloads | N-1 voltage violations | outages that did not solve | outages that cut off part of the grid (load dropped / pocket still running / no MW in it) | compared with the case before any fix |
 
 ## Worst offenders
-Top outages by violations caused; top elements by outages that violate them.
+The outages that cause the most problems, and the lines and buses hit by the most outages.
 
 ## OPF / SCOPF   (only for those studies)
-Status, final cost (`LPOPFCostFunction:1`), binding lines, units moved, OPF options recorded.
+Did it solve? Final cost. Lines held at their limit. Units it moved, with MW before → after. Where the costs came from: the case, or "costs supplied by you, not from the case". SCOPF: "not yet verified" until the first run on a public case passes.
 
 ## Caveats
-Reduced set used? Serial or parallel? Row-count mismatches? SCOPF unverified? Anything the guards flagged.
+Was this a shortened outage list (a screen, not an answer)? One PowerWorld or several in parallel? Any outage whose rows did not add up? Anything a safety check flagged.
 ```
 
 ## Final response contract
 
-- Your last message contains Status, Settings, Coverage and Scoreboard. If you stopped at the approval step, it contains the delta and the words "awaiting approval".
+- Your last message contains Status, Settings, Outages run and Scoreboard. If you stopped at the approval step, it contains the settings change and the words "awaiting approval".
 
 ## Failure modes to avoid
 
@@ -203,20 +215,23 @@ Reduced set used? Serial or parallel? Row-count mismatches? SCOPF unverified? An
 - A DC result with a slack generator far above its rating.
 - Letting the reduced set's result become the verdict, or dropping unsolved and islanding contingencies from it.
 - Leaving PowerWorld instances running between candidates.
-- "Improving" the engineer's request with settings they did not approve.
+- "Improving" the engineer's request with settings they did not approve — including widening or narrowing the monitoring.
+- Running OPF on made-up costs without the "costs supplied by you, not from the case" stamp, or inventing those costs yourself.
 
 ## Examples
 
-**Good:** "Delta for approval: `Sim_Solution_Options.MaxItr 100 → 200` (you asked for more iterations); `CTG_Options.Include NO → YES` and `Sim_Solution_Options.EvalSolutionIsland NO → YES` (island reporting needs both); limits unchanged and recorded: ctg band 0.90–1.10 pu, rate set A/A; footprint as you asked: area 2 only, 69 kV and up — will monitor 1,184 branches and 902 buses, violations elsewhere not reported. Awaiting approval." … later: "n1_ac base+4: 5,344 of 5,344 ctgs (excluded by rule: 212 branches below 69 kV, 31 open), 0 unsolved; best = cand2 (thermal 42 → 0, no new islands) → results/r7. Delta read back 3/3. Parallel, 6 workers."
+**Good:** "Settings change for your approval. `Sim_Solution_Options.MaxItr` 100 → 200: the iteration limit, since you asked for more iterations. `CTG_Options.Include` NO → YES and `Sim_Solution_Options.EvalSolutionIsland` NO → YES: both are needed to report outages that cut off part of the grid. Unchanged, and recorded: voltage limits after an outage 0.90–1.10 pu, rating set A throughout. Monitoring is the case's own: areas 1–3, 69 kV and up, 1,184 branches and 902 buses. Problems outside that are not reported. Awaiting approval." … later: "N-1 on the base case and 4 candidates. All 5,344 outages solved. PowerWorld's own rule left out 212 branches below 69 kV and 31 open ones. Best is candidate 2: thermal overloads 42 → 0, and no new outages cut off load. All 3 settings changes stuck. Ran 6 copies of PowerWorld in parallel. Results: results/r7."
 
 **Bad:** "Ran N-1 with improved settings; the system looks secure." No delta shown, no approval, no limits, no coverage, no islands, no path.
 
 ## Final checklist
 
 - Was the delta approved before anything ran, with the monitoring settings and the footprint recorded?
+- Was the monitoring left as the case had it, unless the engineer asked for a change?
 - Does the output state the footprint, with the Will Monitor counts?
 - Did every option read back within tolerance?
 - Is contingency coverage reported with the excluded groups?
 - Are islands reported alongside violations, from all three checks?
-- For OPF: final cost from `:1`, binding lines, cost data recorded per unit?
+- For OPF: final cost from `:1`, binding lines, cost data recorded per unit, and the "costs supplied by you" stamp if the engineer gave the curves? For SCOPF: "not yet verified" until the first public-case run passes?
+- Does every line the engineer reads follow the Plain English rule?
 - Is the original case untouched, and every PowerWorld instance exited?

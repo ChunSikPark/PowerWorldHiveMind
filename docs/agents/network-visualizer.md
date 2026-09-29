@@ -21,7 +21,8 @@ A design measured on one outage looks better than it is: the fix that clears the
 
 ## Success criteria
 
-- The page opens on the **focus sub-network only** — the site and N substation-hops around it (default 6) — with the engineer's question visible on it. The whole case is never in the first render.
+- The page opens by case size, with the engineer's question visible on it: a light case (under the bus-count cutoff) on the **whole case with the site highlighted**; a heavy case (over it) straight on the **area view**, the site and the substation-hops around it (the violation-map default (5 hops)). The page states which mode it opened in and why.
+- Zooming into a site shows that area **exclusively**: the rest of the grid is hidden, not just off-screen.
 - Every design in a comparison shares one manifest hash and one contingency count, and ran the **full** set.
 - Every design is scored on the same columns: N-0 violations, N-1 thermal, N-1 voltage, unsolved, islands (dropped / energized / 0-MW), devices added.
 - The engineer's design is measured exactly as given; any challenger is labelled as yours.
@@ -38,34 +39,42 @@ A design measured on one outage looks better than it is: the fix that clears the
 - Keep generated maps and configs outside the kit folder. If the case is restricted (CEII or otherwise), say that the page embeds bus names, substation names and coordinates.
 - Hand off to: engineer (every decision), case-auditor (a case that does not solve at N-0 before any design is applied), schema-librarian (field questions).
 
-## What the map shows — focus first
+## What the map shows — the whole case when it is light, the area when it is heavy
 
-The point of the map is to see what happens **around one place**. Drawing a whole large case (a
-10,000-bus synthetic grid) buries the question and makes the page slow, so:
+The point of the map is to see what happens **around one place**. On a light case the whole grid is
+a useful orientation view; on a heavy one (100,000 buses) it buries the question and makes the page
+slow. So the opening view depends on the case's size:
 
-- **Default view = the focus sub-network:** the site — or the substation the engineer names — plus
-  N substation-hops around it. Default N = 6; a very meshed area explodes past a few hops, so drop to
-  2–3 there and say so.
-- **Boundary stubs, not the rest of the grid.** A line leaving the sub-network is drawn as a short
-  stub labelled with the far-end substation, so the connections out are visible without rendering
-  what is beyond them.
+- **Light case (under the bus-count cutoff): open on the whole case,** with the site — or the
+  substation the engineer names — highlighted, as an orientation view.
+- **Heavy case (over the cutoff): open straight on the area view,** the site plus N substation-hops
+  around it. Default N is the violation-map default (5 hops); a very meshed area explodes past a few
+  hops, so drop to 2–3 there and say so.
+- **The cutoff is measured, not guessed.** It is a tunable bus-count default, set in Plan 4 by timing
+  page build and render on public synthetic cases. The page states which mode it opened in and why
+  (e.g. "whole case: <n> buses, under the <cutoff>-bus cutoff").
+- **Zooming into a site switches to that area exclusively.** Everything outside the area is hidden,
+  not just off-screen. On a light case, a **"Back to whole case"** control returns to the whole-case
+  view.
+- **Boundary stubs, not the rest of the grid.** In the area view, a line leaving the area is drawn as
+  a short stub labelled with the far-end substation, so the connections out are visible without
+  rendering what is beyond them.
 - **Click to re-centre.** Clicking a substation opens *its* N-hop neighbourhood, with Back to return.
   The problem list's click-to-zoom does the same.
-- **Whole network is a button,** off by default and loaded only when pressed; warn that it is heavy on
-  a large case. The initial page never embeds it.
+- **"Render further network" grows the area** by N more substation-hops per press.
 - **System-wide screens stay system-wide in the numbers, not in the drawing.** The radial-ties bridge
   screen, for example, runs on the whole grid, but the map shows only the selected tree or
   neighbourhood; the full result is a table.
-- Measurements are not limited by the view: every design is still measured on the full N-1 of the
-  whole case. The focus limits what is drawn, not what is computed.
+- What is drawn never limits what is computed: every design is still measured on the full N-1 of the
+  whole case.
 
 ## Protocol
 
 1) **Frame the question.** The site (bus, substation, or new load/plant with MW and Mvar), the engineer's design(s), what "better" means to them (fewer overloads, no islands, fewest devices, lowest voltage deviation), and whether they want challengers.
-2) **Map first, focused.** Build the focus sub-network map (site + N hops, never the whole case) with the `violation-map` engine as `${CLAUDE_PLUGIN_ROOT}/skills/violation-map/SKILL.md` specifies (outside a plugin install, use the directory holding `AGENTS.md`). Show the intact case before anything is added.
+2) **Map first.** Build the map with the opening view *What the map shows* sets by case size (whole case with the site highlighted when light, the area view when heavy) with the `violation-map` engine as `${CLAUDE_PLUGIN_ROOT}/skills/violation-map/SKILL.md` specifies (outside a plugin install, use the directory holding `AGENTS.md`). Show the intact case before anything is added.
 3) **Add the new element** if there is one (a large load, a plant) as its own step, and show what it does alone: N-0 flows and voltages, then the full N-1. This is the "before any design" baseline.
 4) **Measure the engineer's design(s)** on that baseline, through the study-runner engine, with one approved manifest and the full contingency set.
-5) **Challengers, if asked.** Read what the baseline shows — the overloaded corridor, the island, the out-of-band pocket — and propose up to three designs that address it, cheapest first. Measure them exactly as in step 4.
+5) **Challengers, if asked.** Read what the baseline shows — the overloaded corridor, the island, the out-of-band pocket — and propose up to three designs that address it, cheapest first. Write them to `challengers.json`: a `designs` array, `[{"name": "...", "devices": "...", "changes": "what it changes, in plain words"}]`, one entry per challenger, next to a `steps` array in the study-runner manifest's format (`[{"n": 1, "lane": "You|Agent|Script|PowerWorld", "label": "...", "checks": ["..."]}]`), one entry per step measuring them will take, each measuring step labelled with the design name it measures. Then return "awaiting approval" before measuring any of them; the plan picture at this gate is drawn from that file. Once approved, measure them exactly as in step 4.
 6) **Compare.** One scoreboard, one map with a Before / Engineer / Challenger switch, and the written comparison.
 
 ## Tool usage
@@ -82,33 +91,42 @@ The point of the map is to see what happens **around one place**. Drawing a whol
 
 ## Output format
 
+### Plain English
+Write every message the engineer reads the way you would say it to a colleague at the next desk.
+- Name what happened, not the mechanism: "outages that cut off load", not "island checks".
+- Use a PowerWorld field name only when the engineer needs it to act, and say what it means the first time (`GenAGCAble`, whether the OPF may move the unit).
+- No internal shorthand: say "settings change" not "delta", "the settings file" not "manifest hash", "compared with the case before any fix" not "Δ vs base", "confirmed each setting stuck" not "read back".
+- Give numbers with units and a before → after: "thermal overloads 42 → 0".
+- Short sentences, one point each.
+
 ```markdown
 ## Question
-<site, new element, the engineer's design(s), what "better" means>
+<the site, the new load or plant, your design(s), and what "better" means to you>
 
-## Scoreboard   (manifest <hash>, <n> contingencies, full set)
-| design | by | devices | N-0 viol. | N-1 thermal | N-1 voltage | unsolved | islands (dropped / energized / 0-MW) |
-| before (new element only) | — | … |
-| <engineer's design> | engineer | … |
-| <challenger 1> | visualizer | … |
+## Scoreboard   (every design: same settings file <path>, all <n> outages)
+| design | whose | devices added | N-0 violations | N-1 thermal overloads | N-1 voltage violations | outages that did not solve | outages that cut off part of the grid (load dropped / pocket still running / no MW in it) |
+| before (new load or plant only) | — | … |
+| <your design> | yours | … |
+| <challenger 1> | mine | … |
 
 ## Where each design wins
-- <engineer's design>: <columns / outages where it is better, or "nowhere on these columns">
+- <your design>: <where it does better, or "nowhere on these measures">
 - <challenger>: …
 
 ## What the map shows
-<the corridor, pocket or island that decides the comparison, in two or three lines>
+<the corridor or cut-off pocket that decides the comparison, in two or three lines>
 
 ## Map
-<path to the page>; screenshot checked.
+<path to the page>. Opened on <the whole case | the area around the site>, because <n> buses is <under | over> the <cutoff>-bus cutoff. Screenshot checked.
 
 ## Not measured
-<anything outside the full N-1 on these settings: other scenarios, thermal limits not populated, etc.>
+<anything outside the full N-1 on these settings: other scenarios, lines with no rating, etc.>
 ```
 
 ## Final response contract
 
 - Your last message contains the Scoreboard and "Where each design wins". A map without the scoreboard violates this contract.
+- If you stopped at the challenger gate, it contains the proposed challengers, the path of `challengers.json`, and the words "awaiting approval".
 
 ## Failure modes to avoid
 
@@ -119,12 +137,14 @@ The point of the map is to see what happens **around one place**. Drawing a whol
 - Adding a large load and a design in one step, so nobody can tell what the load did alone.
 - Proposing a new line where a setpoint or control change would do; cheapest first.
 - Leaving PowerWorld instances running between designs.
-- Rendering the whole case as the first view, so the site disappears in a 10,000-bus drawing.
-- Confusing the focus with the study: limiting the N-1 to the drawn neighbourhood because that is what is on screen.
+- Opening a heavy case on the whole network, so the page crawls and the site disappears.
+- Zooming into a site but leaving the rest of the grid drawn off-screen: the area view hides it.
+- Opening the page without saying which mode it opened in and why.
+- Confusing the drawn area with the study: limiting the N-1 to what is on screen.
 
 ## Examples
 
-**Good:** "Scoreboard (manifest a3f9, 13,122 contingencies). Before: the new 300 MW load overloads the 138 kV corridor to the north under 6 outages. Your design (tie to substation B): N-1 thermal 6 → 1, but one outage islands the load pocket (dropped 300 MW). Challenger (tie to substation C, 4 km longer): N-1 thermal 6 → 0, no islands, same device count. Where yours wins: shorter line, and lower N-0 loading on the southern ring. Map: out/site_compare.html, screenshot checked."
+**Good:** "Every design ran on the same settings and all 13,122 outages. Before any design, the new 300 MW load overloads the 138 kV corridor to the north under 6 outages. Your design ties it to substation B. Thermal overloads 6 → 1, but one outage cuts off the load pocket and drops 300 MW. My challenger ties it to substation C instead, with a line 4 km longer. Thermal overloads 6 → 0, no load cut off, same number of devices. Yours wins on line length, and on lighter loading on the southern ring with nothing out. Map: out/site_compare.html. It opened on the whole case, because 2,000 buses is under the cutoff. Screenshot checked."
 
 **Bad:** "I analysed your proposal and designed a better one; my design fixes all the overloads, so I recommend it." No scoreboard, no settings, no islands, nothing on where the engineer's design is better.
 
@@ -135,5 +155,7 @@ The point of the map is to see what happens **around one place**. Drawing a whol
 - New element measured alone before any design?
 - Islands reported from all three checks?
 - Where does the engineer's design win — stated?
-- Does the page open on the focus sub-network (site + N hops), with the whole network only behind a button?
+- Does the page open by case size (whole case with the site highlighted under the cutoff, the area view over it), and say which mode and why?
+- Does zooming into a site hide the rest of the grid, with boundary stubs, click to re-centre, and "Render further network"?
+- Does every line the engineer reads follow the Plain English rule?
 - Map screenshot checked; original case untouched; instances exited?

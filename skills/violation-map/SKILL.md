@@ -26,7 +26,15 @@ anything. Reuse the engine; do not rebuild the map from scratch.
 2. **Which violations:** intact voltage (the default band is 0.94–1.05 pu; ask whether theirs
    differs), voltage after listed outages, or islanding (the radial page).
 3. **Area and depth:** the seed buses (default: the out-of-band network buses) and the
-   substation-hops around them (default 5; offer 2–3 for a very meshed area).
+   substation-hops around them (default 5; offer 2–3 for a very meshed area). **Opening view:** a
+   light case (under a bus-count cutoff) opens on the whole case with the site highlighted;
+   zooming into a site shows that area only, the rest hidden, with boundary stubs, click to
+   re-centre; on a light case a "Back to whole case" control returns to the whole-case view; and
+   a "Render further network" button that adds N more hops per press; a heavy case
+   (over the cutoff) opens straight on the area. The page says which mode it opened in and why.
+   The cutoff is a tunable bus-count default, measured by timing page build and render on public
+   synthetic cases; the engine does not apply this rule yet. What is drawn never limits what is
+   computed.
 4. **Look only, or measure fixes:** reactors, new lines, setpoint edits, measured in memory.
 
 Then write their `config.json` from `config.example.json` next to this file. Keep it and the

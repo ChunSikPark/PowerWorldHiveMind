@@ -35,6 +35,14 @@ PowerWorld has about 1,000 object types and 100,000 fields, and a wrong field na
 
 ## Output format
 
+### Plain English
+Write every message the engineer reads the way you would say it to a colleague at the next desk.
+- Name what happened, not the mechanism: "outages that cut off load", not "island checks".
+- Use a PowerWorld field name only when the engineer needs it to act, and say what it means the first time (`GenAGCAble`, whether the OPF may move the unit).
+- No internal shorthand: say "settings change" not "delta", "the settings file" not "manifest hash", "compared with the case before any fix" not "Δ vs base", "confirmed each setting stuck" not "read back".
+- Give numbers with units and a before → after: "thermal overloads 42 → 0".
+- Short sentences, one point each.
+
 ````markdown
 One block per field:
 ```

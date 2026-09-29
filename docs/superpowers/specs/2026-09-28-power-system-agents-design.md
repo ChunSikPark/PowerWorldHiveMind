@@ -1,12 +1,13 @@
 # Power-system agents for PowerWorldHiveMind — design
 
 Date: 2026-09-28. Status: design approved in conversation, awaiting review of this written spec.
+Revised 2026-09-29 with the decisions from a review of the agent drafts.
 
 ## 1. Goal
 
 Give anyone who installs PowerWorldHiveMind a small team of agents that audit a case, run
-steady-state studies with the user's own preferences, verify fixes, and answer "which object and
-field?" questions — so an open-ended request ("the bus is at 1.06, what fixes it?") is worked on
+steady-state studies with the user's own preferences, map and compare the engineer's designs on
+the full N-1, and answer "which object and field?" questions — so an open-ended request ("the bus is at 1.06, what fixes it?") is worked on
 real numbers instead of guesses.
 
 **Audience:** every user of the kit, including its author. Everything ships inside the kit and is
@@ -28,6 +29,9 @@ public synthetic grids only.
    recorded, so the same request always reproduces the same numbers.
 5. **Every PowerWorld write is read back.** PowerWorld reports success on writes that change
    nothing; a write that did not stick fails the run.
+6. **Plain English in everything the engineer reads.** Every agent's and skill's Output format
+   carries the kit's own short *Plain English* rule (see `docs/agents/`); internal sections stay
+   technical.
 
 ## 3. The team
 
@@ -42,6 +46,23 @@ public synthetic grids only.
 There is no separate planner agent: power-system judgment belongs in the context the user is
 talking to.
 
+**Plan pictures — a main-session skill, not an agent** (`docs/agents/plan-pictures.md`). At every
+approval gate — the runner's settings approval, the visualizer's challenger list, the supervisor's
+next round, and a written plan before work starts — the plan is shown as a picture before the
+approval question: a **swimlane** by default (lanes You / Agent / Script (fixed code, no AI) /
+PowerWorld, numbered steps, safety checks drawn inline with "fails → stop + tell you"), and a
+**flowchart** of what can stop the run as the second view. Data-flow and timeline views were
+considered and rejected. **Hard rule:** the picture is generated from the plan file or manifest
+the script actually runs, never from prose or the agent's summary, so it cannot show a step the
+run will not take. Every gate names its file: the runner's settings approval draws from the
+`steps` array in `manifest.json` (§5); the visualizer's challenger list from `challengers.json`,
+same format (§6); the supervisor's next round from that round's `manifest.json`; a written plan
+before work starts from the plan markdown file's numbered task list. It always writes a
+**Mermaid** swimlane file (portable to GitHub, Obsidian, Codex, Gemini), plus a styled Claude page
+for Claude Code users built from the same data. Each engineer can set their own default view per
+gate in the kit's user config, as a `plan_pictures.default_view` map `{gate: swimlane|flowchart}`;
+with no entry, the default is the swimlane.
+
 **Portability:** subagents are a Claude Code feature. Every role is therefore a **skill plus an
 engine** first; the skill carries the commands, and the agent file carries the **role contract**
 (responsible / not responsible, protocol, failure modes, examples, checklist — revised 2026-09-28,
@@ -55,20 +76,25 @@ context isolation.
 
 **Engine** (`skills/case-audit/engine/`, esapp):
 - `audit.py --case <pwb> --profiles base,timestep --out <dir>` → `findings.json` + `findings.md`.
-- A **rule** is one small function: id, profile, severity (`BLOCKER` / `WARN` / `INFO`), fields
+- A **rule** is one small function: id, profile, severity (*Stops the study* / *Worth a look* / *FYI*), fields
   read, the check, a one-line why, the kit page that explains it, and a fix pointer — either a kit
   page or an external handoff.
 - Findings carry the object's key fields so each points at exact objects.
 - **Read-only, enforced by a test:** the engine may solve N-0 in memory but never calls
   `SaveCase` or writes a case. An AST test fails the build otherwise.
 
-**v1 profiles** (only rules already backed by kit pages):
+**v1 profiles** (every rule backed by a kit page; the pages for the four LTC, shunt and stub
+rules are written in Plan 2, and those rules ship in v1):
 
 | profile | checks |
 |---|---|
-| base | N-0 converges; switched shunt or LTC regulating nothing or an out-of-service bus; LTC `XFRegTargetType = Middle`; lightly loaded EHV radial stubs |
-| timestep | renewables have `GenFuelType` WND/SUN, a PFW model string, valid Lat/Lon |
+| base | N-0 (AC) converges; not a DC-only skeleton (`dc_skeleton`); no unit above its rating after the solve (`gen_over_nameplate`); switched shunt or LTC regulating nothing or an out-of-service bus; LTC `XFRegTargetType = Middle`; LTC regulating its low-voltage side while its high side is out of band (`ltc_regulates_lv_side`); lightly loaded EHV radial stubs; holds no `ViolationCTG` rows from an earlier run (`stale_ctg_results`, FYI — do not read them) |
+| monitoring (reported with base) | something is monitored (`mon.nothing_monitored`); the monitored footprint as the case holds it (`mon.footprint`); the normal and contingency rate sets in use carry ratings (`mon.rate_set_empty`); which rate sets carry values (`mon.rate_sets_populated`); buses with their own voltage limits (`mon.bus_limit_overrides`) |
+| timestep | renewables have `GenFuelType` WND/SUN, a PFW model string, valid Lat/Lon; the `.pww` weather file given with the request covers the units (`ts.pww_footprint`) — no file given → "weather coverage not checked — no weather file given", and timestep cannot be READY |
 | opf | an area on `BGAGC = "OPF"`; AGC-able gens; `GenCostModel` ≠ None with `GenCostCurvePoints > 0` and `GenMCost > 0` |
+
+The weather file is an **input** given with the request. The auditor is a subagent: it returns,
+it does not converse, so it cannot ask for the file mid-run.
 
 Deferred: `n1` profile (with the runner's coverage guard), `transient` (out of scope).
 
@@ -77,8 +103,8 @@ models link to the Grid-Workshop repository's `Auto_PFW` scripts (EIA-860 data t
 carry), and the user re-audits the returned case — which catches units the insertion silently
 skipped. Missing cost curves are reported as data to be sourced, never set to a default.
 
-**Agent:** maps the question to profiles, runs the engine, triages each finding as *defect /
-likely deliberate / needs you*, and returns **READY / NOT READY for <study>**, the blocker table
+**Agent:** maps the question to profiles, runs the engine, triages each finding as *Broken /
+Probably on purpose / Your call*, and returns **READY / NOT READY for <study>**, the blocker table
 and the handoffs. The raw findings stay in the file.
 
 ## 5. study-runner
@@ -96,27 +122,39 @@ Sim_Solution_Options.EvalSolutionIsland   NO  → YES   (required for island rep
 A preference with no matching field is reported as such, with the nearest real field — never
 improvised.
 
+Configure ends by writing `manifest.json` with `"status": "awaiting approval"` — the delta, case
+hash, commands, PowerWorld build, and a `steps` array,
+`[{"n": 1, "lane": "You|Agent|Script|PowerWorld", "label": "...", "checks": ["..."]}]`, one entry
+per step the run will take, in order, with the safety checks that guard it — and then stops. The
+plan picture at this gate is drawn from that array.
+
 **Phase 2 — execute (deterministic).**
-- The delta, case hash, commands and PowerWorld build go into `manifest.json`.
+- On approval only `status` flips to `"approved"`; the same `manifest.json` runs unchanged.
+  `manifest_hash` is computed over the whole manifest except `status`, so approval does not change
+  it, and workers and replays ignore `status`.
 - **Every worker replays the manifest itself.** Each parallel worker opens its own PowerWorld
   instance; an option set in the parent does not exist in the workers.
-- Each option: read, write, read back, record before and after. A mismatch fails the run.
+- Each option: read, write, read back, record before and after in `results/<run>/readback.json`
+  (never in the manifest). A mismatch fails the run.
 - The original case is never saved; variants run on fresh copies with their aux delta loaded and
   the case **solved after `LoadAux`** before anything is read.
 
 **v1 methods:** AC power flow, DC power flow, N-1 contingency, OPF, SCOPF.
 
-- **OPF and SCOPF need real cost data** (the auditor's opf condition 3) for the generators the
-  study moves; otherwise the runner refuses. Area/super-area OPF control and `GenAGCAble` are
-  switches the runner sets only for the areas and units the engineer approved. It never sets a
-  cost model.
+- **OPF and SCOPF need cost data** for the generators the study moves: real data in the case (the
+  auditor's opf condition 3), or cost curves the engineer supplies themselves — even deliberately
+  made-up ones, e.g. "flat $20/MWh". With the engineer's curves, every result is stamped "costs
+  supplied by you, not from the case". Otherwise the runner refuses. It never invents costs and
+  never switches a cost model on by itself. Area/super-area OPF control and `GenAGCAble` are
+  switches the runner sets only for the areas and units the engineer approved.
 - OPF: `InitializePrimalLP` then `SolvePrimalLP`, fail handler always given; results from
   `OPFSolutionSummary` (final cost is `LPOPFCostFunction:1`) and `Branch.LineLPUnenforceableMVA`.
 - SCOPF: `SolveFullSCOPF(POWERFLOW|OPF)`; `SCOPFMaxOuterLoopItr` and the other `SCOPF*` options
   set through the configure phase like any other option. There is no inner-loop setting; a request
   for one is answered with `OPF_MaxLPIterations` as the nearest real field.
-- **SCOPF has no dated end-to-end verification.** The first SCOPF run on a public case is its
-  verification spike, and its result is written back to `references/powerworld-study-options.md`.
+- **SCOPF ships in v1 without a dated end-to-end verification.** Every SCOPF result carries "not
+  yet verified" until the first SCOPF run on a public case passes; that run is the verification,
+  and its result is written back to `references/powerworld-study-options.md`.
 - **DC OPF / DC SCOPF** use `SolvePowerFlow(DC)` to enter DC mode (never the `DCPFMode` flag alone)
   and `CTG_CalculationMethod = DC`; the AC re-solve guard applies afterwards.
 
@@ -125,6 +163,10 @@ re-implemented self-contained in the kit — contingency set split into chunks, 
 instance per worker, `CTGSkip` partitioning, pure-Python merge. Serial or parallel is chosen by case
 size (the fixed per-worker open cost dominates on small cases); worker count from CPU and RAM
 headroom, not core count; every instance the runner opens is `.exit()`-ed.
+
+**Monitoring default:** an N-1 monitors what the case's own setup monitors, unchanged, and every
+result states it (e.g. "monitored: areas 1–3, 69 kV and up"). The runner never widens or narrows
+it unless the engineer asks.
 
 **Guards:**
 - contingency coverage counted before a sweep (records vs lines plus two-winding transformers);
@@ -141,7 +183,7 @@ headroom, not core count; every instance the runner opens is `.exit()`-ed.
   aux for fast repeat runs — **never used for a verdict**. The near-miss loading threshold is a
   runner parameter, recorded in the manifest; its default is set in the implementation plan.
 
-**Output:** `results/<run>/manifest.json`, `scoreboard.csv`, `violations.csv`, `islands.csv`,
+**Output:** `results/<run>/manifest.json`, `readback.json`, `scoreboard.csv`, `violations.csv`, `islands.csv`,
 `rankings.csv`, `reduced_set.aux`, `REPORT.md`, and one status line to the engineer.
 
 **Heartbeat (for run supervision, §8a).** While a run is live the engine rewrites
@@ -161,13 +203,28 @@ try it, try yours, and tell me which is better and why."*
 substation — what happens?", "will it overload?", "compare my design with yours", "map the
 violations".
 
-1. **Map** only the focus sub-network — the site plus N substation-hops (default 6), boundary stubs
-   for lines leaving it, click a substation to re-centre, the whole network behind a button and never
-   in the first render — with the existing `violation-map` engine, wrapped, not replaced.
+1. **Map** with the existing `violation-map` engine, wrapped, not replaced. The opening view
+   depends on case size (this reverses the 2026-09-28 focus-first rule):
+   - a **light case** (under a bus-count cutoff) opens on the **whole case**, with the site
+     highlighted, as an orientation view;
+   - **zooming into a site** switches to that area **exclusively** — the rest is hidden, not just
+     off-screen; boundary stubs stay for lines leaving it, and clicking a substation re-centres;
+   - on a light case, a **"Back to whole case"** control returns from the zoomed area to the
+     whole-case view;
+   - a **"Render further network"** button grows the area by N more substation-hops per press;
+   - a **heavy case** (over the cutoff, e.g. 100,000 buses) opens straight on the area view (the
+     site plus the violation-map default (5 hops));
+   - the **cutoff is measured in Plan 4**, by timing page build and render on public synthetic
+     cases, and is a tunable bus-count default; the page states which mode it opened in and why;
+   - what is drawn never limits what is computed: the N-1 stays full-system.
 2. **Measure the engineer's design(s)** exactly as given: N-0, then the **full** N-1 through the
    study-runner engine with one settings manifest, and all three island checks.
 3. **Propose challengers** only when asked, 1–3, cheapest first from the kit's action menu
-   (setpoints and controls before new devices), each labelled as the agent's proposal.
+   (setpoints and controls before new devices), each labelled as the agent's proposal. The list is
+   written to `challengers.json`: a `designs` array,
+   `[{"name": "...", "devices": "...", "changes": "what it changes, in plain words"}]`, next to a
+   `steps` array in the runner manifest's format, whose measuring steps are labelled with those
+   design names. The agent returns "awaiting approval" before measuring any challenger.
 4. **Compare** every design on the same manifest in one scoreboard, and render a map with a
    Before / Engineer / Challenger switch.
 
@@ -178,8 +235,11 @@ violations".
   never declares a winner without the table;
 - the agent never edits the engineer's design, and never saves over the original case.
 
-**Engine work this needs** (none of it exists yet): **focus-first rendering on every view** — the
-radial-ties page today draws the whole grid; a *large-load* candidate kind (today: shunt,
+**Engine work this needs** (none of it exists yet): **the size-based opening rule on every view**
+(whole case under the cutoff, area view over it, exclusive zoom, "Back to whole case", "Render
+further network", and the measured cutoff) — the radial-ties page today draws the whole grid
+whatever its size; the voltage page's hop slider tops out at 6, which caps "Render further
+network", so that maximum must be raised; a *large-load* candidate kind (today: shunt,
 line, setpoint edit); the **thermal view** `violation-map` lists as not built; and full-N-1
 measurement of candidates through the study-runner engine (today the voltage page measures listed
 outages and the radial page bridge outages only).
@@ -203,8 +263,8 @@ Answers "which object, field, command?" in a few lines, with a confidence tag.
 2. case-auditor (base profile) returns the neighbourhood diagnosis. Nothing changes.
 3. Engineer turns it into candidates, cheapest first (zero-device setpoint and control fixes before
    new devices).
-4. study-runner measures each candidate on a copy — N-0, then N-1 on survivors — and returns a
-   scoreboard.
+4. study-runner measures each candidate on a copy — N-0, then an N-1 screen on the survivors, a
+   screen that narrows the list and is never used for a final answer — and returns a scoreboard.
 5. network-visualizer maps the neighbourhood and puts the engineer's pick beside its own
    challenger on the full N-1, same settings, with a Before / Engineer / Challenger switch.
 6. Engineer decides from the side-by-side scoreboard.
@@ -217,11 +277,15 @@ follow a run from anywhere and make each round's decision from a phone.
 
 It is a **mode of the main session** (a skill, `run-supervisor`), not a subagent: a subagent lives
 only while its parent task runs, so it cannot wait hours for a reply or reach a phone. The main
-session can — it runs the study in the background, wakes on events rather than polling, sends push
-notifications, and can be opened from the Claude mobile or web app through Remote Control.
+session can — it runs the study in the background, wakes on meaningful heartbeat changes plus one
+stall timer rather than polling, sends push notifications, and can be opened from the Claude
+mobile or web app through Remote Control.
 
 1. **Launch** the study-runner engine in the background with an approved manifest.
-2. **Watch** `heartbeat.json`, waking on events, not on a timer.
+2. **Watch** `heartbeat.json`. Wake only on a meaningful field change: `state` changes,
+   `failed_chunks` grows, `unsolved` crosses its threshold, or `pwrworld_owned` exceeds
+   workers + 1. Also run **one** stall timer that checks the age of `last_solve_at` (stall) and of
+   `updated` (no heartbeat). Never a tight polling loop.
 3. **Alarm** (push notification) on: no progress for N minutes (default 15), any failed chunk,
    an unsolved count above the manifest's threshold, more `pwrworld.exe` processes than workers
    (a leak), the run failing, and the run finishing.
@@ -246,6 +310,7 @@ skills/study-runner/SKILL.md    engine/  tests/
 skills/violation-map/SKILL.md   engine/  (exists; extended in Plan 4)
 skills/schema-lookup/SKILL.md
 skills/run-supervisor/SKILL.md  (a main-session mode; no agent file)
+skills/plan-pictures/SKILL.md   (a main-session skill; no agent file)
 ```
 
 Engines are Python on esapp, matching `skills/violation-map/engine/`.
@@ -259,19 +324,25 @@ All on public synthetic cases.
 | auditor, clean case | READY for each profile the case supports |
 | auditor, seeded defects (strip PFW from 3 units, zero a regulated bus, set a cost model to None) | reports exactly those, nothing new |
 | auditor read-only | AST test finds no `SaveCase` / case write in the engine |
-| runner, serial vs parallel | identical violations and islands |
-| runner, manifest replay | two runs of one manifest give identical results |
+| runner, serial vs parallel | the same violation set and the same devices ranked; values agree within 1e-4 relative |
+| runner, manifest replay | two runs of one manifest give the same violation set and the same devices ranked; values agree within 1e-4 relative |
 | runner, read-back | a write that does not stick fails the run loudly |
 | runner, coverage | a deliberately incomplete contingency set fails the guard |
 | runner, OPF gate | on a case with no cost data, OPF and SCOPF are refused, not run |
+| runner, user-supplied costs | an OPF run on cost curves the engineer supplied carries the stamp "costs supplied by you, not from the case" on every result |
 | runner, OPF | on a case with cost data, OPF returns a solved status and a final cost, and binding lines match `LineLPUnenforceableMVA` |
 | runner, SCOPF | converges within `SCOPFMaxOuterLoopItr`; changing that option changes the recorded loop count; result recorded as the dated verification |
 | visualizer, parity | two designs measured in one comparison share one manifest hash and one contingency count |
 | visualizer, side effects | a design that clears the target but creates a new overload shows the new overload in the scoreboard |
 | runner, heartbeat | during a run the heartbeat advances; a killed worker shows up as a failed chunk within one heartbeat interval |
-| supervisor, stall | a run whose heartbeat stops advancing raises the stall alarm after the configured interval |
+| supervisor, stall | a run whose `last_solve_at` stops advancing raises the stall alarm after the configured interval |
 | supervisor, gate | the next round never launches without an engineer's answer |
 | visualizer, large load | adding a load candidate changes N-0 flows and appears on the map's Before/Engineer switch |
+| auditor, no weather file | a timestep audit with no `.pww` given reports "weather coverage not checked — no weather file given" and timestep NOT READY |
+| runner, monitoring stated | every N-1 result states what was monitored |
+| runner, SCOPF stamp | every SCOPF result is stamped "not yet verified" until the first public-case run passes |
+| visualizer, opening mode | the map opens in the right mode for its bus count (whole case under the cutoff, area view over it) and says which |
+| plan pictures, fidelity | at each gate — runner `manifest.json`, visualizer `challengers.json`, supervisor next round's `manifest.json`, a written plan's numbered task list — picture steps == file steps (none added, none missing, same order) |
 | librarian | known lookups (shunt keys, island reporting, SCOPF outer loops, no SCOPF inner loop) answered correctly with the right confidence tag |
 
 ## 11. Build order
@@ -293,18 +364,23 @@ All on public synthetic cases.
      convention.
    - **Monitoring footprint:** document how area, zone, kV and element monitoring settings combine
      and which area a tie line belongs to (today only `Area.BGReportLimits` is verified).
-   - **Pages to write:** LTC and switched-shunt control rules (the auditor's four `none yet`
-     rules); the PFW insertion tool; cost-model types, curve structure and the values
+   - **Pages to write:** the PFW insertion tool; cost-model types, curve structure and the values
      `OPF_GenCostModel` / `OPF_PtsPerCurve` accept; OPF result fields (solve status, LMPs, detecting
      an infeasible solve); the `SuperArea.BGAGC` value list; when to call `CTGSetAsReference` after
      loading a variant; worse-end branch loading (`LinePercent:1`, `LSEndMonitor`); how monitoring
      and OPF treat zero-rated branches; `Limit_Monitoring_Options` defaults.
 1. schema-librarian — smallest, reads pages that already exist, and the runner depends on it.
-2. case-auditor — base, timestep, opf profiles.
+2. case-auditor — first writes the four rule pages (a switched shunt or LTC regulating a bus that
+   does not exist or is out of service, `base.regulates_nothing`; an LTC with
+   `XFRegTargetType = Middle`, `base.ltc_middle_target`; an LTC regulating its low-voltage side
+   while its high side is out of band, `base.ltc_regulates_lv_side`; a lightly loaded EHV stub
+   rising on its own line charging, `base.floating_stub`), then the base/timestep/opf profiles.
 3. study-runner — ACPF, DCPF, N-1, then OPF and SCOPF (behind the auditor's opf gate).
-4. network-visualizer — large-load candidate, thermal view, full-N-1 comparison through the study-runner engine.
+4. network-visualizer — measure the opening cutoff, large-load candidate, thermal view, full-N-1 comparison through the study-runner engine.
 5. run supervision — the `run-supervisor` mode over the runner's heartbeat; after Plan 3, because it
    supervises the runner's runs.
+6. plan pictures — the `plan-pictures` skill; after the runner (Plan 3), because it draws from the
+   plan files and manifests the runner writes.
 
 ## 12. Out of scope for v1
 
