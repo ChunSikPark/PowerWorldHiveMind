@@ -36,15 +36,17 @@ public synthetic grids only.
 | engineer | the user + the main session with the `powerworld` skill | frames the problem, forms hypotheses, chooses candidates, decides |
 | case-auditor | subagent, read-only | "is this case sane, and can it run study X?" |
 | study-runner | subagent | turns preferences into settings, runs studies exactly, summarises |
-| fix-reviewer | subagent, read-only on the original | independently re-measures a claimed fix: PASS / REJECT |
+| network-visualizer | subagent | maps the network around a site, measures the engineer's design and its own challengers on identical settings, and compares them side by side |
 | schema-librarian | subagent, cheap model, read-only | "which object, field, command — and how sure?" |
 
 There is no separate planner agent: power-system judgment belongs in the context the user is
 talking to.
 
 **Portability:** subagents are a Claude Code feature. Every role is therefore a **skill plus an
-engine** first; the agent file is a thin wrapper that runs the skill in a fresh context. Codex and
-Gemini users of the kit get the skills and engines and lose only the context isolation.
+engine** first; the skill carries the commands, and the agent file carries the **role contract**
+(responsible / not responsible, protocol, failure modes, examples, checklist — revised 2026-09-28,
+see `docs/agents/`). Codex and Gemini users of the kit get the skills and engines and lose only the
+context isolation.
 
 ## 4. case-auditor
 
@@ -104,8 +106,10 @@ improvised.
 
 **v1 methods:** AC power flow, DC power flow, N-1 contingency, OPF, SCOPF.
 
-- **OPF and SCOPF run only after the auditor returns READY on the opf profile.** Otherwise the
-  runner refuses; it never switches on `BGAGC`, AGC or a cost model to make a solve start.
+- **OPF and SCOPF need real cost data** (the auditor's opf condition 3) for the generators the
+  study moves; otherwise the runner refuses. Area/super-area OPF control and `GenAGCAble` are
+  switches the runner sets only for the areas and units the engineer approved. It never sets a
+  cost model.
 - OPF: `InitializePrimalLP` then `SolvePrimalLP`, fail handler always given; results from
   `OPFSolutionSummary` (final cost is `LPOPFCostFunction:1`) and `Branch.LineLPUnenforceableMVA`.
 - SCOPF: `SolveFullSCOPF(POWERFLOW|OPF)`; `SCOPFMaxOuterLoopItr` and the other `SCOPF*` options
@@ -140,15 +144,36 @@ headroom, not core count; every instance the runner opens is `.exit()`-ed.
 **Output:** `results/<run>/manifest.json`, `scoreboard.csv`, `violations.csv`, `islands.csv`,
 `rankings.csv`, `reduced_set.aux`, `REPORT.md`, and one status line to the engineer.
 
-## 6. fix-reviewer
+## 6. network-visualizer
 
-1. Start from a clean copy of the original case and apply only the claimed fix.
-2. Run the **full** N-1 through the runner with the same manifest settings as the baseline.
-3. Check: the target violation is gone; no new violations elsewhere; no new islands or unsolved
-   contingencies; known traps (e.g. a switched shunt shipped as `Continuous` that re-breaks the fix).
-4. Return **PASS / REJECT** with before/after counts and anything new.
+*Replaced the fix-reviewer on 2026-09-28.* A standalone reviewer grading AI-proposed fixes was the
+awkward role; the useful one is the planner's question: *"here is my design — show me the network,
+try it, try yours, and tell me which is better and why."*
 
-It never proposes a fix, edits the case, or passes something it did not measure.
+**Triggers:** "visualize the network around …", "I want to connect this load / plant to that
+substation — what happens?", "will it overload?", "compare my design with yours", "map the
+violations".
+
+1. **Map** the network N substation-hops around the site (default 5) with the existing
+   `violation-map` engine — wrapped, not replaced.
+2. **Measure the engineer's design(s)** exactly as given: N-0, then the **full** N-1 through the
+   study-runner engine with one settings manifest, and all three island checks.
+3. **Propose challengers** only when asked, 1–3, cheapest first from the kit's action menu
+   (setpoints and controls before new devices), each labelled as the agent's proposal.
+4. **Compare** every design on the same manifest in one scoreboard, and render a map with a
+   Before / Engineer / Challenger switch.
+
+**Guards (they carry what the reviewer existed for):**
+- every design — the engineer's and the agent's — is measured on identical settings and the full
+  contingency set; a design measured on fewer outages is never compared with one measured on all;
+- the comparison is engine numbers only; the agent states **where the engineer's design wins**, and
+  never declares a winner without the table;
+- the agent never edits the engineer's design, and never saves over the original case.
+
+**Engine work this needs** (none of it exists yet): a *large-load* candidate kind (today: shunt,
+line, setpoint edit); the **thermal view** `violation-map` lists as not built; and full-N-1
+measurement of candidates through the study-runner engine (today the voltage page measures listed
+outages and the radial page bridge outages only).
 
 ## 7. schema-librarian
 
@@ -171,16 +196,17 @@ Answers "which object, field, command?" in a few lines, with a confidence tag.
    new devices).
 4. study-runner measures each candidate on a copy — N-0, then N-1 on survivors — and returns a
    scoreboard.
-5. Engineer picks one; the existing `violation-map` skill can draw before/after.
-6. fix-reviewer re-measures it on the full N-1 and returns PASS or REJECT.
+5. network-visualizer maps the neighbourhood and puts the engineer's pick beside its own
+   challenger on the full N-1, same settings, with a Before / Engineer / Challenger switch.
+6. Engineer decides from the side-by-side scoreboard.
 
 ## 9. Kit layout
 
 ```
-agents/case-auditor.md  study-runner.md  fix-reviewer.md  schema-librarian.md
+agents/case-auditor.md  study-runner.md  network-visualizer.md  schema-librarian.md
 skills/case-audit/SKILL.md      engine/  tests/
 skills/study-runner/SKILL.md    engine/  tests/
-skills/fix-review/SKILL.md
+skills/violation-map/SKILL.md   engine/  (exists; extended in Plan 4)
 skills/schema-lookup/SKILL.md
 ```
 
@@ -202,7 +228,9 @@ All on public synthetic cases.
 | runner, OPF gate | on a case with no cost data, OPF and SCOPF are refused, not run |
 | runner, OPF | on a case with cost data, OPF returns a solved status and a final cost, and binding lines match `LineLPUnenforceableMVA` |
 | runner, SCOPF | converges within `SCOPFMaxOuterLoopItr`; changing that option changes the recorded loop count; result recorded as the dated verification |
-| reviewer | a candidate that fixes the target but creates a new violation is REJECTed |
+| visualizer, parity | two designs measured in one comparison share one manifest hash and one contingency count |
+| visualizer, side effects | a design that clears the target but creates a new overload shows the new overload in the scoreboard |
+| visualizer, large load | adding a load candidate changes N-0 flows and appears on the map's Before/Engineer switch |
 | librarian | known lookups (shunt keys, island reporting, SCOPF outer loops, no SCOPF inner loop) answered correctly with the right confidence tag |
 
 ## 11. Build order
@@ -213,12 +241,11 @@ All on public synthetic cases.
 1. schema-librarian — smallest, reads pages that already exist, and the runner depends on it.
 2. case-auditor — base, timestep, opf profiles.
 3. study-runner — ACPF, DCPF, N-1, then OPF and SCOPF (behind the auditor's opf gate).
-4. fix-reviewer.
+4. network-visualizer — large-load candidate, thermal view, full-N-1 comparison through the study-runner engine.
 
 ## 12. Out of scope for v1
 
-Transient stability, GIC, unit commitment, an n1 audit profile, a visualisation adapter from
-runner output to `violation-map`.
+Transient stability, GIC, unit commitment, an n1 audit profile.
 
 ## 13. Open questions
 
@@ -226,5 +253,5 @@ runner output to `violation-map`.
   PFW models (the time-step demo's case), one with cost data if any public case carries it.
 - Whether the kit may redistribute PowerWorld's field export and a digest of the aux-file-format
   document; this decides whether the librarian's sources ship or are fetched by the user.
-- Plugin agent discovery: confirm that agent files placed in the kit are picked up when the kit is
-  installed as a plugin, before building on it.
+- ~~Plugin agent discovery~~ — answered 2026-09-28: `agents/` in the kit is loaded
+  (`claude --plugin-dir <kit> plugin details powerworld-hivemind`, Claude Code 2.1.284).
