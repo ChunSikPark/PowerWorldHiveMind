@@ -277,6 +277,20 @@ All on public synthetic cases.
 0. Prerequisites: sync the kit's `concepts/parallel-contingency-solve.md` (missing the rule to
    `.exit()` instances you own) and `methods/reading-violationctg.md` (still says islanding is
    undetectable).
+0b. Before Plans 2–3 — kit pages the agent drafts found wrong or missing (gap audit, 2026-09-28):
+   - **Contradictions to resolve:** `methods/adding-devices-esapp.md` calls bare
+     `LPOPFCostFunction` the final cost, while `references/powerworld-study-options.md` says `:1` is
+     final and bare is initial; the same page runs DC off the `DCApprox` flag, which
+     `powerworld-study-options.md` says is not enough; the solver token is `POLARNEWTON` in
+     `concepts/aux-only-powerworld.md` but `POLARNEWT` in `methods/handling-errors.md` and
+     `concepts/lodf.md`; the coverage rule in `powerworld-study-options.md` ignores the autoinsert
+     exclusions in `methods/new-device-contingency-aux.md`.
+   - **Pages to write:** LTC and switched-shunt control rules (the auditor's four `none yet`
+     rules); the PFW insertion tool; cost-model types, curve structure and the values
+     `OPF_GenCostModel` / `OPF_PtsPerCurve` accept; OPF result fields (solve status, LMPs, detecting
+     an infeasible solve); the `SuperArea.BGAGC` value list; when to call `CTGSetAsReference` after
+     loading a variant; worse-end branch loading (`LinePercent:1`, `LSEndMonitor`); how monitoring
+     and OPF treat zero-rated branches; `Limit_Monitoring_Options` defaults.
 1. schema-librarian — smallest, reads pages that already exist, and the runner depends on it.
 2. case-auditor — base, timestep, opf profiles.
 3. study-runner — ACPF, DCPF, N-1, then OPF and SCOPF (behind the auditor's opf gate).
