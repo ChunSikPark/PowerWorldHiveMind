@@ -6,6 +6,12 @@ what PowerWorldHiveMind changes, what it does not, and what it costs.
 Measured against release **v0.2.0**. Later releases are benchmarked the same way, so the
 numbers below can be compared across versions.
 
+> **Correction, 2026-09-30: the second setup below never reached the web.** It was given
+> web search, but the harness never approved the tool, so every search it tried was
+> blocked. All 23 of its answers list no sources. Read "fresh assistant + web" on this page
+> as the same model with no kit and no web. A re-run with working web search, measured
+> against v0.4.0, replaces this page when it is graded.
+
 > **The kit has grown slightly since that measurement** — v0.2.0 was 44 pages; v0.3.0 is
 > 47, after three concept pages were added. Page count is the variable this kit's retrieval
 > cost is most sensitive to, so read the cost figures as a floor. The 19-of-23 result stands

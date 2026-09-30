@@ -18,7 +18,7 @@ at PowerWorld and starts knowing it, including the failures that never raise an 
 and quietly hand you a wrong answer. You give it a case, it gives you the analysis, and you
 stop having to be the documentation.
 
-**19 of 23 right, against 6 for the same assistant with a web browser, marked blind.**
+**19 of 23 right, against 6 for the same assistant without it, marked blind.**
 [See the benchmark](BENCHMARK.md).
 
 ## Install
@@ -67,7 +67,7 @@ Full list in [CHANGELOG.md](CHANGELOG.md).
 |---|---|
 | The whole kit, by topic | [index.md](index.md) |
 | Worked runs on a 37-bus case, failures included | [demos/start-here.md](demos/start-here.md) |
-| How it scored against the open web | [BENCHMARK.md](BENCHMARK.md) |
+| How it scored, with and without the kit | [BENCHMARK.md](BENCHMARK.md) |
 | The agent team and its rules | [docs/agents/README.md](docs/agents/README.md) |
 | To file what you worked out as a new page | say *"write that up as a page"*, or [skills/knowledge-base-page/SKILL.md](skills/knowledge-base-page/SKILL.md) |
 | To see the pages as a graph offline | open the folder as an [Obsidian](https://obsidian.md) vault and press Ctrl/Cmd+G |

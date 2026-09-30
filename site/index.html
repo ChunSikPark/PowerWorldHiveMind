@@ -326,7 +326,7 @@ footer p{margin:0 0 8px;max-width:60em;}
         <a class="btn primary" href="#install" data-open="install">Install</a>
         <a class="btn" href="https://github.com/ChunSikPark/PowerWorldHiveMind">View on GitHub</a>
       </div>
-      <p class="stat"><b>19 of 23</b> PowerWorld questions right with the kit, against <b>6</b> for the same model with the open web, marked blind.</p>
+      <p class="stat"><b>19 of 23</b> PowerWorld questions right with the kit, against <b>6</b> for the same model without it, marked blind.</p>
     </div>
     <figure class="grow" id="grow">
       <svg id="graph" role="img" aria-label="The kit's pages as a graph, linked pages joined by a line, growing in the order the pages were written."></svg>
@@ -372,7 +372,7 @@ footer p{margin:0 0 8px;max-width:60em;}
       <li class="feeder" data-id="bench"><i class="brk" aria-hidden="true"></i>
         <button class="tile" aria-controls="panel" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h13M4 12h7M4 18h15"/></svg>
-          <b>Does it help?</b><span>23 questions, marked blind, against the open web.</span>
+          <b>Does it help?</b><span>23 questions, with and without the kit, marked blind.</span>
         </button></li>
       <li class="feeder" data-id="add"><i class="brk" aria-hidden="true"></i>
         <button class="tile" aria-controls="panel" aria-expanded="false">
@@ -621,21 +621,21 @@ pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</
     <!-- BENCHMARK -->
     <section data-panel="bench" hidden>
       <h2>Does it help?</h2>
-      <p class="sub">The same model answered the same 23 PowerWorld questions twice: once with this kit on disk, once with only the open web. A grader who did not know which was which marked each answer right or wrong.</p>
+      <p class="sub">The same model answered the same 23 PowerWorld questions twice: once with this kit on disk, once without it. A grader who did not know which was which marked each answer right or wrong.</p>
       <div class="cols">
         <div class="bars">
           <div class="bar-group"><h3>Calls that report success and return something wrong</h3>
             <div class="bar-row"><span>With the kit</span><div class="track"><div class="fill kit" style="width:93.75%"></div></div><span class="n">15 of 16</span></div>
-            <div class="bar-row"><span>Open web</span><div class="track"><div class="fill web" style="width:25%"></div></div><span class="n">4 of 16</span></div></div>
+            <div class="bar-row"><span>Without the kit</span><div class="track"><div class="fill web" style="width:25%"></div></div><span class="n">4 of 16</span></div></div>
           <div class="bar-group"><h3>Looking up a command name</h3>
             <div class="bar-row"><span>With the kit</span><div class="track"><div class="fill kit" style="width:57.1%"></div></div><span class="n">4 of 7</span></div>
-            <div class="bar-row"><span>Open web</span><div class="track"><div class="fill web" style="width:28.6%"></div></div><span class="n">2 of 7</span></div></div>
+            <div class="bar-row"><span>Without the kit</span><div class="track"><div class="fill web" style="width:28.6%"></div></div><span class="n">2 of 7</span></div></div>
           <div class="bar-group"><h3>All 23</h3>
             <div class="bar-row"><span>With the kit</span><div class="track"><div class="fill kit" style="width:82.6%"></div></div><span class="n">19 of 23</span></div>
-            <div class="bar-row"><span>Open web</span><div class="track"><div class="fill web" style="width:26.1%"></div></div><span class="n">6 of 23</span></div></div>
+            <div class="bar-row"><span>Without the kit</span><div class="track"><div class="fill web" style="width:26.1%"></div></div><span class="n">6 of 23</span></div></div>
         </div>
         <div>
-          <p>The web can tell you what a command does. It cannot tell you which commands lie about having done it.</p>
+          <p>This run was meant to give the second assistant web search, but every search it tried was blocked, so read it as the same model with no kit and no web. A re-run with working web search is under way.</p>
           <p>For exact argument syntax, open PowerWorld's manual instead. The kit deliberately does not publish it, so it sometimes names the right command without a signature.</p>
           <a class="more" href="https://github.com/ChunSikPark/PowerWorldHiveMind/blob/main/BENCHMARK.md">Every question, both verdicts, and what each setup spent</a>
         </div>
