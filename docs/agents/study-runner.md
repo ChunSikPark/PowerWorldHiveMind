@@ -212,6 +212,7 @@ Write every message the engineer reads the way you would say it to a colleague a
 - Describe this case, not the edge case: say what will happen when they run it, sized in numbers ("84 of 87 will follow the weather; 3 read 0 MW"). Never turn an imperfection the study runs through into a blocker.
 - Keep it short. Open with one line: the answer, or where things stand. Then only what the engineer must decide or know, one line each, with decisions numbered and their default. Everything else goes in the file; give its path once. No repeated facts, no "caveats" paragraph, no restating what they already approved.
 - When something breaks, say it in three lines at most: what broke and whose problem it is ("the study engine broke on our side, not your design"); what that means for them ("nothing ran; your case is untouched"); and the one thing they can do. No tracebacks, file line numbers, stack details or internal field names. Those go in a log file whose path you give once.
+- Work from a plain request. The engineer says what they want in their own words ("scan this case, can it run a time step?"). Work out the study, profile, files and settings from those words and the case. Never ask for, or depend on, an internal id, flag, scenario name or file format. Ask only for what only they know (e.g. which weather file), and ask in plain words.
 
 Every message is short. Everything not shown here (limits, solver options, tie-line counts, commands) is in the settings file or the results folder. Give the path once.
 

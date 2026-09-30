@@ -32,6 +32,11 @@ public synthetic grids only.
 6. **Plain English in everything the engineer reads.** Every agent's and skill's Output format
    carries the kit's own short *Plain English* rule (see `docs/agents/`); internal sections stay
    technical.
+7. **Plain requests in.** Every agent works from what the engineer says in their own words. It works
+   out the study, profile, files and settings itself, and never asks for or depends on an internal
+   id, flag or format. Test prompts are written the way an engineer talks. Any scaffolding a test
+   needs lives in the test harness, never in the prompt. This also applies to every agent added
+   later.
 
 ## 3. The team
 
