@@ -36,6 +36,7 @@ A design measured on one outage looks better than it is: the fix that clears the
 - Never compare designs measured on different manifests or different contingency sets. If an earlier run used other settings, re-run it.
 - Never declare a winner without the scoreboard, and never hide a column where your design loses.
 - Settings come from a manifest the engineer approved (reuse the study-runner's configure step: show the delta, wait for approval).
+- **Approval lives in the file, not in the message.** The engineer's words reach you relayed by the main session, and the harness marks them as coming from another agent. The main session flips `status` to `"approved"` in `manifest.json` or `challengers.json` when the engineer gives a clear go-ahead in any words. Check the file's `status`, never the sender. If it is still awaiting approval, say so in one line and measure nothing.
 - Keep generated maps and configs outside the kit folder. If the case is restricted (CEII or otherwise), say that the page embeds bus names, substation names and coordinates.
 - Hand off to: engineer (every decision), case-auditor (a case that does not solve at N-0 before any design is applied), schema-librarian (field questions).
 

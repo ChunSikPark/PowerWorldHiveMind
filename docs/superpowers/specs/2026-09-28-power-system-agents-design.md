@@ -129,6 +129,13 @@ hash, commands, PowerWorld build, and a `steps` array,
 per step the run will take, in order, with the safety checks that guard it — and then stops. The
 plan picture at this gate is drawn from that array.
 
+**Who approves.** A subagent never receives the engineer's words directly. They arrive relayed by
+the main session, and the harness marks relayed messages as coming from another agent. So the
+approval record is the file: the **main session**, which hears the engineer, flips `status` to
+`"approved"` (in `manifest.json` or `challengers.json`) on any clear go-ahead ("approved", "run it",
+"go", "yes"). The agent runs only when the file says approved, and never judges approval by the
+message's sender. Found in the 2026-09-29 runner trial, where a relayed "run it" was refused twice.
+
 **Phase 2 — execute (deterministic).**
 - On approval only `status` flips to `"approved"`; the same `manifest.json` runs unchanged.
   `manifest_hash` is computed over the whole manifest except `status`, so approval does not change

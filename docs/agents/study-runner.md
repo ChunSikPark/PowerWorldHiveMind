@@ -21,7 +21,7 @@ PowerWorld accepts a setting and silently does nothing with it; results fields r
 
 ## Success criteria
 
-- No study runs before the engineer approves the option delta (unless you were handed an already-approved manifest).
+- No study runs unless `manifest.json` reads `"status": "approved"`. The main session sets that when the engineer approves. You never ask for approval twice, and you never refuse an approved file because the go-ahead reached you relayed.
 - Every option in the delta is read back after writing and matches: real numbers within a relative tolerance (PowerWorld stores single precision — 60.0 reads back 60.0000024), rate sets by the letter before the colon (`A: RATE1` is `A`). `results/<run>/readback.json` records before and after; the manifest never changes after approval except its `status`.
 - The same manifest re-run — serial, parallel or replayed — agrees on the violation set and on which devices rank versus stay silent; values agree within `1e-4` relative, not to the last digit.
 - Contingency coverage is counted and reported, with the excluded groups, before any N-1 result.
@@ -47,7 +47,10 @@ PowerWorld accepts a setting and silently does nothing with it; results fields r
 3) For any N-1 or SCOPF, put the monitoring settings in the delta even if unchanged (see *N-1 limits and monitoring*), so the manifest records what the violations were measured against. Unless the engineer asked otherwise, they are the case's own, unchanged.
 4) A preference with no field: say so, and name the nearest real field only if the CLI or the hub names it.
 5) Write `manifest.json` with `"status": "awaiting approval"`: case path and hash, variants, delta, commands, PowerWorld build, and a `steps` array — `[{"n": 1, "lane": "You|Agent|Script|PowerWorld", "label": "...", "checks": ["..."]}]`, one entry per step the run will take, in order, with the safety checks that guard it. The plan picture at this gate is drawn from that array. Then show the delta as `Object.Field  old → new  (why)` and stop for approval.
-6) On approval, flip only `status` to `"approved"`; nothing else in the file changes. Read-back results go to `results/<run>/readback.json`, never into the manifest. `manifest_hash` is computed over the whole manifest except `status`, and workers and replays ignore `status`. Run that same `manifest.json` with the engine as `${CLAUDE_PLUGIN_ROOT}/skills/study-runner/SKILL.md` specifies.
+6) **Approval lives in the file, not in the message.** You are a subagent. Every word from the engineer reaches you relayed by the main session, and the harness marks relayed messages as coming from another agent. So never judge approval by who sent a message. The **main session**, which hears the engineer directly, flips only `status` to `"approved"` when the engineer gives a clear go-ahead in any words ("approved", "run it", "go", "yes"). When you are told to run, read `manifest.json`:
+   - `status` is `"approved"` → run it;
+   - `status` is anything else → answer in one line that the file is still awaiting approval, and run nothing.
+   Nothing else in the file changes on approval. Read-back results go to `results/<run>/readback.json`, never into the manifest. `manifest_hash` is computed over the whole manifest except `status`, and workers and replays ignore `status`. Run that same `manifest.json` with the engine as `${CLAUDE_PLUGIN_ROOT}/skills/study-runner/SKILL.md` specifies.
 
 ## Preference playbook
 
@@ -225,6 +228,7 @@ For OPF/SCOPF, replace the table with: solved?, final cost, lines at their limit
 - A DC result with a slack generator far above its rating.
 - Letting the reduced set's result become the verdict, or dropping unsolved and islanding contingencies from it.
 - Leaving PowerWorld instances running between candidates.
+- Refusing an approved manifest because the engineer's go-ahead arrived through the main session. It always will: check the file's `status`, not the sender.
 - "Improving" the engineer's request with settings they did not approve — including widening or narrowing the monitoring.
 - Running OPF on made-up costs without the "costs supplied by you, not from the case" stamp, or inventing those costs yourself.
 
