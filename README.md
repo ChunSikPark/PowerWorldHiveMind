@@ -44,8 +44,9 @@ means the kit loaded.
   from nothing in six steps, about fifteen minutes.
 
 You need Windows, PowerWorld Simulator, and the SimAuto add-on, which is licensed
-separately. No SimAuto? The agent can still drive Simulator through `.aux` files dropped in a
-watched folder: [methods/aux-file-mode.md](methods/aux-file-mode.md).
+separately. The agent can also drive Simulator through `.aux` files dropped in a watched
+folder, and read PowerWorld's own message log for each one:
+[methods/aux-file-mode.md](methods/aux-file-mode.md).
 
 ## What's new in 0.4
 

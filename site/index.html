@@ -226,7 +226,7 @@ figcaption{font-size:14px;color:var(--muted);margin-top:10px;}
 .qpick button{font:500 15px/1.3 var(--sans);text-align:left;padding:10px 14px;border-radius:4px;border:1.5px solid var(--rule);background:var(--surface);color:var(--ink);cursor:pointer;}
 .qpick button:hover{border-color:var(--ink);}
 .qpick button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink);}
-.find-cols{grid-template-columns:minmax(0,1.5fr) minmax(0,.8fr);}
+.find-cols{max-width:900px;}
 .ladder{list-style:none;counter-reset:s;margin:0;padding:0;display:grid;gap:22px;}
 .ladder > li{counter-increment:s;position:relative;padding-left:44px;opacity:.22;transition:opacity .35s;min-width:0;}
 .ladder > li.on{opacity:1;}
@@ -255,11 +255,7 @@ figcaption{font-size:14px;color:var(--muted);margin-top:10px;}
 .ans{border-left:3px solid var(--kit);padding:4px 0 4px 16px;font-size:16px;}
 .ans p{margin:0 0 8px;}
 .ans .src{font-size:13.5px;color:var(--muted);margin-top:8px;}
-.why h3{margin-top:22px;}
-.why h3:first-child{margin-top:0;}
-.why p{font-size:15px;}
-.why .bar-row{grid-template-columns:118px minmax(0,1fr) 64px;}
-@media (max-width:860px){.find-cols{grid-template-columns:1fr;}}
+.why-line{margin:28px 0 0 !important;padding-top:16px;border-top:1.5px solid var(--rule);font-size:14.5px;color:var(--muted);max-width:none !important;}
 
 /* agent player */
 .agents-cols{grid-template-columns:minmax(0,.8fr) minmax(0,1.45fr);}
@@ -289,9 +285,24 @@ figcaption{font-size:14px;color:var(--muted);margin-top:10px;}
 .pnote{max-width:none !important;margin:0;padding:10px 16px;border-top:1.5px solid var(--rule);font-size:13px;color:var(--muted);}
 .lane-scroll{overflow-x:auto;margin:6px 0 10px;}
 .lane-scroll svg{min-width:480px;}
-.shows-h{margin-top:40px !important;}
-.shows.three{grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;}
-@media (max-width:860px){.agents-cols{grid-template-columns:1fr;}.shows.three{grid-template-columns:1fr;}.chat{min-height:0;}}
+.showcase{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:0 0 44px;}
+.sc{display:flex;flex-direction:column;border:1.5px solid var(--rule);border-radius:4px;background:var(--bg);overflow:hidden;min-width:0;}
+.sc-view{display:block;position:relative;aspect-ratio:16/10;overflow:hidden;background:var(--sunk);border-bottom:1.5px solid var(--rule);}
+.sc-view iframe{position:absolute;left:0;top:0;width:400%;height:400%;border:0;transform:scale(.25);transform-origin:0 0;pointer-events:none;}
+.sc-view:hover{outline:2px solid var(--kit);outline-offset:-2px;}
+.sc-lane{display:flex;align-items:center;padding:10px;}
+.sc-lane .lane-scroll{margin:0;overflow:hidden;width:100%;}
+.sc-lane .lane-scroll svg{min-width:0;}
+.sc-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1;}
+.sc-body h3{font:700 22px/1.15 var(--cond);margin:0;}
+.sc-body p{margin:0;font-size:14.5px;}
+.sc-who{color:var(--muted);font-size:13.5px !important;}
+.sc-who b{color:var(--kit);font-weight:600;}
+.sc-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:12px;}
+.sc-acts .btn{padding:9px 14px;font-size:14px;}
+.team-h{font:600 20px/1.2 var(--cond) !important;margin:0 0 14px !important;}
+@media (max-width:960px){.showcase{grid-template-columns:1fr;}}
+@media (max-width:860px){.agents-cols{grid-template-columns:1fr;}.chat{min-height:0;}}
 @media (prefers-reduced-motion: reduce){.m{opacity:1;transform:none;}.ladder > li{opacity:1;}}
 
 footer{border-top:1.5px solid var(--rule);padding:28px 0 48px;color:var(--muted);font-size:14px;}
@@ -341,7 +352,7 @@ footer p{margin:0 0 8px;max-width:60em;}
       <li class="feeder" data-id="talk"><i class="brk" aria-hidden="true"></i>
         <button class="tile" aria-controls="panel" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h8m0 0-3-3m3 3-3 3M21 17h-8m0 0 3-3m-3 3 3 3"/></svg>
-          <b>How it talks to PowerWorld</b><span>Python through SimAuto, or script files in a watched folder.</span>
+          <b>How it talks to PowerWorld</b><span>Python through SimAuto, or aux files with PowerWorld's own log.</span>
         </button></li>
       <li class="feeder" data-id="find"><i class="brk" aria-hidden="true"></i>
         <button class="tile" aria-controls="panel" aria-expanded="false">
@@ -446,7 +457,7 @@ pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</
         <div>
           <div class="route-pick" role="group" aria-label="Show a route">
             <button type="button" data-route="1" aria-pressed="true">Python through SimAuto</button>
-            <button type="button" data-route="2" aria-pressed="false">Files in a watched folder</button>
+            <button type="button" data-route="2" aria-pressed="false">Aux file integration</button>
           </div>
           <div data-routetext="1">
             <h3>The default: one live Python session</h3>
@@ -454,9 +465,10 @@ pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</
             <p>Fast, scriptable, runs in parallel. Every demo uses it. Needs the SimAuto add-on, which is licensed separately.</p>
           </div>
           <div data-routetext="2" hidden>
-            <h3>No SimAuto: write a file, read a file</h3>
-            <p>Turn on one setting and Simulator watches a folder. The agent writes a <code>.aux</code> script, it lands in the folder, and Simulator runs it and writes the log and result CSVs back out.</p>
-            <p>You see every script before it runs and keep one you can re-run. It is slower: a dialog has to stay open, and a script that fails the wrong way re-runs until you delete it.</p>
+            <h3>Aux file integration: the agent reads what PowerWorld said</h3>
+            <p>Turn on one setting and Simulator watches a folder. The agent writes an <code>.aux</code> script and drops it in. Simulator runs it and writes back the result CSVs and its own message log for that script: records read, control adjustments, every mismatch iteration, and whether the solve succeeded.</p>
+            <p>A SimAuto call hands back only an error string, so a silent failure stays silent. Here the agent reads the log line that explains it, and you keep a script you can read and re-run.</p>
+            <p>It's slower: a dialog has to stay open, so there's no batching, and it needs a recent Simulator build.</p>
             <a class="more" href="https://github.com/ChunSikPark/PowerWorldHiveMind/blob/main/methods/aux-file-mode.md">Setup, rules and a template</a>
           </div>
           <ul class="req">
@@ -485,7 +497,7 @@ pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</
               <path class="w" d="M695 166V282H180V168" marker-end="url(#ah)"/>
               <rect class="box" x="300" y="198" width="120" height="44" rx="4"/><text class="t" x="360" y="225" text-anchor="middle">.aux script</text>
               <rect class="box" x="470" y="198" width="120" height="44" rx="4"/><text class="t" x="530" y="225" text-anchor="middle">watched folder</text>
-              <rect x="370" y="270" width="140" height="24" fill="var(--surface)"/><text class="s" x="440" y="287" text-anchor="middle">log + result CSVs</text>
+              <rect x="360" y="270" width="160" height="24" fill="var(--surface)"/><text class="s" x="440" y="287" text-anchor="middle">message log + CSVs</text>
             </g>
             <rect class="box" x="640" y="120" width="110" height="44" rx="4"/><text class="t" x="695" y="147" text-anchor="middle">Simulator</text>
           </svg>
@@ -499,7 +511,7 @@ pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</
       <h2>How it finds the answer</h2>
       <p class="sub">The agent never reads the whole kit. It turns your question into search terms, searches every page at once, and reads only the page that matches. The searches below ran on the kit itself when this site was built.</p>
       <div class="qpick" id="qpick" role="group" aria-label="Pick a question"></div>
-      <div class="cols find-cols">
+      <div class="find-cols">
         <ol class="ladder" id="ladder">
           <li><b>Turn the question into two kinds of words</b>
             <p>Your words, and the PowerWorld names they probably map to. A page might use either, so the agent searches both.</p>
@@ -514,25 +526,46 @@ pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</
           <li><b>Read that page in full, then answer</b>
             <div class="ans" id="fAns"></div></li>
         </ol>
-        <aside class="why">
-          <h3>Why search first</h3>
-          <p>Measured on 2026-09-07 with 48 agents and 16 questions that had human-written answers. How often each starting point led to the right page:</p>
-          <div class="bar-row"><span>Search the pages</span><div class="track"><div class="fill kit" style="width:62.5%"></div></div><span class="n">10 of 16</span></div>
-          <div class="bar-row"><span>Routing table</span><div class="track"><div class="fill web" style="width:50%"></div></div><span class="n">8 of 16</span></div>
-          <div class="bar-row"><span>Start at the index</span><div class="track"><div class="fill web" style="width:43.75%"></div></div><span class="n">7 of 16</span></div>
-          <h3>Few pages, each read in full</h3>
-          <p>A question takes three to five pages. The limit is on how many pages the agent opens, never on how much of the right one it reads. Opening eight means the search terms were wrong.</p>
-          <h3>Field names get their own search</h3>
-          <p>For "which field do I use", the schema-librarian searches about 100,000 PowerWorld fields instead. Watch it in the agent team.</p>
-          <a class="more" href="https://github.com/ChunSikPark/PowerWorldHiveMind/blob/main/AGENTS.md#how-to-find-the-page--and-how-much-of-it-to-read">The full search rules</a>
-        </aside>
+        <p class="why-line">Why search first: on 16 test questions, searching the pages found the right one 10 times, against 8 for the routing table and 7 for starting at the index. <a href="https://github.com/ChunSikPark/PowerWorldHiveMind/blob/main/AGENTS.md#how-to-find-the-page--and-how-much-of-it-to-read">The full search rules</a></p>
       </div>
     </section>
 
     <!-- AGENTS -->
     <section data-panel="agents" hidden>
       <h2>The agent team</h2>
-      <p class="sub">A study is more than one command, so the work is split into roles. Pick one and watch it handle a request.</p>
+      <p class="sub">A study is more than one command, so the work is split into roles. Three of them answer with a page instead of a wall of text.</p>
+      <div class="showcase">
+        <article class="sc">
+          <a class="sc-view" href="demos/design-compare.html" target="_blank" rel="noopener" aria-label="Open the Design Compare page">
+            <iframe src="demos/design-compare.html" loading="lazy" tabindex="-1" aria-hidden="true" title=""></iframe></a>
+          <div class="sc-body">
+            <p class="sc-who"><b>network-visualizer</b> answers with</p>
+            <h3>Design Compare</h3>
+            <p>Your design and up to three challengers on the map, each measured on the full N-1. Pick one and the map redraws with its overloads painted on.</p>
+            <div class="sc-acts"><a class="btn primary" href="demos/design-compare.html" target="_blank" rel="noopener">Open the page</a><button type="button" class="btn" data-play="network-visualizer">Watch it work</button></div>
+          </div>
+        </article>
+        <article class="sc">
+          <a class="sc-view" href="demos/run-watch.html" target="_blank" rel="noopener" aria-label="Open the Run Watch page">
+            <iframe src="demos/run-watch.html" loading="lazy" tabindex="-1" aria-hidden="true" title=""></iframe></a>
+          <div class="sc-body">
+            <p class="sc-who"><b>run-supervisor</b> answers with</p>
+            <h3>Run Watch</h3>
+            <p>A long N-1 or time step, live: a status badge, progress, a run clock and a timeline. It alerts your phone if the run stalls.</p>
+            <div class="sc-acts"><a class="btn primary" href="demos/run-watch.html" target="_blank" rel="noopener">Open the page</a><button type="button" class="btn" data-play="run-supervisor">Watch it work</button></div>
+          </div>
+        </article>
+        <article class="sc">
+          <div class="sc-view sc-lane" data-lane></div>
+          <div class="sc-body">
+            <p class="sc-who"><b>plan-pictures</b> answers with</p>
+            <h3>The plan, as a picture</h3>
+            <p>Before you approve anything, the plan is drawn as a swimlane from the file the run will execute, safety checks included.</p>
+            <div class="sc-acts"><button type="button" class="btn primary" data-play="plan-pictures">Watch it work</button></div>
+          </div>
+        </article>
+      </div>
+      <h3 class="team-h" id="team">Every agent, handling a request</h3>
       <div class="cols agents-cols">
         <div>
           <div class="roster" id="roster" role="group" aria-label="Agents"></div>
@@ -543,19 +576,6 @@ pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</
           <div class="chat" id="chat" aria-live="polite"></div>
           <p class="pnote" id="pNote"></p>
         </div>
-      </div>
-      <h3 class="shows-h">What they show you</h3>
-      <div class="shows three">
-        <div class="show"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 6h10M6 8l5 8m7-8-5 8"/></svg>
-          <p><b>The design, on a map</b>One card per design with its numbers. Pick one and the map redraws with the change drawn on and its overloads painted on. It lists where each design wins and leaves the choice to you.</p></div>
-        <div class="show"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18M3 12h18M3 19h18"/><rect x="5" y="3" width="4" height="4"/><rect x="11" y="10" width="4" height="4"/><rect x="16" y="17" width="4" height="4"/></svg>
-          <p><b>The process, as a picture</b>Before you approve, the plan is drawn as a swimlane from the same file the run executes, so it can't show a step the run will skip.</p></div>
-        <div class="show"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-          <p><b>The run, live</b>A long N-1 or a month of time steps reports through a status page with a badge, a one-line answer, progress and a timeline. Check it from your phone.</p></div>
-      </div>
-      <div class="demo-links">
-        <a class="btn primary" href="demos/design-compare.html" target="_blank" rel="noopener">Open the Design Compare page</a>
-        <a class="btn" href="demos/run-watch.html" target="_blank" rel="noopener">Open the Run Watch page</a>
       </div>
       <template id="laneTpl">
         <div class="lane-scroll"><svg class="dia" viewBox="0 0 880 280" role="img" aria-label="Plan for running N-1 with 200 iterations: you ask, the agent writes a settings change, you approve, a script applies it and reads it back, PowerWorld solves N-1, the agent reports a scoreboard.">
@@ -740,6 +760,11 @@ Reply with a number, or say what you want:
 ];
 
 const roster = $("#roster"), chat = $("#chat");
+$$(".showcase [data-lane]").forEach(el => el.append($("#laneTpl").content.cloneNode(true)));
+$$("[data-play]").forEach(b => b.addEventListener("click", () => {
+  play(AGENTS.findIndex(a => a.n === b.dataset.play));
+  $("#team").scrollIntoView({block:"start", behavior: still() ? "auto" : "smooth"});
+}));
 let playId = 0;
 AGENTS.forEach((a, i) => {
   const b = document.createElement("button");
