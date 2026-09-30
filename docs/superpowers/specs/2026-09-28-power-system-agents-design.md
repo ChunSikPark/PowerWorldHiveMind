@@ -57,12 +57,15 @@ next round, and a written plan before work starts — the plan is shown as a pic
 approval question: a **swimlane** by default (lanes You / Agent / Script (fixed code, no AI) /
 PowerWorld, numbered steps, safety checks drawn inline with "fails → stop + tell you"), and a
 **flowchart** of what can stop the run as the second view. Data-flow and timeline views were
-considered and rejected. **Hard rule:** the picture is generated from the plan file or manifest
-the script actually runs, never from prose or the agent's summary, so it cannot show a step the
-run will not take. Every gate names its file: the runner's settings approval draws from the
-`steps` array in `manifest.json` (§5); the visualizer's challenger list from `challengers.json`,
-same format (§6); the supervisor's next round from that round's `manifest.json`; a written plan
-before work starts from the plan markdown file's numbered task list. It always writes a
+considered and rejected. **Hard rule:** the picture is generated from `plan.json`, which the **engine** writes from
+the manifest it will run (`study.py plan`), never from prose, the agent's summary, or a step list an
+agent typed, so it cannot show a step the run will not take. `plan.json` records the hash of each
+file it was drawn from; a picture whose source has changed since is stale and is not shown
+(revised 2026-09-30: an agent-written `steps` array could disagree with what runs, and a count
+check against that same array could never fail). Every study gate has one: the runner's settings
+approval (§5), the visualizer's challenger list (`study.py plan --designs challengers.json`, §6), and
+the supervisor's next round; a written plan before work starts uses the plan markdown file's
+numbered task list. The picture's closing line is the gate's only approval question. It always writes a
 **Mermaid** swimlane file (portable to GitHub, Obsidian, Codex, Gemini), plus a styled Claude page
 for Claude Code users built from the same data. Each engineer can set their own default view per
 gate in the kit's user config, as a `plan_pictures.default_view` map `{gate: swimlane|flowchart}`;
@@ -93,7 +96,7 @@ rules are written in Plan 2, and those rules ship in v1):
 
 | profile | checks |
 |---|---|
-| base | N-0 (AC) converges; not a DC-only skeleton (`dc_skeleton`); no unit above its rating after the solve (`gen_over_nameplate`); switched shunt or LTC regulating nothing or an out-of-service bus; LTC `XFRegTargetType = Middle`; LTC regulating its low-voltage side while its high side is out of band (`ltc_regulates_lv_side`); lightly loaded EHV radial stubs; holds no `ViolationCTG` rows from an earlier run (`stale_ctg_results`, FYI — do not read them) |
+| base | N-0 (AC) converges; not a DC-only skeleton (`dc_skeleton`); no unit above its rating after the solve (`gen_over_nameplate`: stops the study only past max(1 % of rating, 5 MW), a starting value measured in Plan 2; a smaller overshoot is Worth a look with its MW); switched shunt or LTC regulating nothing or an out-of-service bus; LTC `XFRegTargetType = Middle`; LTC regulating its low-voltage side while its high side is out of band (`ltc_regulates_lv_side`); lightly loaded EHV radial stubs; holds no `ViolationCTG` rows from an earlier run (`stale_ctg_results`, FYI — do not read them) |
 | monitoring (reported with base) | something is monitored (`mon.nothing_monitored`); the monitored footprint as the case holds it (`mon.footprint`); the normal and contingency rate sets in use carry ratings (`mon.rate_set_empty`); which rate sets carry values (`mon.rate_sets_populated`); buses with their own voltage limits (`mon.bus_limit_overrides`) |
 | summary (every audit; facts, not findings) | load MW/Mvar; generation MW/Mvar and losses; headroom on online dispatchable units (wind/solar "weather-limited"); a fuel-type table keyed by the case's own `GenFuelType` code (units online/total, installed MW, output MW, share, headroom); online Mvar range; shunt count, Mvar now (`SSAMVR`), capacitive/inductive capacity (`SSMaxMVR`/`SSMinMVR`); size (buses, branches, transformers, areas, zones, kV levels). "Give me a summary" runs `base` and leads with these tables |
 | timestep | renewables have `GenFuelType` WND/SUN, a PFW model string, valid Lat/Lon; for each wind unit missing a model, its wind class (`CustomInteger:1` 1–4 or `GenUnitType` W1–W4), because `Auto_PFW` silently skips a unit with neither; the `.pww` weather file given with the request covers the units (`ts.pww_footprint`) — no file given → an FYI line, not a blocker. TimeStep runs with any number of PFW models, so missing models, lat/lon and coverage **never stop it**. They are Worth a look, stated as what the run will do ("84 of 87 renewables will follow the weather; 3 read 0 MW, 410 MW, 1.4%: bus … unit …") |
@@ -128,23 +131,33 @@ Sim_Solution_Options.EvalSolutionIsland   NO  → YES   (required for island rep
 A preference with no matching field is reported as such, with the nearest real field — never
 improvised.
 
-Configure ends by writing `manifest.json` with `"status": "awaiting approval"` — the delta, case
-hash, commands, PowerWorld build, and a `steps` array,
+Configure ends by writing `manifest.json` — the delta, case hash, commands, PowerWorld build,
+alarms, and a `variants` array (the base plus the engineer's candidates) — then running
+`study.py plan`, which writes `plan.json`: a `steps` array,
 `[{"n": 1, "lane": "You|Agent|Script|PowerWorld", "label": "...", "checks": ["..."]}]`, one entry
-per step the run will take, in order, with the safety checks that guard it — and then stops. The
-plan picture at this gate is drawn from that array.
+per step the run will take, in order, with the safety checks that guard it, plus the hash of the
+manifest it was drawn from. The agent never writes `steps`. Then it stops. The plan picture at this
+gate is drawn from `plan.json`.
 
 **Who approves.** A subagent never receives the engineer's words directly. They arrive relayed by
-the main session, and the harness marks relayed messages as coming from another agent. So the
-approval record is the file: the **main session**, which hears the engineer, flips `status` to
-`"approved"` (in `manifest.json` or `challengers.json`) on any clear go-ahead ("approved", "run it",
-"go", "yes"). The agent runs only when the file says approved, and never judges approval by the
-message's sender. Found in the 2026-09-29 runner trial, where a relayed "run it" was refused twice.
+the main session, and the harness marks relayed messages as coming from another agent (found in the
+2026-09-29 runner trial, where a relayed "run it" was refused twice). So the approval record is a
+file that only the **main session** writes: on any clear go-ahead ("approved", "run it", "go",
+"yes") it appends to `approval.json` beside the approved file
+`{"file": "manifest.json" | "challengers.json", "hash": "<study.py hash output>", "at": "<ISO time>",
+"said": "<the engineer's words>"}`. **The engine, not the agent, checks it:** it recomputes the
+file's hash and refuses unless a matching entry exists. So an edit after approval — by anyone —
+voids the approval and needs a fresh one. Agents never write `approval.json`. (Revised 2026-09-30:
+the first version flipped a `status` field inside the manifest, which the agent itself writes, and
+the engine checked only that word.)
+
+**Two hashes.** `manifest_hash` covers the whole manifest and binds the approval.
+`settings_hash` covers everything except `variants`: two designs are comparable when their
+`settings_hash` and contingency count match, so challengers added later (§6) do not force the
+engineer's design to be re-run.
 
 **Phase 2 — execute (deterministic).**
-- On approval only `status` flips to `"approved"`; the same `manifest.json` runs unchanged.
-  `manifest_hash` is computed over the whole manifest except `status`, so approval does not change
-  it, and workers and replays ignore `status`.
+- The approved `manifest.json` runs unchanged; workers and replays run it and record both hashes.
 - **Every worker replays the manifest itself.** Each parallel worker opens its own PowerWorld
   instance; an option set in the parent does not exist in the workers.
 - Each option: read, write, read back, record before and after in `results/<run>/readback.json`
@@ -173,7 +186,8 @@ message's sender. Found in the 2026-09-29 runner trial, where a relayed "run it"
   slices and counts between them. For any other solution type slicing is forced off and the window
   runs in one unbroken call, because PowerWorld's time-step controller time delays make results
   differ from a plain repeated solve. Each slice takes at most a third of the stall threshold, sized
-  from the single-point time. Sliced results carry "run in <k> slices, not yet checked against one
+  from the single-point time. Unsliced, the stall threshold is max(approved stall, 1.5 × the
+  whole-run estimate), the estimate being single-point time × number of steps. Sliced results carry "run in <k> slices, not yet checked against one
   unbroken run" until the §10 slice test passes. **Not documented in the kit:** splitting one weather
   file across parallel workers (so one file runs as one chunk; the only documented parallel runner
   gives each worker a whole file), a setting that changes the step, and how solution types other
@@ -190,7 +204,10 @@ message's sender. Found in the 2026-09-29 runner trial, where a relayed "run it"
   made-up ones, e.g. "flat $20/MWh". With the engineer's curves, every result is stamped "costs
   supplied by you, not from the case". Otherwise the runner refuses. It never invents costs and
   never switches a cost model on by itself. Area/super-area OPF control and `GenAGCAble` are
-  switches the runner sets only for the areas and units the engineer approved.
+  switches the runner sets only for the areas and units the engineer approved. Naming an area turns
+  on its OPF control only: units keep the case's `GenAGCAble`, and turning more on is a numbered
+  decision at approval, default no (the 2026-09-30 SCOPF trial turned on every unit and widened
+  monitoring from an area name).
 - OPF: `InitializePrimalLP` then `SolvePrimalLP`, fail handler always given; results from
   `OPFSolutionSummary` (final cost is `LPOPFCostFunction:1`) and `Branch.LineLPUnenforceableMVA`.
 - SCOPF: `SolveFullSCOPF(POWERFLOW|OPF)`; `SCOPFMaxOuterLoopItr` and the other `SCOPF*` options
@@ -277,11 +294,25 @@ violations".
 3. **Propose challengers** only when asked, 1–3, cheapest first from the kit's action menu
    (setpoints and controls before new devices), each labelled as the agent's proposal. The list is
    written to `challengers.json`: a `designs` array,
-   `[{"name": "...", "devices": "...", "changes": "what it changes, in plain words"}]`, next to a
-   `steps` array in the runner manifest's format, whose measuring steps are labelled with those
-   design names. The agent returns "awaiting approval" before measuring any challenger.
-4. **Compare** every design on the same manifest in one scoreboard, and render a map with a
-   Before / Engineer / Challenger switch.
+   `[{"name": "...", "devices": "...", "changes": "what it changes, in plain words"}]`, and nothing
+   else. The engine writes the measuring plan into `plan.json`
+   (`study.py plan --manifest manifest.json --designs challengers.json`), each measuring step labelled with its design name.
+   Challengers never enter the approved manifest; they run under its settings, so the
+   `settings_hash` is unchanged and the engineer's design is not re-run. The agent returns
+   "awaiting approval" before measuring any challenger; approval is an `approval.json` entry for
+   `challengers.json` (§5).
+4. **Compare** every design under the same `settings_hash` in one scoreboard, and render a map
+   with a Before / Engineer / Challenger switch.
+
+**Long measurements hand off** exactly as the runner's do (§5): the engine detaches, the agent
+returns one start line and ends, the run-supervisor watches, and the agent is started again on the
+results. Between gates the output folder is its memory.
+
+**The page is local (2026-09-30, Brian).** The Design Compare page is a local file for the agent
+and the engineer. The agent never publishes it; sharing it with teammates is the engineer's call.
+With no store behind a local file, Choose marks the card and copies "I pick <name>", and the pick
+comes back through the chat. On a restricted case the agent says once that the page embeds bus
+names, substation names and coordinates.
 
 **Guards (they carry what the reviewer existed for):**
 - every design — the engineer's and the agent's — is measured on identical settings and the full
@@ -338,11 +369,15 @@ mobile or web app through Remote Control.
 
 1. **Launch** the study-runner engine in the background with an approved manifest — or pick up a
    run the study-runner already started and handed off (§5, *Long runs hand off*): launch nothing,
-   confirm the manifest beside the heartbeat is approved, and watch.
+   confirm that `approval.json` beside the heartbeat holds an entry matching the manifest's hash
+   (`study.py hash --file manifest.json`), and watch.
 2. **Watch** `heartbeat.json`. Wake only on a meaningful field change: `state` changes,
    `failed_chunks` grows, `unsolved` crosses its threshold, or `pwrworld_owned` exceeds
    workers + 1. Also run **one** stall timer that checks the age of `last_solve_at` (stall) and of
-   `updated` (no heartbeat). Never a tight polling loop.
+   `updated` (no heartbeat). Never a tight polling loop. The mechanism is the skill's watcher
+   script (`watch.py`), started with the harness's background execution: it reads the heartbeat
+   about once a minute and exits — waking the session — on a meaningful change or a stall timer.
+   The session restarts it after each wake until the run ends.
 3. **Alarm** (push notification) on: no progress for N minutes (default 15; on a time step, longer
    than one slice takes), any failed chunk (only on runs split into chunks), an unsolved count above
    the manifest's threshold (N-1), more `pwrworld.exe` processes than workers (a leak), the run
@@ -364,7 +399,10 @@ a laptop or phone. It shows a status badge top right (running, stalled, failed, 
 finished), a one-line answer to "do I need to do anything?", progress, a run clock coloured by
 state, and a timestamped timeline. The page listens to its database and redraws live. The supervisor
 writes only on events, never on a timer; only the owner can write, and viewers read. It follows
-the same privacy rule as notifications: no case identifiers.
+the same privacy rule as notifications: no case identifiers. **The page follows the run, not the
+watch:** every event from launch to close is written, including a failed launch, a rerun, or a
+result returned inline between hand-offs (found in the 2026-09-30 time-step trial, where the page
+sat on "setting it up" through all three).
 
 Portability: the engine, the heartbeat file and `events.jsonl` are plain files any harness can
 read. Push notifications, background watching, Remote Control and the run page are Claude Code
@@ -402,7 +440,9 @@ All on public synthetic cases.
 | runner, user-supplied costs | an OPF run on cost curves the engineer supplied carries the stamp "costs supplied by you, not from the case" on every result |
 | runner, OPF | on a case with cost data, OPF returns a solved status and a final cost, and binding lines match `LineLPUnenforceableMVA` |
 | runner, SCOPF | converges within `SCOPFMaxOuterLoopItr`; changing that option changes the recorded loop count; result recorded as the dated verification |
-| visualizer, parity | two designs measured in one comparison share one manifest hash and one contingency count |
+| runner, approval binding | with no `approval.json` entry, or with the manifest edited after its entry was written, the engine refuses and runs nothing; with a matching entry it runs |
+| runner, plan | `study.py plan` writes `plan.json` from the manifest alone; editing the manifest afterwards makes the recorded hash stale |
+| visualizer, parity | two designs measured in one comparison share one `settings_hash` and one contingency count; adding challengers does not change the engineer's design's `settings_hash` |
 | visualizer, side effects | a design that clears the target but creates a new overload shows the new overload in the scoreboard |
 | runner, heartbeat | during a run the heartbeat advances; a killed worker shows up as a failed chunk within one heartbeat interval |
 | supervisor, stall | a run whose `last_solve_at` stops advancing raises the stall alarm after the configured interval |
@@ -417,7 +457,7 @@ All on public synthetic cases.
 | runner, monitoring stated | every N-1 result states what was monitored |
 | runner, SCOPF stamp | every SCOPF result is stamped "not yet verified" until the first public-case run passes |
 | visualizer, opening mode | the map opens in the right mode for its bus count (whole case under the cutoff, area view over it) and says which |
-| plan pictures, fidelity | at each gate — runner `manifest.json`, visualizer `challengers.json`, supervisor next round's `manifest.json`, a written plan's numbered task list — picture steps == file steps (none added, none missing, same order) |
+| plan pictures, fidelity | at each gate — the engine's `plan.json` for the runner, the visualizer's challengers and the supervisor's next round, or a written plan's numbered task list — picture steps == file steps (none added, none missing, same order); a `plan.json` whose recorded hash no longer matches its source is refused |
 | librarian | known lookups (shunt keys, island reporting, SCOPF outer loops, no SCOPF inner loop) answered correctly with the right confidence tag |
 
 ## 11. Build order
@@ -459,7 +499,7 @@ All on public synthetic cases.
 5. run supervision — the `run-supervisor` mode over the runner's heartbeat; after Plan 3, because it
    supervises the runner's runs.
 6. plan pictures — the `plan-pictures` skill; after the runner (Plan 3), because it draws from the
-   plan files and manifests the runner writes.
+   `plan.json` the runner's engine writes (`study.py plan`, built in Plan 3 with the approval check).
 
 ## 12. Out of scope for v1
 

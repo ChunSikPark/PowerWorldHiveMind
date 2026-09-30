@@ -641,7 +641,7 @@ document.addEventListener("click",e=>{
     const id=c.dataset.choose;state.chosen=state.chosen===id?null:id;
     if(state.sel!==id){state.sel=id;state.focus=null;}
     const o=opt();
-    $("#note").innerHTML=state.chosen?`You picked <b>${o.role==="agent"?o.who+": ":""}${o.name}</b>. In the real page this tells your agent which option you picked.`:"";
+    $("#note").innerHTML=state.chosen?`You picked <b>${o.role==="agent"?o.who+": ":""}${o.name}</b>. In the real page this copies "I pick ${o.name}" for you to paste to your agent.`:"";
     render();return;
   }
   const s=e.target.closest("[data-sel]");

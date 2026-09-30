@@ -84,14 +84,18 @@ Every event the supervisor acts on (started, stalled, resumed, failed chunk, fai
     - `updated_at` (ISO time; the page shows the newest run);
     - `facts` `[{k, v}]`, `segs` `[{k, from, to}]` (the run clock: `run`, `stall`, `wait`, `plan`), `pins` `[{k, at}]`, `events` (the same entries as `events.jsonl`). Use the page's own words: `state` and every event `kind` is one of `run`, `stall`, `fail`, `you`, `done` (plus `stop` when the engineer stops it); `icon` is one of `play`, `pause`, `x`, `diamond`, `check`, `square`; `segs[].k` is one of `run`, `stall`, `wait`, `plan`; `pins[].k` is `fail` or `stop`, and `move` (`{summary, options[]}` only when it is the engineer's turn).
   - Write only on an event, never on a timer, so the page moves when something happens. One write per event.
+  - **The page follows the run, not the watch.** Write it on every event of the run from launch to close, including the ones that happen while no heartbeat is being watched: a launch that failed, a rerun, a result that came back inline without a hand-off. The page never sits on "setting it up" while the run has moved on.
   - **Same privacy rule as push notifications:** no bus names, substation names or coordinates on the page. It lives in the cloud.
   - **Cap:** one document per run, events aggregated inside it. Delete a run's document when the engineer asks to clear old runs.
 
 ## Protocol
 
 1) **Confirm** the approved manifest, the alarm thresholds, and how the engineer wants to be reached (push notification; Remote Control session open on the phone). Say how long the run should take. On a hand-off, state these in the one watching line; don't ask.
-2) **Launch** the study-runner engine in the background with that manifest — or, if the study-runner already started it and handed you its heartbeat path, launch nothing: read the manifest beside the heartbeat to confirm it was approved, and watch. **A hand-off starts supervision at once.** The run was approved and watching changes nothing, so do not wait to be asked. Say in one line that you are watching and which thresholds apply, with the run page link. Write the run's first page document ("Started") now.
+2) **Launch** the study-runner engine in the background with that manifest — or, if the study-runner already started it and handed you its heartbeat path, launch nothing: confirm that `approval.json` beside the heartbeat holds an entry matching the manifest's hash (`study.py hash --file manifest.json`), and watch. **A hand-off starts supervision at once.** The run was approved and watching changes nothing, so do not wait to be asked. Say in one line that you are watching and which thresholds apply, with the run page link. Write the run's first page document ("Started") now.
 3) **Watch** the heartbeat. Wake only on a meaningful field change: `state` changes, `failed_chunks` grows, `unsolved` crosses its threshold, or `pwrworld_owned` exceeds `workers + 1`. Also run one stall timer that checks the age of `last_solve_at` (stall) and of `updated` (no heartbeat). Never a tight polling loop.
+   - **How:** start the skill's watcher script (`watch.py --heartbeat <path> --manifest <path>`) with the harness's background execution. In Claude Code, that is a Bash call with `run_in_background`, whose exit wakes the session.
+   - The script reads `heartbeat.json` from disk about once a minute. It exits with one line naming the reason when a meaningful field changes or a stall timer runs out, and stays silent otherwise.
+   - The session never polls. After handling a wake, start the watcher again, unless the run has finished or failed.
 4) **Alarm** once per condition as in the table; include what happened, when, and the moves on offer, in the run's own `unit` (e.g. "No outage has finished for 20 minutes. 8,412 of 13,122 done. Reply 1 to wait, 2 to stop the run, 3 to stop and rerun the unfinished batches."; on a one-chunk time step there are no batches to rerun). An alarm is at most 2 lines.
 5) **Round end:** read the scoreboard and worst offenders (for a time step, `REPORT.md`), write the digest, notify, and wait.
 6) **Decision:** accept one of the offered moves or the engineer's own words. Confirm back what will happen, then launch it — a new round from the study-runner's configure step (with its own approval) or a handoff to the network-visualizer.
@@ -141,7 +145,7 @@ Reply with a number, or say what you want:
 
 ## Tool usage
 
-- Background execution for the study-runner engine; watching `heartbeat.json`: wake on a meaningful field change, plus one stall timer.
+- Background execution for the study-runner engine, and for the watcher script (`watch.py`), whose exit is the wake-up: a meaningful field change or a stall timer. Nothing else polls.
 - Push notifications for alarms and digests.
 - `ArtifactData` `set` on `runs/<run_id>` of the run page, once per event, plus an append to `events.jsonl`.
 - Read: `heartbeat.json`, the round's scoreboard and worst-offenders summary (for a time step, its `REPORT.md`).
@@ -150,8 +154,8 @@ Reply with a number, or say what you want:
 ## Failure modes to avoid
 
 - A page that says RUNNING while the chat says stalled. Every alarm, digest and answer updates the page in the same step.
+- A page stuck on "setting it up" through a failed launch, a rerun or a finished result, because nothing wrote to it between hand-offs.
 - Writing the page on a timer, or on every heartbeat.
-
 - Polling every few seconds and burning the session's budget while nothing changes.
 - An alarm flood: the same stall notified every minute. One notification per condition until it clears.
 - Treating no reply as "go ahead".
@@ -190,7 +194,8 @@ Reply 1 to wait, 2 to stop the run.
 
 ## Final checklist
 
-- Launched from an approved manifest, thresholds included?
+- Launched from an approved manifest (a matching `approval.json` entry), thresholds included?
+- Did the page follow every run event, including ones between hand-offs?
 - One notification per alarm condition, no floods?
 - Every round ended with a digest and an explicit question?
 - Nothing launched without the engineer's answer?
