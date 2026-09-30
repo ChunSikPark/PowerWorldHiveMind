@@ -36,8 +36,9 @@ included. That's it.
 When a newer version is published, Claude tells you at the start of a session and offers to
 update. To check, the kit reads one version number from GitHub at most once a day and changes
 nothing on your machine. Set `PWHM_NO_UPDATE_CHECK=1` to turn it off. If you use Claude Code
-in a terminal, setup also offers a `[PWHM#<version>]` tag for your status line. It asks first,
-and keeps any status line you already have.
+in a terminal, setup also offers a PWHM dashboard for your status line: the kit's version, the
+model, your usage limits and how full the context is. It asks first, and if you already have a
+status line it keeps yours and adds just the `[PWHM#<version>]` tag.
 
 **Check it worked:** ask what `pw.esa.SaveCase("out.pwb")` does. "Silently writes no file"
 means the kit loaded.

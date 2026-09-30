@@ -69,9 +69,12 @@ The full failure table, with the exact error strings, is in the preflight page.
 
 Ask once, in plain words, and change nothing unless the user says yes:
 
-> Do you use Claude Code in a terminal? If so, I can add a small `[PWHM#<version>]` tag to
-> your status line. It shows which version of the kit you have and says when a new one is
-> out. It doesn't show in the desktop app.
+> Do you use Claude Code in a terminal? If so, I can add a PWHM dashboard to your status
+> line: the kit's version (and when a new one is out), the model, your 5-hour and weekly
+> usage limits, and how full the context is. It doesn't show in the desktop app.
+
+If they already have a status line, say instead that only the `[PWHM#<version>]` tag is added,
+next to what they have, since their own already covers the rest.
 
 Skip this step without asking if the user's status line already shows `[PWHM#`.
 
