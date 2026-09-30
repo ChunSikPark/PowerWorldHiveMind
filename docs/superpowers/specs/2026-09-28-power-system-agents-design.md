@@ -352,9 +352,19 @@ mobile or web app through Remote Control.
 6. The chosen move launches the next round (study-runner or network-visualizer) and supervision
    continues.
 
-Portability: the engine and the heartbeat file are plain files any harness can read. Push
-notifications, background watching and Remote Control are Claude Code features; other harnesses get
-the heartbeat and the digest, not the phone.
+**The run page (added 2026-09-30).** Every event is appended to `results/<run>/events.jsonl` and also
+written as ONE document, `runs/<run_id>`, into a private Claude Artifact page, *Run Watch*
+(`docs/agents/pages/run-watch.html`; it moves to the skill in Plan 5). The engineer glances at it on
+a laptop or phone. It shows a status badge top right (running, stalled, failed, waiting for you,
+finished), a one-line answer to "do I need to do anything?", progress, a run clock coloured by
+state, and a timestamped timeline. The page listens to its database and redraws live. The supervisor
+writes only on events, never on a timer; only the owner can write, and viewers read. It follows
+the same privacy rule as notifications: no case identifiers.
+
+Portability: the engine, the heartbeat file and `events.jsonl` are plain files any harness can
+read. Push notifications, background watching, Remote Control and the run page are Claude Code
+features; other harnesses get the heartbeat, the event log and the digest, not the phone or the
+page.
 
 ## 9. Kit layout
 
@@ -391,6 +401,7 @@ All on public synthetic cases.
 | visualizer, side effects | a design that clears the target but creates a new overload shows the new overload in the scoreboard |
 | runner, heartbeat | during a run the heartbeat advances; a killed worker shows up as a failed chunk within one heartbeat interval |
 | supervisor, stall | a run whose `last_solve_at` stops advancing raises the stall alarm after the configured interval |
+| supervisor, run page | each event updates `runs/<run_id>` once (badge, sentence, timeline match the chat) and appends to `events.jsonl`; no write without an event; a viewer below owner cannot write |
 | supervisor, gate | the next round never launches without an engineer's answer |
 | runner, timestep hand-off | the approval block says "time step will run" and which renewables read 0 MW (IDs, MW share) in 8 lines or fewer; after approval the runner calls the engine in the foreground, the engine detaches the run, and the runner returns one line with the step count, the time estimate and the heartbeat path, and ends; the heartbeat keeps advancing after the subagent has ended |
 | runner, timestep slices | on `"Weather Only"`, a window run in `TimeStepDoRun(Start, End)` slices and the same window run in one call give the same per-step MW within 1e-4 relative; until this passes, every sliced result carries "run in <k> slices, not yet checked against one unbroken run" |

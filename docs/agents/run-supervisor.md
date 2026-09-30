@@ -70,10 +70,27 @@ A full N-1 on a large case or a TimeStep year takes hours. Today the engineer st
 
 Thresholds live in the manifest, so the engineer sees and approves them with the settings.
 
+## The run page and event log
+
+Every event the supervisor acts on (started, stalled, resumed, failed chunk, failed, finished, "your move", the engineer's answer, stopped) is recorded twice:
+
+- **`results/<run>/events.jsonl`**: one JSON line per event, `{t, kind, icon, head, body}`. It is plain and portable: any harness reads it.
+- **The run page** (Claude Code only): a private Claude Artifact page, *Run Watch*, built from `docs/agents/pages/run-watch.html` (moves to `skills/run-supervisor/page/` in Plan 5). The engineer glances at it on a laptop or phone. It has a status badge top right, a one-line answer to "do I need to do anything?", progress, a run clock and the timeline. The page listens to its own database and redraws live, with no refresh.
+  - **First use:** publish the page once as the engineer's own artifact, with capabilities `{"db": {"rules": [{"path": "", "read": "view", "write": "admin"}]}}` (viewers read; only the owner writes). Remember its URL for the next runs.
+  - **On each event,** write ONE document with the `ArtifactData` tool (load it with ToolSearch): `set` on collection `runs`, doc id `<run_id>`. The document carries the whole current state of the page:
+    - `title`, `subtitle`, `state` (`run` | `stall` | `fail` | `you` | `done`) and `label` (the badge text);
+    - `head` + `rest` (the one-line answer) and `sub`;
+    - `done`, `total`, `unit`, and `now` (HH:MM);
+    - `updated_at` (ISO time; the page shows the newest run);
+    - `facts` `[{k, v}]`, `segs` `[{k, from, to}]` (the run clock: `run`, `stall`, `wait`, `plan`), `pins` `[{k, at}]`, `events` (the same entries as `events.jsonl`), and `move` (`{summary, options[]}` only when it is the engineer's turn).
+  - Write only on an event, never on a timer, so the page moves when something happens. One write per event.
+  - **Same privacy rule as push notifications:** no bus names, substation names or coordinates on the page. It lives in the cloud.
+  - **Cap:** one document per run, events aggregated inside it. Delete a run's document when the engineer asks to clear old runs.
+
 ## Protocol
 
 1) **Confirm** the approved manifest, the alarm thresholds, and how the engineer wants to be reached (push notification; Remote Control session open on the phone). Say how long the run should take. On a hand-off, state these in the one watching line; don't ask.
-2) **Launch** the study-runner engine in the background with that manifest — or, if the study-runner already started it and handed you its heartbeat path, launch nothing: read the manifest beside the heartbeat to confirm it was approved, and watch. **A hand-off starts supervision at once.** The run was approved and watching changes nothing, so do not wait to be asked. Say in one line that you are watching and which thresholds apply.
+2) **Launch** the study-runner engine in the background with that manifest — or, if the study-runner already started it and handed you its heartbeat path, launch nothing: read the manifest beside the heartbeat to confirm it was approved, and watch. **A hand-off starts supervision at once.** The run was approved and watching changes nothing, so do not wait to be asked. Say in one line that you are watching and which thresholds apply, with the run page link. Write the run's first page document ("Started") now.
 3) **Watch** the heartbeat. Wake only on a meaningful field change: `state` changes, `failed_chunks` grows, `unsolved` crosses its threshold, or `pwrworld_owned` exceeds `workers + 1`. Also run one stall timer that checks the age of `last_solve_at` (stall) and of `updated` (no heartbeat). Never a tight polling loop.
 4) **Alarm** once per condition as in the table; include what happened, when, and the moves on offer, in the run's own `unit` (e.g. "No outage has finished for 20 minutes. 8,412 of 13,122 done. Reply 1 to wait, 2 to stop the run, 3 to stop and rerun the unfinished batches."; on a one-chunk time step there are no batches to rerun). An alarm is at most 2 lines.
 5) **Round end:** read the scoreboard and worst offenders (for a time step, `REPORT.md`), write the digest, notify, and wait.
@@ -124,10 +141,14 @@ Reply with a number, or say what you want:
 
 - Background execution for the study-runner engine; watching `heartbeat.json`: wake on a meaningful field change, plus one stall timer.
 - Push notifications for alarms and digests.
+- `ArtifactData` `set` on `runs/<run_id>` of the run page, once per event, plus an append to `events.jsonl`.
 - Read: `heartbeat.json`, the round's scoreboard and worst-offenders summary (for a time step, its `REPORT.md`).
 - Nothing that writes to the case or changes the manifest.
 
 ## Failure modes to avoid
+
+- A page that says RUNNING while the chat says stalled. Every alarm, digest and answer updates the page in the same step.
+- Writing the page on a timer, or on every heartbeat.
 
 - Polling every few seconds and burning the session's budget while nothing changes.
 - An alarm flood: the same stall notified every minute. One notification per condition until it clears.

@@ -1,0 +1,385 @@
+<title>Run Watch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F3F5F4; --surface:#FFFFFF; --ink:#18201D; --muted:#5B6863; --rule:#D3DAD6; --track:#E4E9E6;
+  --run:#1F7A4D; --run-bg:#E3F2EA;
+  --stall:#C2410C; --stall-bg:#FDEBDD; --on-stall:#FFFFFF;
+  --fail:#B42318; --fail-bg:#FBE4E1; --on-fail:#FFFFFF;
+  --done:#4B5563; --done-bg:#EBEEF0;
+  --you:#A8650A; --you-bg:#FBEFDA; --you-solid:#E39B2D; --on-you:#1F1403;
+  --cond:"IBM Plex Sans Condensed","IBM Plex Sans","Arial Narrow",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#111614; --surface:#1A201E; --ink:#E2E8E5; --muted:#9AA6A1; --rule:#2E3733; --track:#262E2B;
+    --run:#5CC592; --run-bg:#14301F;
+    --stall:#F0894F; --stall-bg:#3A2213; --on-stall:#1E0D04;
+    --fail:#F07A6B; --fail-bg:#3B1C18; --on-fail:#22090A;
+    --done:#A7B0BA; --done-bg:#252B30;
+    --you:#E3A449; --you-bg:#3A2B13; --you-solid:#E3A449; --on-you:#1F1403;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111614; --surface:#1A201E; --ink:#E2E8E5; --muted:#9AA6A1; --rule:#2E3733; --track:#262E2B;
+  --run:#5CC592; --run-bg:#14301F;
+  --stall:#F0894F; --stall-bg:#3A2213; --on-stall:#1E0D04;
+  --fail:#F07A6B; --fail-bg:#3B1C18; --on-fail:#22090A;
+  --done:#A7B0BA; --done-bg:#252B30;
+  --you:#E3A449; --you-bg:#3A2B13; --you-solid:#E3A449; --on-you:#1F1403;
+}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;padding-inline:16px;}
+[hidden]{display:none!important;}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+.wrap{max-width:760px;margin:0 auto;padding-block:0 48px;display:grid;gap:28px;}
+.wrap > *{min-width:0;}
+.label{margin:0;font:500 12px/1.3 "IBM Plex Sans",sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);}
+.num{font-variant-numeric:tabular-nums;}
+
+/* ---------- header + badge ---------- */
+header.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:3;background:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:14px;padding-block:14px 12px;border-bottom:1px solid var(--rule);}
+.wrap[data-s="stall"] header.bar{border-bottom:3px solid var(--stall);}
+.wrap[data-s="fail"] header.bar{border-bottom:3px solid var(--fail);}
+.run-name{display:grid;gap:1px;min-width:0;}
+.run-name b{font:600 19px/1.25 var(--cond);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.run-name > span{font-size:12px;line-height:20px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fake{display:inline-block;vertical-align:1px;font:500 10.5px/14px var(--mono);letter-spacing:.06em;border:1px solid var(--muted);padding-inline:5px;border-radius:3px;margin-right:4px;}
+.badge{display:inline-flex;align-items:center;gap:9px;padding:10px 16px 10px 13px;border-radius:6px;border:2px solid;font:600 16px/1 var(--cond);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;flex-shrink:0;}
+.badge svg{width:16px;height:16px;flex:none;}
+.badge.k-run{color:var(--run);background:var(--run-bg);border-color:var(--run);}
+.badge.k-stall{color:var(--on-stall);background:var(--stall);border-color:var(--stall);}
+.badge.k-fail{color:var(--on-fail);background:var(--fail);border-color:var(--fail);}
+.badge.k-you{color:var(--on-you);background:var(--you-solid);border-color:var(--you-solid);}
+.badge.k-done{color:var(--done);background:var(--done-bg);border-color:var(--done);}
+.badge.k-run svg{animation:pulse 1.8s ease-in-out infinite;transform-origin:center;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.8)}}
+@media (prefers-reduced-motion: reduce){.badge.k-run svg{animation:none;}}
+
+/* ---------- verdict ---------- */
+.verdict{display:grid;gap:6px;}
+.verdict h1{margin:0;font:600 clamp(24px,5.4vw,32px)/1.15 var(--cond);text-wrap:balance;letter-spacing:-.005em;}
+.verdict h1 em{font-style:normal;}
+.verdict p{margin:0;color:var(--muted);max-width:62ch;}
+.wrap[data-s="run"] .verdict h1 em{color:var(--run);}
+.wrap[data-s="you"] .verdict h1 em{color:var(--you);}
+.wrap[data-s="stall"] .verdict,.wrap[data-s="fail"] .verdict{padding:16px 18px;border-radius:4px;border:2px solid;}
+.wrap[data-s="stall"] .verdict{background:var(--stall-bg);border-color:var(--stall);}
+.wrap[data-s="fail"] .verdict{background:var(--fail-bg);border-color:var(--fail);}
+.wrap[data-s="stall"] .verdict h1 em{color:var(--stall);}
+.wrap[data-s="fail"] .verdict h1 em{color:var(--fail);}
+.wrap[data-s="stall"] .verdict p,.wrap[data-s="fail"] .verdict p{color:var(--ink);}
+
+/* ---------- your move ---------- */
+.move{border:2px solid var(--you);background:var(--you-bg);border-radius:4px;padding:16px 18px;display:grid;gap:12px;}
+.move .label{color:var(--you);font-weight:600;}
+.move p{margin:0;max-width:66ch;}
+.opts{list-style:none;margin:0;padding:0;display:grid;gap:8px;counter-reset:opt;}
+.opts li{counter-increment:opt;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:9px 12px 9px 10px;}
+.opts li::before{content:counter(opt);font:600 14px/26px var(--mono);text-align:center;width:26px;height:26px;border-radius:3px;background:var(--you-solid);color:var(--on-you);}
+.opts li span{padding-top:2px;}
+.move small{font-size:13px;color:var(--muted);}
+
+/* ---------- progress ---------- */
+.progress{display:grid;gap:10px;}
+.prow{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 24px;}
+.big{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+.big b{font:600 44px/1 var(--cond);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+.big span{color:var(--muted);font-size:14px;}
+.big span strong{color:var(--ink);font-weight:600;}
+.facts{display:grid;grid-template-columns:auto auto;gap:2px 14px;margin:0;font-size:13px;}
+.facts dt{color:var(--muted);}
+.facts dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;}
+.pbar{height:6px;border-radius:3px;background:var(--track);overflow:hidden;}
+.pbar i{display:block;height:100%;background:var(--pc,var(--run));}
+
+/* ---------- time strip ---------- */
+.clock{display:grid;gap:10px;}
+.strip{position:relative;padding-block:24px 22px;}
+.lane{position:relative;height:18px;border-radius:3px;background:var(--track);overflow:hidden;}
+.seg{position:absolute;top:0;bottom:0;}
+.k-run.seg,.sw.k-run{background:var(--run);}
+.k-stall.seg,.sw.k-stall{background:repeating-linear-gradient(135deg,var(--stall) 0 3px,var(--stall-bg) 3px 7px);}
+.k-wait.seg,.sw.k-wait{background:radial-gradient(circle,var(--you) 1.5px,var(--you-bg) 2px) 0 0/6px 6px;}
+.k-plan.seg,.sw.k-plan{background:transparent;border:1.5px dashed var(--muted);border-radius:0 3px 3px 0;}
+.pin{position:absolute;top:24px;width:18px;height:18px;margin-left:-9px;border-radius:3px;display:grid;place-items:center;}
+.pin svg{width:12px;height:12px;}
+.pin.k-fail,.sw.k-fail{background:var(--fail);color:var(--on-fail);}
+.pin.k-stop,.sw.k-stop{background:var(--ink);color:var(--bg);}
+.nowline{position:absolute;top:18px;height:30px;width:2px;margin-left:-1px;background:var(--ink);}
+.nowtag{position:absolute;top:0;font:500 12px/16px var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.tick{position:absolute;top:42px;width:1px;height:5px;background:var(--muted);}
+.tlab{position:absolute;top:48px;font:12px/14px var(--mono);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0;padding:0;list-style:none;font-size:13px;color:var(--muted);}
+.legend li{display:inline-flex;align-items:center;gap:7px;}
+.sw{display:inline-grid;place-items:center;width:20px;height:11px;border-radius:2px;}
+.sw.k-fail,.sw.k-stop{width:11px;}
+
+/* ---------- timeline ---------- */
+.events{display:grid;gap:8px;}
+ol.timeline{list-style:none;margin:0;padding:0;display:grid;}
+.ev{position:relative;display:grid;grid-template-columns:48px 24px 1fr;gap:12px;align-items:start;padding-block:8px;}
+.ev::before{content:"";position:absolute;left:71px;top:0;bottom:0;width:2px;background:var(--rule);}
+.ev:first-child::before{top:20px;}
+.ev:last-child::before{bottom:calc(100% - 20px);}
+.ev time{font:13px/24px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;}
+.mark{position:relative;z-index:1;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;border:2px solid;background:var(--surface);}
+.mark svg{width:11px;height:11px;}
+.mark.k-run{color:var(--run);}
+.mark.k-stall{color:var(--stall);}
+.mark.k-fail{color:var(--fail);}
+.mark.k-done{color:var(--done);}
+.mark.k-you{color:var(--you);}
+.ev .txt{padding-top:2px;}
+.ev .txt b{font-weight:600;}
+.ev .txt div{color:var(--muted);font-size:14px;max-width:62ch;}
+.ev.now time{color:var(--ink);font-weight:500;}
+.ev.now .mark{background:currentColor;}
+.ev.now .mark svg{color:var(--surface);}
+
+/* ---------- footer ---------- */
+.foot{font-size:13px;color:var(--muted);display:grid;gap:12px;border-top:1px solid var(--rule);padding-top:16px;}
+.foot p{margin:0;max-width:70ch;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.chips button{font:inherit;font-size:13px;padding:5px 11px;border-radius:999px;border:1px solid var(--rule);background:var(--surface);color:var(--ink);cursor:pointer;}
+.chips button:hover{border-color:var(--muted);}
+.chips button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg);font-weight:600;}
+
+@media (max-width:460px){
+  .badge{font-size:14px;padding:8px 12px 8px 10px;gap:7px;}
+  .badge svg{width:14px;height:14px;}
+  .run-name b{font-size:17px;}
+  .big b{font-size:38px;}
+  .prow{align-items:flex-start;}
+}
+</style>
+
+<div class="wrap" id="wrap">
+  <header class="bar">
+    <div class="run-name">
+      <b id="runTitle">Time step · texas2k</b>
+      <span><span class="fake" id="fakeTag">FAKE DEMO</span> <span id="runSub">Feb 1–28, 2021 · 672 hourly steps</span></span>
+    </div>
+    <span class="badge" id="badge" role="status" aria-live="polite"><span id="badgeIcon" aria-hidden="true"></span><span id="badgeText"></span></span>
+  </header>
+
+  <section class="verdict" aria-label="Summary">
+    <h1 id="vHead"></h1>
+    <p id="vSub"></p>
+  </section>
+
+  <section class="move" id="move" hidden aria-labelledby="moveH">
+    <h2 class="label" id="moveH">Your move</h2>
+    <p id="moveSum"></p>
+    <ol class="opts" id="moveOpts"></ol>
+    <small>Reply in the Claude session, from your laptop or phone. Nothing runs until you do.</small>
+  </section>
+
+  <section class="progress" aria-label="Progress">
+    <div class="prow">
+      <div class="big"><b id="pct"></b><span id="steps"></span></div>
+      <dl class="facts" id="facts"></dl>
+    </div>
+    <div class="pbar"><i id="fill"></i></div>
+  </section>
+
+  <section class="clock" aria-labelledby="clockH">
+    <h2 class="label" id="clockH">Run clock</h2>
+    <div class="strip" id="strip" role="img"></div>
+    <ul class="legend" id="legend"></ul>
+  </section>
+
+  <section class="events" aria-labelledby="evH">
+    <h2 class="label" id="evH">What happened</h2>
+    <ol class="timeline" id="timeline"></ol>
+  </section>
+
+  <footer class="foot">
+    <p>The supervisor adds a line here on each event: started, stalled, resumed, failed, finished, your turn. It does not update every second, so the progress bar moves at each event.</p>
+    <p id="liveNote" hidden></p>
+    <div class="chips" id="runPicker" role="group" aria-label="Other runs" hidden></div>
+    <div class="chips" id="demoChips" role="group" aria-label="Demo: preview a state">
+      <span>Demo, preview a state:</span>
+      <button type="button" id="st-run" data-s="run">Running</button>
+      <button type="button" id="st-stall" data-s="stall">Stalled</button>
+      <button type="button" id="st-fail" data-s="fail">Failed</button>
+      <button type="button" id="st-you" data-s="you">Waiting for you</button>
+      <button type="button" id="st-done" data-s="done">Finished</button>
+    </div>
+  </footer>
+</div>
+
+<script>
+const ICON = {
+  dot:'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5" fill="currentColor"/></svg>',
+  pause:'<svg viewBox="0 0 16 16"><rect x="3.5" y="2.5" width="3" height="11" fill="currentColor"/><rect x="9.5" y="2.5" width="3" height="11" fill="currentColor"/></svg>',
+  x:'<svg viewBox="0 0 16 16"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" fill="none"/></svg>',
+  diamond:'<svg viewBox="0 0 16 16"><path d="M8 1 15 8 8 15 1 8z" fill="currentColor"/></svg>',
+  check:'<svg viewBox="0 0 16 16"><path d="M2.5 8.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2.6" fill="none"/></svg>',
+  play:'<svg viewBox="0 0 16 16"><path d="M4 2l10 6-10 6z" fill="currentColor"/></svg>',
+  square:'<svg viewBox="0 0 16 16"><rect x="3" y="3" width="10" height="10" fill="currentColor"/></svg>'
+};
+const STATE_ICON = {run:"dot", stall:"pause", fail:"x", you:"diamond", done:"check"};
+const KINDS = new Set(["run","stall","fail","you","done","plan","wait","stop"]);
+const LEG = {run:"Running", stall:"No step finishing", wait:"Waiting for you", plan:"Expected", fail:"Failed", stop:"Stopped"};
+const PIN_ICON = {fail:"x", stop:"square"};
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const kind = k => KINDS.has(k) ? k : "run";
+const icon = i => ICON[i] || ICON.dot;
+const min = t => { const [h, m] = String(t).split(":").map(Number); return h * 60 + m; };
+const hm = x => String(Math.floor(x / 60)).padStart(2, "0") + ":" + String(x % 60).padStart(2, "0");
+
+/* ---- FAKE sample, shown until the supervisor has recorded a real run ---- */
+const EV = {
+  approved: {t:"09:58", kind:"you",   icon:"check",   head:"Approved by you", body:"Time step, Feb 1–28, 672 steps, about 28 min."},
+  started:  {t:"10:00", kind:"run",   icon:"play",    head:"Started",         body:"Runs in 12 slices. The supervisor is watching; stall alarm after 15 min without a finished step."},
+  stalled:  {t:"10:27", kind:"stall", icon:"pause",   head:"Stalled",         body:"No step has finished for 15 min, at 288 of 672. Alarm sent to your phone."},
+  resumed:  {t:"10:33", kind:"run",   icon:"play",    head:"Resumed",         body:"Steps are finishing again. The stall lasted 21 min."},
+  failed:   {t:"10:41", kind:"fail",  icon:"x",       head:"Failed",          body:"The run stopped at 455 of 672: its PowerWorld copy closed unexpectedly. Nothing was saved to the case. Alarm sent."},
+  finished: {t:"10:52", kind:"done",  icon:"check",   head:"Finished",        body:"672 time steps run."},
+  digest:   {t:"10:52", kind:"you",   icon:"diamond", head:"Your move",       body:"Summary sent with 3 options. Waiting for your answer."},
+  stopped:  {t:"10:58", kind:"done",  icon:"square",  head:"Stopped by you",  body:"You chose \"stop here\". Results: results/ts1/"}
+};
+const ev = keys => keys.map(k => EV[k]);
+const RUN1 = {k:"run", from:"10:00", to:"10:12"}, GAP = {k:"stall", from:"10:12", to:"10:33"}, RUN2 = {k:"run", from:"10:33", to:"10:52"};
+const BASE = {fake:true, title:"Time step · texas2k", subtitle:"Feb 1–28, 2021 · 672 hourly steps", total:672, unit:"steps"};
+const SAMPLE = {
+  run:   {...BASE, state:"run", label:"Running", done:288, now:"10:12",
+          head:"Still running.", rest:" Nothing for you to do.",
+          sub:"Check back around 10:28. The supervisor alarms your phone if no step finishes for 15 min.",
+          facts:[{k:"Expected end", v:"~10:28"}, {k:"Last update", v:"Sep 30, 10:12"}],
+          segs:[RUN1, {k:"plan", from:"10:12", to:"10:28"}], pins:[], events:ev(["approved","started"]), move:null},
+  stall: {...BASE, state:"stall", label:"Stalled 18 min", done:288, now:"10:30",
+          head:"Stalled.", rest:" No step has finished since 10:12.",
+          sub:"The supervisor sent an alarm to your phone at 10:27. The run is still open at step 288 of 672.",
+          facts:[{k:"Expected end", v:"unknown"}, {k:"Last update", v:"Sep 30, 10:27"}],
+          segs:[RUN1, {k:"stall", from:"10:12", to:"10:30"}], pins:[], events:ev(["approved","started","stalled"]), move:null},
+  fail:  {...BASE, state:"fail", label:"Failed", done:455, now:"10:41",
+          head:"Failed at step 455.", rest:" The run has stopped.",
+          sub:"Its PowerWorld copy closed unexpectedly. Nothing was saved to the case. Alarm sent.",
+          facts:[{k:"Stopped at", v:"10:41"}, {k:"Last update", v:"Sep 30, 10:41"}],
+          segs:[RUN1, GAP, {k:"run", from:"10:33", to:"10:41"}], pins:[{k:"fail", at:"10:41"}],
+          events:ev(["approved","started","stalled","resumed","failed"]), move:null},
+  you:   {...BASE, state:"you", label:"Waiting for you", done:672, now:"10:55",
+          head:"Your turn.", rest:" Pick an option below.",
+          sub:"The run finished at 10:52. Nothing runs until you reply.",
+          facts:[{k:"Finished", v:"10:52"}, {k:"Last update", v:"Sep 30, 10:52"}],
+          segs:[RUN1, GAP, RUN2, {k:"wait", from:"10:52", to:"10:55"}], pins:[],
+          events:ev(["approved","started","stalled","resumed","finished","digest"]),
+          move:{summary:"672 time steps run, in 12 slices (not yet checked against one unbroken run). Renewable output averaged 8,940 MW; lowest 1,120 MW on Feb 16 at 07:00; biggest drop 4,380 MW in 3 hours. 3 units read 0 MW all run.",
+                options:["Add weather models to the 3 units (Grid-Workshop Auto_PFW), then rerun.",
+                         "Map the hours around Feb 16 to see where the drop landed.",
+                         "Stop here."]}},
+  done:  {...BASE, state:"done", label:"Finished", done:672, now:"10:58",
+          head:"Finished.", rest:" Nothing left to do.",
+          sub:"You chose \"stop here\" at 10:58. Results are in results/ts1/.",
+          facts:[{k:"Finished", v:"10:52"}, {k:"Last update", v:"Sep 30, 10:58"}],
+          segs:[RUN1, GAP, RUN2, {k:"wait", from:"10:52", to:"10:58"}], pins:[{k:"stop", at:"10:58"}],
+          events:ev(["approved","started","stalled","resumed","finished","digest","stopped"]), move:null}
+};
+
+function strip(s){
+  const segs = (s.segs || []).filter(g => g && g.from && g.to);
+  const pins = (s.pins || []).filter(p => p && p.at);
+  const sec = $("strip").closest("section");
+  if (!segs.length){ sec.hidden = true; return; }
+  sec.hidden = false;
+  const now = s.now || segs[segs.length - 1].to;
+  const t0 = Math.floor(min(segs[0].from) / 15) * 15;
+  const latest = Math.max(min(now), ...segs.map(g => min(g.to)));
+  const t1 = Math.ceil((latest + 4) / 15) * 15;
+  const span = Math.max(t1 - t0, 15), step = span <= 90 ? 15 : span <= 240 ? 30 : 60;
+  const at = t => (100 * (t - t0) / span);
+  let lane = "", over = "";
+  segs.forEach(g => {
+    lane += `<span class="seg k-${kind(g.k)}" style="left:${at(min(g.from))}%;width:${at(min(g.to)) - at(min(g.from))}%"></span>`;
+  });
+  pins.forEach(p => { over += `<span class="pin k-${kind(p.k)}" style="left:${at(min(p.at))}%">${icon(PIN_ICON[p.k])}</span>`; });
+  for (let t = t0; t <= t1; t += step){
+    const p = at(t), shift = p === 0 ? "0" : p === 100 ? "-100%" : "-50%";
+    over += `<span class="tick" style="left:${p}%"></span><span class="tlab" style="left:${p}%;transform:translateX(${shift})">${hm(t)}</span>`;
+  }
+  const np = at(min(now)), nshift = np < 12 ? "-4px" : np > 88 ? "calc(-100% + 4px)" : "-50%";
+  over += `<span class="nowline" style="left:${np}%"></span><span class="nowtag" style="left:${np}%;transform:translateX(${nshift})">now ${esc(now)}</span>`;
+  $("strip").innerHTML = `<div class="lane">${lane}</div>${over}`;
+  $("strip").setAttribute("aria-label", `Run clock from ${hm(t0)} to ${hm(t1)}. ` +
+    segs.map(g => `${LEG[g.k] || g.k} ${g.from} to ${g.to}`).join(". ") +
+    pins.map(p => `. ${LEG[p.k] || p.k} at ${p.at}`).join("") + `. Now ${now}.`);
+  const kinds = [...new Set([...segs.map(g => kind(g.k)), ...pins.map(p => kind(p.k))])];
+  $("legend").innerHTML = kinds.map(k => `<li><span class="sw k-${k}" aria-hidden="true"></span>${LEG[k] || k}</li>`).join("");
+}
+
+function render(s){
+  const st = kind(s.state);
+  $("wrap").dataset.s = st;
+  $("runTitle").textContent = s.title || "Run";
+  $("runSub").textContent = s.subtitle || "";
+  $("fakeTag").hidden = !s.fake;
+  $("badge").className = "badge k-" + st;
+  $("badgeIcon").innerHTML = icon(STATE_ICON[st]);
+  $("badgeText").textContent = s.label || st;
+  $("vHead").innerHTML = `<em>${esc(s.head)}</em>${esc(s.rest)}`;
+  $("vSub").textContent = s.sub || "";
+  const mv = s.move;
+  $("move").hidden = !(st === "you" && mv);
+  if (mv){
+    $("moveSum").textContent = mv.summary || "";
+    $("moveOpts").innerHTML = (mv.options || []).map(o => `<li><span>${esc(o)}</span></li>`).join("");
+  }
+  const total = Number(s.total) || 0, done = Number(s.done) || 0;
+  const pct = total ? Math.round(100 * done / total) : 0;
+  $("pct").textContent = pct + "%";
+  $("steps").innerHTML = `<strong class="num">${done.toLocaleString()}</strong> of ${total.toLocaleString()} ${esc(s.unit || "steps")}`;
+  $("facts").innerHTML = (s.facts || []).map(f => `<dt>${esc(f.k)}</dt><dd>${esc(f.v)}</dd>`).join("");
+  $("fill").style.width = pct + "%";
+  $("fill").style.setProperty("--pc", `var(--${st === "you" ? "run" : st})`);
+  strip(s);
+  const tl = $("timeline"), evs = s.events || [];
+  tl.innerHTML = evs.map((e, i) =>
+    `<li class="ev${i === evs.length - 1 ? " now" : ""}"><time>${esc(e.t)}</time>` +
+    `<span class="mark k-${kind(e.kind)}" aria-hidden="true">${icon(e.icon)}</span>` +
+    `<span class="txt"><b>${esc(e.head)}</b><div>${esc(e.body)}</div></span></li>`).join("");
+}
+
+/* ---- demo switcher (sample only) ---- */
+function demo(key){
+  render(SAMPLE[key]);
+  document.querySelectorAll("#demoChips button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.s === key)));
+}
+document.querySelectorAll("#demoChips button").forEach(b => b.addEventListener("click", () => demo(b.dataset.s)));
+demo("you");
+
+/* ---- live: the supervisor writes one document per run under runs/<run_id> ---- */
+let chosen = null;
+(async () => {
+  const db = await window.claude?.use?.("db");
+  const note = $("liveNote");
+  if (!db) return;
+  db.collection("runs").orderBy("updated_at", "desc").limit(10).onSnapshot(snap => {
+    note.hidden = false;
+    if (snap.empty){ note.textContent = "No runs recorded yet. Showing a sample."; return; }
+    const runs = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    const cur = runs.find(r => r.id === chosen) || runs[0];
+    $("demoChips").hidden = true;
+    note.textContent = "Live. The page updates each time the supervisor records an event.";
+    const picker = $("runPicker");
+    picker.hidden = runs.length < 2;
+    picker.innerHTML = runs.length < 2 ? "" : "<span>Runs:</span>" + runs.map(r =>
+      `<button type="button" data-id="${esc(r.id)}" aria-pressed="${r.id === cur.id}">${esc(r.title || r.id)} · ${esc(r.label || r.state)}</button>`).join("");
+    picker.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+      chosen = b.dataset.id;
+      const r = runs.find(x => x.id === chosen);
+      if (r){ render(r); picker.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); }
+    }));
+    render(cur);
+  }, () => {
+    note.hidden = false;
+    note.textContent = "Live updates are off right now. Showing the last data loaded.";
+  });
+})();
+</script>
