@@ -11,136 +11,156 @@
 <rect x="545" y="76" width="12" height="12" rx="3" fill="#898781" opacity="0.25"/>
 <text x="564" y="86" font-size="13.5" fill="#52514e">faded = got it wrong</text>
 <text x="320" y="122" font-size="13" fill="#0b0b0b" text-anchor="end">Saved a case and no file appeared</text>
-<rect x="330" y="110" width="36.92" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="374.92" y="119" font-size="12.5" fill="#52514e">1</text>
-<rect x="330" y="121" width="147.69" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="485.69" y="130" font-size="12.5" fill="#898781">4  wrong</text>
+<rect x="330" y="110" width="87.27" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="425.27" y="119" font-size="12.5" fill="#52514e">6</text>
+<rect x="330" y="121" width="145.45" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
+<text x="483.45" y="130" font-size="12.5" fill="#898781">10  wrong</text>
 <text x="320" y="151" font-size="13" fill="#0b0b0b" text-anchor="end">Set MW on only the coal units</text>
-<rect x="330" y="139" width="332.31" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="670.31" y="148" font-size="12.5" fill="#52514e">9</text>
-<rect x="330" y="150" width="73.85" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="411.85" y="159" font-size="12.5" fill="#898781">2  wrong</text>
+<rect x="330" y="139" width="160.00" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="498.00" y="148" font-size="12.5" fill="#52514e">11</text>
+<rect x="330" y="150" width="247.27" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
+<text x="585.27" y="159" font-size="12.5" fill="#898781">17  wrong</text>
 <text x="320" y="180" font-size="13" fill="#0b0b0b" text-anchor="end">A DC solve hid a short schedule</text>
-<rect x="330" y="168" width="36.92" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="374.92" y="177" font-size="12.5" fill="#52514e">1</text>
-<rect x="330" y="179" width="110.77" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
-<text x="448.77" y="188" font-size="12.5" fill="#52514e">3</text>
+<rect x="330" y="168" width="58.18" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="396.18" y="177" font-size="12.5" fill="#52514e">4</text>
+<rect x="330" y="179" width="174.55" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
+<text x="512.55" y="188" font-size="12.5" fill="#52514e">12</text>
 <text x="320" y="209" font-size="13" fill="#0b0b0b" text-anchor="end">Created lines, nothing was created</text>
-<rect x="330" y="197" width="110.77" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="448.77" y="206" font-size="12.5" fill="#52514e">3</text>
-<rect x="330" y="208" width="147.69" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="485.69" y="217" font-size="12.5" fill="#898781">4  wrong</text>
+<rect x="330" y="197" width="72.73" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="410.73" y="206" font-size="12.5" fill="#52514e">5</text>
+<rect x="330" y="208" width="218.18" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
+<text x="556.18" y="217" font-size="12.5" fill="#898781">15  wrong</text>
 <text x="320" y="238" font-size="13" fill="#0b0b0b" text-anchor="end">Setting the N-1 voltage limits</text>
-<rect x="330" y="226" width="184.62" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="522.62" y="235" font-size="12.5" fill="#52514e">5</text>
-<rect x="330" y="237" width="147.69" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="485.69" y="246" font-size="12.5" fill="#898781">4  wrong</text>
+<rect x="330" y="226" width="58.18" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="396.18" y="235" font-size="12.5" fill="#52514e">4</text>
+<rect x="330" y="237" width="465.45" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
+<text x="803.45" y="246" font-size="12.5" fill="#898781">32  wrong</text>
 <text x="320" y="267" font-size="13" fill="#0b0b0b" text-anchor="end">Which outage caused which overload</text>
-<rect x="330" y="255" width="147.69" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="485.69" y="264" font-size="12.5" fill="#52514e">4</text>
-<rect x="330" y="266" width="147.69" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="485.69" y="275" font-size="12.5" fill="#898781">4  wrong</text>
+<rect x="330" y="255" width="72.73" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="410.73" y="264" font-size="12.5" fill="#52514e">5</text>
+<rect x="330" y="266" width="247.27" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
+<text x="585.27" y="275" font-size="12.5" fill="#52514e">17</text>
 <text x="320" y="296" font-size="13" fill="#0b0b0b" text-anchor="end">An area filter hid tie-line problems</text>
-<rect x="330" y="284" width="221.54" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="559.54" y="293" font-size="12.5" fill="#52514e">6</text>
-<rect x="330" y="295" width="147.69" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="485.69" y="304" font-size="12.5" fill="#898781">4  wrong</text>
+<rect x="330" y="284" width="72.73" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="410.73" y="293" font-size="12.5" fill="#52514e">5</text>
+<rect x="330" y="295" width="247.27" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
+<text x="585.27" y="304" font-size="12.5" fill="#898781">17  wrong</text>
 <text x="320" y="325" font-size="13" fill="#0b0b0b" text-anchor="end">Violations from a case never solved</text>
-<rect x="330" y="313" width="221.54" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="559.54" y="322" font-size="12.5" fill="#52514e">6</text>
-<rect x="330" y="324" width="73.85" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="411.85" y="333" font-size="12.5" fill="#898781">2  wrong</text>
+<rect x="330" y="313" width="58.18" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="396.18" y="322" font-size="12.5" fill="#52514e">4</text>
+<rect x="330" y="324" width="145.45" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
+<text x="483.45" y="333" font-size="12.5" fill="#898781">10  wrong</text>
 <text x="320" y="354" font-size="13" fill="#0b0b0b" text-anchor="end">Sorting violations worst-first</text>
-<rect x="330" y="342" width="221.54" height="9" rx="4.5" fill="#eb6834" opacity="0.25"/>
-<text x="559.54" y="351" font-size="12.5" fill="#898781">6  wrong</text>
-<rect x="330" y="353" width="73.85" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="411.85" y="362" font-size="12.5" fill="#898781">2  wrong</text>
+<rect x="330" y="342" width="87.27" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="425.27" y="351" font-size="12.5" fill="#52514e">6</text>
+<rect x="330" y="353" width="218.18" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
+<text x="556.18" y="362" font-size="12.5" fill="#52514e">15</text>
 <text x="320" y="383" font-size="13" fill="#0b0b0b" text-anchor="end">One outage per new generator</text>
-<rect x="330" y="371" width="184.62" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="522.62" y="380" font-size="12.5" fill="#52514e">5</text>
-<rect x="330" y="382" width="73.85" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="411.85" y="391" font-size="12.5" fill="#898781">2  wrong</text>
+<rect x="330" y="371" width="87.27" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="425.27" y="380" font-size="12.5" fill="#52514e">6</text>
+<rect x="330" y="382" width="247.27" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
+<text x="585.27" y="391" font-size="12.5" fill="#52514e">17</text>
 <text x="320" y="412" font-size="13" fill="#0b0b0b" text-anchor="end">Total system inertia</text>
-<rect x="330" y="400" width="221.54" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="559.54" y="409" font-size="12.5" fill="#52514e">6</text>
-<rect x="330" y="411" width="110.77" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
-<text x="448.77" y="420" font-size="12.5" fill="#52514e">3</text>
+<rect x="330" y="400" width="72.73" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="410.73" y="409" font-size="12.5" fill="#52514e">5</text>
+<rect x="330" y="411" width="218.18" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
+<text x="556.18" y="420" font-size="12.5" fill="#52514e">15</text>
 <text x="320" y="441" font-size="13" fill="#0b0b0b" text-anchor="end">Reclassifying lines as transformers</text>
-<rect x="330" y="429" width="147.69" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="485.69" y="438" font-size="12.5" fill="#52514e">4</text>
-<rect x="330" y="440" width="73.85" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="411.85" y="449" font-size="12.5" fill="#898781">2  wrong</text>
+<rect x="330" y="429" width="58.18" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="396.18" y="438" font-size="12.5" fill="#52514e">4</text>
+<rect x="330" y="440" width="276.36" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
+<text x="614.36" y="449" font-size="12.5" fill="#898781">19  wrong</text>
 <text x="320" y="470" font-size="13" fill="#0b0b0b" text-anchor="end">What hourly wind and solar needs first</text>
-<rect x="330" y="458" width="184.62" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="522.62" y="467" font-size="12.5" fill="#52514e">5</text>
-<rect x="330" y="469" width="110.77" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="448.77" y="478" font-size="12.5" fill="#898781">3  wrong</text>
+<rect x="330" y="458" width="130.91" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="468.91" y="467" font-size="12.5" fill="#52514e">9</text>
+<rect x="330" y="469" width="334.55" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
+<text x="672.55" y="478" font-size="12.5" fill="#52514e">23</text>
 <text x="320" y="499" font-size="13" fill="#0b0b0b" text-anchor="end">Capacity factor from the output file</text>
-<rect x="330" y="487" width="147.69" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="485.69" y="496" font-size="12.5" fill="#52514e">4</text>
-<rect x="330" y="498" width="73.85" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="411.85" y="507" font-size="12.5" fill="#898781">2  wrong</text>
+<rect x="330" y="487" width="87.27" height="9" rx="4.5" fill="#eb6834" opacity="0.25"/>
+<text x="425.27" y="496" font-size="12.5" fill="#898781">6  wrong</text>
+<rect x="330" y="498" width="58.18" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
+<text x="396.18" y="507" font-size="12.5" fill="#898781">4  wrong</text>
 <text x="320" y="528" font-size="13" fill="#0b0b0b" text-anchor="end">It solves in DC — trust it for AC?</text>
-<rect x="330" y="516" width="332.31" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="670.31" y="525" font-size="12.5" fill="#52514e">9</text>
-<rect x="330" y="527" width="110.77" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
-<text x="448.77" y="536" font-size="12.5" fill="#52514e">3</text>
+<rect x="330" y="516" width="87.27" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="425.27" y="525" font-size="12.5" fill="#52514e">6</text>
+<rect x="330" y="527" width="87.27" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
+<text x="425.27" y="536" font-size="12.5" fill="#52514e">6</text>
 <text x="320" y="557" font-size="13" fill="#0b0b0b" text-anchor="end">Speeding up a two-hour outage run</text>
-<rect x="330" y="545" width="221.54" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="559.54" y="554" font-size="12.5" fill="#52514e">6</text>
-<rect x="330" y="556" width="147.69" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
-<text x="485.69" y="565" font-size="12.5" fill="#52514e">4</text>
+<rect x="330" y="545" width="72.73" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="410.73" y="554" font-size="12.5" fill="#52514e">5</text>
+<rect x="330" y="556" width="261.82" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
+<text x="599.82" y="565" font-size="12.5" fill="#898781">18  wrong</text>
 <text x="320" y="586" font-size="13" fill="#0b0b0b" text-anchor="end">Run a security-constrained OPF</text>
-<rect x="330" y="574" width="480.00" height="9" rx="4.5" fill="#eb6834" opacity="0.25"/>
-<text x="818.00" y="583" font-size="12.5" fill="#898781">13  wrong</text>
-<rect x="330" y="585" width="147.69" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="485.69" y="594" font-size="12.5" fill="#898781">4  wrong</text>
+<rect x="330" y="574" width="160.00" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="498.00" y="583" font-size="12.5" fill="#52514e">11</text>
+<rect x="330" y="585" width="174.55" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
+<text x="512.55" y="594" font-size="12.5" fill="#52514e">12</text>
 <text x="320" y="615" font-size="13" fill="#0b0b0b" text-anchor="end">Export the Ybus for MATLAB</text>
-<rect x="330" y="603" width="406.15" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="744.15" y="612" font-size="12.5" fill="#52514e">11</text>
-<rect x="330" y="614" width="147.69" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
-<text x="485.69" y="623" font-size="12.5" fill="#52514e">4</text>
+<rect x="330" y="603" width="203.64" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="541.64" y="612" font-size="12.5" fill="#52514e">14</text>
+<rect x="330" y="614" width="247.27" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
+<text x="585.27" y="623" font-size="12.5" fill="#52514e">17</text>
 <text x="320" y="644" font-size="13" fill="#0b0b0b" text-anchor="end">Renumber the buses</text>
-<rect x="330" y="632" width="406.15" height="9" rx="4.5" fill="#eb6834" opacity="0.25"/>
-<text x="744.15" y="641" font-size="12.5" fill="#898781">11  wrong</text>
-<rect x="330" y="643" width="147.69" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="485.69" y="652" font-size="12.5" fill="#898781">4  wrong</text>
+<rect x="330" y="632" width="203.64" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="541.64" y="641" font-size="12.5" fill="#52514e">14</text>
+<rect x="330" y="643" width="145.45" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
+<text x="483.45" y="652" font-size="12.5" fill="#52514e">10</text>
 <text x="320" y="673" font-size="13" fill="#0b0b0b" text-anchor="end">Built-in LODF screening</text>
-<rect x="330" y="661" width="369.23" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="707.23" y="670" font-size="12.5" fill="#52514e">10</text>
-<rect x="330" y="672" width="110.77" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="448.77" y="681" font-size="12.5" fill="#898781">3  wrong</text>
+<rect x="330" y="661" width="174.55" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="512.55" y="670" font-size="12.5" fill="#52514e">12</text>
+<rect x="330" y="672" width="174.55" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
+<text x="512.55" y="681" font-size="12.5" fill="#898781">12  wrong</text>
 <text x="320" y="702" font-size="13" fill="#0b0b0b" text-anchor="end">Combine and crop weather files</text>
-<rect x="330" y="690" width="221.54" height="9" rx="4.5" fill="#eb6834" opacity="0.25"/>
-<text x="559.54" y="699" font-size="12.5" fill="#898781">6  wrong</text>
-<rect x="330" y="701" width="73.85" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="411.85" y="710" font-size="12.5" fill="#898781">2  wrong</text>
+<rect x="330" y="690" width="189.09" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="527.09" y="699" font-size="12.5" fill="#52514e">13</text>
+<rect x="330" y="701" width="480.00" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
+<text x="818.00" y="710" font-size="12.5" fill="#52514e">33</text>
 <text x="320" y="731" font-size="13" fill="#0b0b0b" text-anchor="end">Set participation factors</text>
-<rect x="330" y="719" width="258.46" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="596.46" y="728" font-size="12.5" fill="#52514e">7</text>
-<rect x="330" y="730" width="147.69" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
-<text x="485.69" y="739" font-size="12.5" fill="#52514e">4</text>
+<rect x="330" y="719" width="305.45" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="643.45" y="728" font-size="12.5" fill="#52514e">21</text>
+<rect x="330" y="730" width="232.73" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
+<text x="570.73" y="739" font-size="12.5" fill="#52514e">16</text>
 <text x="320" y="760" font-size="13" fill="#0b0b0b" text-anchor="end">Reduce a case to an equivalent</text>
-<rect x="330" y="748" width="295.38" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
-<text x="633.38" y="757" font-size="12.5" fill="#52514e">8</text>
-<rect x="330" y="759" width="73.85" height="9" rx="4.5" fill="#1baf7a" opacity="0.25"/>
-<text x="411.85" y="768" font-size="12.5" fill="#898781">2  wrong</text>
+<rect x="330" y="748" width="261.82" height="9" rx="4.5" fill="#eb6834" opacity="1"/>
+<text x="599.82" y="757" font-size="12.5" fill="#52514e">18</text>
+<rect x="330" y="759" width="218.18" height="9" rx="4.5" fill="#1baf7a" opacity="1"/>
+<text x="556.18" y="768" font-size="12.5" fill="#52514e">15</text>
 <line x1="330" y1="781" x2="810" y2="781" stroke="#c3c2b7" stroke-width="1"/>
 <line x1="330.00" y1="781" x2="330.00" y2="785" stroke="#c3c2b7" stroke-width="1"/>
 <text x="330.00" y="799" font-size="12" fill="#52514e" text-anchor="middle">0</text>
-<line x1="403.85" y1="781" x2="403.85" y2="785" stroke="#c3c2b7" stroke-width="1"/>
-<text x="403.85" y="799" font-size="12" fill="#52514e" text-anchor="middle">2</text>
-<line x1="477.69" y1="781" x2="477.69" y2="785" stroke="#c3c2b7" stroke-width="1"/>
-<text x="477.69" y="799" font-size="12" fill="#52514e" text-anchor="middle">4</text>
-<line x1="551.54" y1="781" x2="551.54" y2="785" stroke="#c3c2b7" stroke-width="1"/>
-<text x="551.54" y="799" font-size="12" fill="#52514e" text-anchor="middle">6</text>
-<line x1="625.38" y1="781" x2="625.38" y2="785" stroke="#c3c2b7" stroke-width="1"/>
-<text x="625.38" y="799" font-size="12" fill="#52514e" text-anchor="middle">8</text>
-<line x1="699.23" y1="781" x2="699.23" y2="785" stroke="#c3c2b7" stroke-width="1"/>
-<text x="699.23" y="799" font-size="12" fill="#52514e" text-anchor="middle">10</text>
-<line x1="773.08" y1="781" x2="773.08" y2="785" stroke="#c3c2b7" stroke-width="1"/>
-<text x="773.08" y="799" font-size="12" fill="#52514e" text-anchor="middle">12</text>
+<line x1="359.09" y1="781" x2="359.09" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="359.09" y="799" font-size="12" fill="#52514e" text-anchor="middle">2</text>
+<line x1="388.18" y1="781" x2="388.18" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="388.18" y="799" font-size="12" fill="#52514e" text-anchor="middle">4</text>
+<line x1="417.27" y1="781" x2="417.27" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="417.27" y="799" font-size="12" fill="#52514e" text-anchor="middle">6</text>
+<line x1="446.36" y1="781" x2="446.36" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="446.36" y="799" font-size="12" fill="#52514e" text-anchor="middle">8</text>
+<line x1="475.45" y1="781" x2="475.45" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="475.45" y="799" font-size="12" fill="#52514e" text-anchor="middle">10</text>
+<line x1="504.55" y1="781" x2="504.55" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="504.55" y="799" font-size="12" fill="#52514e" text-anchor="middle">12</text>
+<line x1="533.64" y1="781" x2="533.64" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="533.64" y="799" font-size="12" fill="#52514e" text-anchor="middle">14</text>
+<line x1="562.73" y1="781" x2="562.73" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="562.73" y="799" font-size="12" fill="#52514e" text-anchor="middle">16</text>
+<line x1="591.82" y1="781" x2="591.82" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="591.82" y="799" font-size="12" fill="#52514e" text-anchor="middle">18</text>
+<line x1="620.91" y1="781" x2="620.91" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="620.91" y="799" font-size="12" fill="#52514e" text-anchor="middle">20</text>
+<line x1="650.00" y1="781" x2="650.00" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="650.00" y="799" font-size="12" fill="#52514e" text-anchor="middle">22</text>
+<line x1="679.09" y1="781" x2="679.09" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="679.09" y="799" font-size="12" fill="#52514e" text-anchor="middle">24</text>
+<line x1="708.18" y1="781" x2="708.18" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="708.18" y="799" font-size="12" fill="#52514e" text-anchor="middle">26</text>
+<line x1="737.27" y1="781" x2="737.27" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="737.27" y="799" font-size="12" fill="#52514e" text-anchor="middle">28</text>
+<line x1="766.36" y1="781" x2="766.36" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="766.36" y="799" font-size="12" fill="#52514e" text-anchor="middle">30</text>
+<line x1="795.45" y1="781" x2="795.45" y2="785" stroke="#c3c2b7" stroke-width="1"/>
+<text x="795.45" y="799" font-size="12" fill="#52514e" text-anchor="middle">32</text>
 <text x="570" y="823" font-size="13" fill="#52514e" text-anchor="middle">number of searches</text>
-<text x="20" y="823" font-size="13.5" fill="#0b0b0b">HiveMind: 146 searches, 19 of 23 right. &#160;&#160;Fresh assistant: 71 searches, 6 of 23 right.</text>
+<text x="20" y="823" font-size="13.5" fill="#0b0b0b">HiveMind: 194 searches, 22 of 23 right. &#160;&#160;Fresh assistant: 362 searches, 13 of 23 right.</text>
 <text x="20" y="843" font-size="12.5" fill="#898781">Fewer searches is not better on its own. Most of the short faded bars are questions the fresh assistant answered wrongly.</text>
 </svg>
