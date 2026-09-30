@@ -50,8 +50,8 @@ watched folder: [methods/aux-file-mode.md](methods/aux-file-mode.md).
 ## What's new in 0.4
 
 - **An agent team** that audits a case, runs studies with your settings, compares designs on
-  a map, and watches long runs. `schema-librarian` is live, the rest are
-  [drafts](docs/agents/README.md).
+  a map, and watches long runs. Each role is written up in [docs/agents](docs/agents/README.md),
+  and the site lets you [watch each one handle a request](https://chunsikpark.github.io/PowerWorldHiveMind/#agents).
 - **Answers as pages:** [Design Compare](docs/agents/pages/design-compare.html) for designs,
   [Run Watch](docs/agents/pages/run-watch.html) for long runs, and a swimlane picture of every
   plan before you approve it.

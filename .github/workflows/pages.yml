@@ -27,10 +27,10 @@ jobs:
       - name: Assemble the site
         run: |
           mkdir -p _site/demos
-          cp site/index.html _site/
+          cp site/index.html site/logo.svg _site/
           cp -r assets _site/assets
           cp docs/agents/pages/*.html _site/demos/
-          python3 site/build_graph.py _site/graph.json
+          python3 site/build_data.py _site/data.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

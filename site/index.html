@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PowerWorldHiveMind</title>
 <meta name="description" content="A knowledge kit that teaches your AI agent to drive PowerWorld Simulator, including the calls that report success and do nothing.">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -45,7 +46,7 @@ code{font:400 .9em/1.4 var(--mono);background:var(--sunk);padding:1px 5px;border
 /* top bar */
 .top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 0;}
 .brand{display:flex;align-items:center;gap:10px;font:600 17px/1 var(--cond);text-decoration:none;}
-.brand img{width:32px;height:32px;border-radius:6px;object-fit:cover;}
+.brand img{width:34px;height:34px;}
 .ver{font:500 13px/1 var(--sans);color:var(--muted);}
 .top nav{display:flex;gap:18px;font-size:15px;}
 @media (max-width:480px){.top nav a+a,.ver{display:none;}}
@@ -86,26 +87,26 @@ code{font:400 .9em/1.4 var(--mono);background:var(--sunk);padding:1px 5px;border
 .board-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:14px;}
 .board-head h2{font:600 22px/1.2 var(--cond);margin:0;}
 .board-head p{margin:0;color:var(--muted);font-size:14px;}
-.feeders{--bus:6px;position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;padding-top:58px;list-style:none;margin:0;padding-left:0;}
+.feeders{--bus:6px;position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;padding-top:58px;list-style:none;margin:0;padding-left:0;}
 .feeders::before{content:"";position:absolute;left:0;right:0;top:0;height:var(--bus);background:var(--ink);border-radius:1px;}
 .feeder{position:relative;}
 .feeder::before{content:"";position:absolute;left:50%;top:-58px;height:58px;width:2px;background:var(--rule);transform:translateX(-1px);transition:background .2s;}
 .brk{position:absolute;left:50%;top:-40px;width:16px;height:16px;transform:translateX(-8px);border:2px solid var(--open);background:var(--bg);transition:background .2s,border-color .2s;}
-.tile{display:flex;flex-direction:column;gap:8px;width:100%;height:100%;text-align:left;padding:16px 14px 16px;border:1.5px solid var(--rule);border-radius:4px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;transition:border-color .2s;}
+.tile{display:flex;flex-direction:column;gap:8px;width:100%;height:100%;text-align:left;padding:14px 12px;border:1.5px solid var(--rule);border-radius:4px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;transition:border-color .2s;}
 .tile:hover{border-color:var(--ink);}
 .tile svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:1.6;color:var(--muted);}
-.tile b{font:600 18px/1.2 var(--cond);}
-.tile span{font-size:14px;line-height:1.45;color:var(--muted);}
+.tile b{font:600 17px/1.2 var(--cond);}
+.tile span{font-size:13.5px;line-height:1.45;color:var(--muted);}
 .feeder.on::before{background:var(--live);}
 .feeder.on .brk{background:var(--live);border-color:var(--live);}
 .feeder.on .tile{border-color:var(--live);}
 .feeder.on .tile svg{color:var(--live);}
-@media (max-width:960px){.feeders{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:72px;}
-  .feeders .feeder:nth-child(n+4)::before{top:-72px;height:72px;}}
+@media (max-width:1100px){.feeders{grid-template-columns:repeat(4,minmax(0,1fr));row-gap:72px;}
+  .feeders .feeder:nth-child(n+5)::before{top:-72px;height:72px;}}
 @media (max-width:640px){
   .feeders{grid-template-columns:1fr;row-gap:10px;padding-top:0;padding-left:40px;}
   .feeders::before{top:0;bottom:0;left:0;right:auto;width:var(--bus);height:auto;}
-  .feeder::before,.feeders .feeder:nth-child(n+4)::before{left:-40px;top:50%;width:40px;height:2px;transform:translateY(-1px);}
+  .feeder::before,.feeders .feeder:nth-child(n+5)::before{left:-40px;top:50%;width:40px;height:2px;transform:translateY(-1px);}
   .brk{left:-26px;top:50%;transform:translateY(-8px);}
   .tile{flex-direction:row;align-items:center;gap:12px;padding:12px;}
   .tile span{display:none;}
@@ -126,17 +127,6 @@ figure{margin:0;}
 figcaption{font-size:14px;color:var(--muted);margin-top:10px;}
 
 /* install */
-.tabs{display:flex;gap:4px;border-bottom:1.5px solid var(--rule);margin-bottom:20px;flex-wrap:wrap;}
-.tabs button{font:600 15px/1 var(--sans);padding:10px 14px;border:0;background:none;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1.5px;}
-.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink);}
-.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:grid;gap:18px;}
-.steps li{counter-increment:s;display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;}
-.steps li::before{content:counter(s);font:700 20px/32px var(--cond);text-align:center;border:1.5px solid var(--ink);border-radius:50%;width:32px;height:32px;}
-.steps p{margin:4px 0 8px;}
-.cmd{position:relative;display:flex;align-items:stretch;background:var(--sunk);border-radius:4px;min-width:0;}
-.cmd pre{margin:0;padding:12px 14px;font:400 14px/1.5 var(--mono);white-space:pre-wrap;word-break:break-all;flex:1;min-width:0;}
-.cmd button{flex-shrink:0;border:0;border-left:1px solid var(--rule);background:none;color:var(--muted);font:600 13px/1 var(--sans);padding:0 14px;cursor:pointer;}
-.cmd button:hover{color:var(--kit);}
 .check{background:var(--sunk);border-radius:4px;padding:20px 22px;}
 .check q{display:block;font:500 16px/1.5 var(--mono);margin:8px 0 16px;quotes:none;}
 .verdict{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:baseline;font-size:15px;}
@@ -166,19 +156,11 @@ figcaption{font-size:14px;color:var(--muted);margin-top:10px;}
 .roster button[aria-pressed="true"] b{color:var(--live);}
 .pill{font:600 12px/1 var(--sans);padding:4px 8px;border-radius:99px;border:1.5px solid var(--muted);color:var(--muted);align-self:center;}
 .pill.live{border-color:var(--open);color:var(--open);}
-.said{background:var(--sunk);border-radius:4px;padding:20px 22px;margin-bottom:20px;}
-.said dt{font-size:13px;color:var(--muted);margin-top:12px;}
-.said dt:first-child{margin-top:0;}
-.said dd{margin:2px 0 0;font-size:16px;}
-.said dd.say{font:500 17px/1.45 var(--cond);}
 .shows{display:grid;gap:14px;}
 .show{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;align-items:start;}
 .show svg{width:26px;height:26px;stroke:var(--kit);fill:none;stroke-width:1.6;margin-top:2px;}
 .show p{margin:0;font-size:15px;}
 .show b{display:block;font:600 17px/1.3 var(--cond);}
-.lane{margin-top:36px;padding-top:28px;border-top:1.5px solid var(--rule);}
-.lane svg{min-width:640px;}
-.lane-scroll{overflow-x:auto;}
 .demo-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
 
 /* see it work */
@@ -213,15 +195,115 @@ figcaption{font-size:14px;color:var(--muted);margin-top:10px;}
 .seq b{font:600 16px/1.3 var(--cond);display:block;}
 .seq span{font-size:15px;color:var(--muted);}
 
+/* install */
+.cmd{display:flex;align-items:stretch;background:var(--sunk);border-radius:4px;min-width:0;margin:0 0 8px;}
+.cmd pre{margin:0;padding:12px 14px;font:400 14px/1.5 var(--mono);white-space:pre-wrap;word-break:break-word;flex:1;min-width:0;}
+.cmd button{flex-shrink:0;border:0;border-left:1px solid var(--rule);background:none;color:var(--muted);font:600 13px/1 var(--sans);padding:0 14px;cursor:pointer;}
+.cmd button:hover{color:var(--kit);}
+.novice{list-style:none;counter-reset:s;margin:0;padding:0;display:grid;gap:0;max-width:880px;}
+.novice > li{counter-increment:s;position:relative;padding:0 0 28px 60px;min-width:0;}
+.novice > li::before{content:counter(s);position:absolute;left:0;top:0;width:38px;height:38px;border-radius:50%;background:var(--ink);color:var(--bg);font:700 20px/38px var(--cond);text-align:center;}
+.novice > li::after{content:"";position:absolute;left:18px;top:44px;bottom:6px;width:2px;background:var(--rule);}
+.novice > li:last-child::after{display:none;}
+.novice h3{font:700 22px/1.2 var(--cond);margin:6px 0 6px;}
+.novice p{max-width:40em;}
+.novice .then{margin:12px 0 6px;font-size:15px;}
+.novice .acts{display:flex;flex-wrap:wrap;gap:10px;}
+.novice .shot{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:24px;align-items:start;}
+.novice .shot img{width:100%;border:1.5px solid var(--rule);border-radius:4px;}
+@media (max-width:760px){.novice .shot{grid-template-columns:1fr;}.novice > li{padding-left:52px;}}
+.stuck{margin:4px 0 0 60px;font-size:15px;color:var(--muted);}
+.other-h{margin-top:40px !important;padding-top:28px;border-top:1.5px solid var(--rule);}
+.inst-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start;}
+.inst{border:1.5px solid var(--rule);border-radius:4px;padding:18px;background:var(--bg);min-width:0;}
+.inst h4{font:700 19px/1.2 var(--cond);margin:0 0 2px;}
+.inst .for{color:var(--muted);font-size:14px;margin:0 0 6px;}
+.inst .do{font-size:15px;margin:10px 0 0;}
+@media (max-width:960px){.inst-grid{grid-template-columns:1fr;}}
+
+/* find */
+.qpick{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px;}
+.qpick button{font:500 15px/1.3 var(--sans);text-align:left;padding:10px 14px;border-radius:4px;border:1.5px solid var(--rule);background:var(--surface);color:var(--ink);cursor:pointer;}
+.qpick button:hover{border-color:var(--ink);}
+.qpick button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink);}
+.find-cols{grid-template-columns:minmax(0,1.5fr) minmax(0,.8fr);}
+.ladder{list-style:none;counter-reset:s;margin:0;padding:0;display:grid;gap:22px;}
+.ladder > li{counter-increment:s;position:relative;padding-left:44px;opacity:.22;transition:opacity .35s;min-width:0;}
+.ladder > li.on{opacity:1;}
+.ladder > li::before{content:counter(s);position:absolute;left:0;top:-2px;font:700 17px/30px var(--cond);text-align:center;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--ink);}
+.ladder > li.on::before{background:var(--ink);color:var(--bg);}
+.ladder > li > b{display:block;font:600 19px/1.3 var(--cond);margin-bottom:6px;}
+.ladder p{font-size:15px;margin:0 0 10px;}
+.terms{display:grid;gap:8px;}
+.terms .tk{display:inline-block;width:132px;font-size:13px;color:var(--muted);}
+.chip{display:inline-block;margin:0 6px 4px 0;padding:4px 10px;border-radius:99px;background:var(--sunk);font-size:14px;}
+.chip.id{font:500 13.5px/1.5 var(--mono);background:var(--surface);border:1.5px solid var(--kit);}
+.rank-wrap{overflow-x:auto;}
+.rank{border-collapse:collapse;font-size:13.5px;width:100%;}
+.rank th{font-weight:500;color:var(--muted);text-align:center;padding:6px 8px;border-bottom:1.5px solid var(--rule);font-size:12.5px;}
+.rank th:first-child,.rank td:first-child{text-align:left;}
+.rank td{padding:7px 8px;border-bottom:1px solid var(--rule);text-align:center;white-space:nowrap;}
+.rank td:first-child{font:400 13px/1.35 var(--mono);white-space:normal;word-break:break-word;}
+.rank td:first-child span{color:var(--muted);}
+.rank td a{text-decoration:none;}
+.rank td.h{font-weight:600;}
+.rank td.z{color:var(--web);}
+.rank tr.lead{background:var(--live-bg);}
+.rank tr.lead td:first-child{border-left:3px solid var(--live);}
+.abs{margin:0;padding:14px 16px;background:var(--sunk);border-radius:4px;font-size:15px;line-height:1.55;}
+.abs cite{display:block;font:500 13px/1.4 var(--mono);font-style:normal;margin-bottom:6px;}
+.ans{border-left:3px solid var(--kit);padding:4px 0 4px 16px;font-size:16px;}
+.ans p{margin:0 0 8px;}
+.ans .src{font-size:13.5px;color:var(--muted);margin-top:8px;}
+.why h3{margin-top:22px;}
+.why h3:first-child{margin-top:0;}
+.why p{font-size:15px;}
+.why .bar-row{grid-template-columns:118px minmax(0,1fr) 64px;}
+@media (max-width:860px){.find-cols{grid-template-columns:1fr;}}
+
+/* agent player */
+.agents-cols{grid-template-columns:minmax(0,.8fr) minmax(0,1.45fr);}
+.roster-note{font-size:14px;color:var(--muted);margin-top:14px;}
+.roster button{grid-template-columns:minmax(0,1fr) auto;}
+.player{border:1.5px solid var(--ink);border-radius:4px;background:var(--bg);display:flex;flex-direction:column;min-width:0;}
+.player-head{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;padding:12px 16px;border-bottom:1.5px solid var(--rule);}
+.player-head b{font:600 18px/1.2 var(--cond);}
+.player-head span{font-size:14px;color:var(--muted);}
+.player-head button{margin-left:auto;font:600 13px/1 var(--sans);padding:6px 10px;border:1.5px solid var(--rule);border-radius:4px;background:none;color:var(--ink);cursor:pointer;}
+.chat{padding:16px;display:grid;gap:10px;min-height:440px;align-content:start;}
+.m{opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s;min-width:0;}
+.m.in{opacity:1;transform:none;}
+.m.you{justify-self:end;max-width:85%;background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:12px 12px 2px 12px;font-size:15px;}
+.m.tool{display:grid;grid-template-columns:14px minmax(0,1fr);font:400 13px/1.5 var(--mono);color:var(--muted);}
+.m.tool .p{color:var(--kit);font-weight:600;}
+.m.tool .res{color:var(--ink);}
+.m.tool pre{margin:6px 0 0;padding:8px 10px;background:var(--sunk);border-radius:3px;font-size:12.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word;color:var(--ink);}
+.m.note{font-size:14px;color:var(--muted);font-style:italic;padding-left:14px;}
+.m.agent{background:var(--surface);border-left:3px solid var(--kit);padding:12px 14px;border-radius:0 4px 4px 0;font-size:15px;}
+.m.agent p{margin:0 0 8px;}
+.m.agent p:last-child{margin:0;}
+.m.agent pre{margin:0 0 8px;font:400 13px/1.6 var(--mono);white-space:pre-wrap;word-break:break-word;}
+.m.agent table{border-collapse:collapse;font-size:13.5px;margin:6px 0 10px;width:100%;}
+.m.agent th,.m.agent td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--rule);}
+.m.agent th{color:var(--muted);font-weight:500;}
+.pnote{max-width:none !important;margin:0;padding:10px 16px;border-top:1.5px solid var(--rule);font-size:13px;color:var(--muted);}
+.lane-scroll{overflow-x:auto;margin:6px 0 10px;}
+.lane-scroll svg{min-width:480px;}
+.shows-h{margin-top:40px !important;}
+.shows.three{grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;}
+@media (max-width:860px){.agents-cols{grid-template-columns:1fr;}.shows.three{grid-template-columns:1fr;}.chat{min-height:0;}}
+@media (prefers-reduced-motion: reduce){.m{opacity:1;transform:none;}.ladder > li{opacity:1;}}
+
 footer{border-top:1.5px solid var(--rule);padding:28px 0 48px;color:var(--muted);font-size:14px;}
 footer p{margin:0 0 8px;max-width:60em;}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="context-stroke"/></marker></defs></svg>
 
 <div class="wrap">
   <header class="top">
-    <a class="brand" href="#"><img src="assets/juiced.jpg" alt=""> PowerWorldHiveMind <span class="ver">v0.4.0</span></a>
+    <a class="brand" href="#"><img src="logo.svg" alt=""> PowerWorldHiveMind <span class="ver">v0.4.0</span></a>
     <nav><a href="https://github.com/ChunSikPark/PowerWorldHiveMind">GitHub</a><a href="https://github.com/ChunSikPark/PowerWorldHiveMind/blob/main/CHANGELOG.md">Changelog</a></nav>
   </header>
 
@@ -230,7 +312,7 @@ footer p{margin:0 0 8px;max-width:60em;}
       <h1>Tired of babysitting your coding agent?</h1>
       <p class="lede">PowerWorldHiveMind is a knowledge kit your AI agent reads before it touches PowerWorld Simulator. It knows the calls that report success and change nothing, so you stop having to be the documentation.</p>
       <div class="cta">
-        <a class="btn primary" href="#install" data-open="install">Install in three steps</a>
+        <a class="btn primary" href="#install" data-open="install">Install</a>
         <a class="btn" href="https://github.com/ChunSikPark/PowerWorldHiveMind">View on GitHub</a>
       </div>
       <p class="stat"><b>19 of 23</b> PowerWorld questions right with the kit, against <b>6</b> for the same model with the open web, marked blind.</p>
@@ -254,17 +336,22 @@ footer p{margin:0 0 8px;max-width:60em;}
       <li class="feeder" data-id="install"><i class="brk" aria-hidden="true"></i>
         <button class="tile" aria-controls="panel" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 20h16"/></svg>
-          <b>Install</b><span>Paste one sentence into Claude Code. Three steps.</span>
+          <b>Install</b><span>About 15 minutes, no coding. Two downloads and one sentence.</span>
         </button></li>
       <li class="feeder" data-id="talk"><i class="brk" aria-hidden="true"></i>
         <button class="tile" aria-controls="panel" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h8m0 0-3-3m3 3-3 3M21 17h-8m0 0 3-3m-3 3 3 3"/></svg>
           <b>How it talks to PowerWorld</b><span>Python through SimAuto, or script files in a watched folder.</span>
         </button></li>
+      <li class="feeder" data-id="find"><i class="brk" aria-hidden="true"></i>
+        <button class="tile" aria-controls="panel" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 6 6M8 10.5h5"/></svg>
+          <b>How it finds the answer</b><span>Your question becomes search terms, and only the matching page gets read.</span>
+        </button></li>
       <li class="feeder" data-id="agents"><i class="brk" aria-hidden="true"></i>
         <button class="tile" aria-controls="panel" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M2 20c0-3.5 2.7-6 6-6s6 2.5 6 6M14 19c.3-2.6 1.8-4.5 3.5-4.5S21 16.4 21 19"/></svg>
-          <b>The agent team</b><span>Audit a case, run a study, compare designs on a map, watch long runs.</span>
+          <b>The agent team</b><span>Six roles. Watch each one handle a request.</span>
         </button></li>
       <li class="feeder" data-id="work"><i class="brk" aria-hidden="true"></i>
         <button class="tile" aria-controls="panel" aria-expanded="false">
@@ -289,48 +376,65 @@ footer p{margin:0 0 8px;max-width:60em;}
     <!-- INSTALL -->
     <section data-panel="install" hidden>
       <h2>Install</h2>
-      <p class="sub">Works in the Claude desktop app and the CLI. You need Windows, PowerWorld Simulator, and its SimAuto add-on to run studies.</p>
-      <div class="cols">
-        <div>
-          <div class="tabs" role="tablist" aria-label="Your agent">
-            <button role="tab" aria-selected="true" data-tab="cc">Claude Code</button>
-            <button role="tab" aria-selected="false" data-tab="codex">Codex</button>
-            <button role="tab" aria-selected="false" data-tab="other">Anything else</button>
+      <p class="sub">About fifteen minutes, and no coding. Two downloads, a few clicks, and one sentence pasted into a chat box. You need PowerWorld Simulator on this Windows computer already.</p>
+      <ol class="novice">
+        <li>
+          <h3>Get the Claude app</h3>
+          <p>Download it, open the file it saves, and sign in. You need a paid plan (Pro or above), because the free plan doesn't include the Code tab. Install Git too, clicking through with every default. Claude uses it to fetch the kit.</p>
+          <div class="acts"><a class="btn primary" href="https://claude.com/download">Download Claude</a><a class="btn" href="https://git-scm.com/downloads/win">Download Git</a></div>
+        </li>
+        <li>
+          <h3>Get Python</h3>
+          <p>Run the installer, and <b>on its first screen, tick "Add Python to PATH"</b> before you click Install. The box is off by default, and missing it is the most common way this goes wrong.</p>
+          <div class="acts"><a class="btn" href="https://www.python.org/downloads/">Download Python</a></div>
+        </li>
+        <li class="shot">
+          <div>
+            <h3>Open the Code tab</h3>
+            <p>In Claude, click <b>Code</b> at the top left. The Chat tab can't see your files. Code can, and it's where everything below happens.</p>
           </div>
-          <ol class="steps" data-tabpanel="cc">
-            <li><div><p>Paste this sentence into Claude Code.</p>
-              <div class="cmd"><pre>Install the PowerWorld knowledge base: git clone https://github.com/ChunSikPark/PowerWorldHiveMind ~/.claude/skills/powerworld-hivemind</pre><button type="button" data-copy>Copy</button></div></div></li>
-            <li><div><p>Load it.</p>
-              <div class="cmd"><pre>/reload-plugins</pre><button type="button" data-copy>Copy</button></div></div></li>
-            <li><div><p>Set up Python and check that this machine can drive PowerWorld, SimAuto licence included.</p>
-              <div class="cmd"><pre>/powerworld-hivemind:powerworld-setup</pre><button type="button" data-copy>Copy</button></div></div></li>
-          </ol>
-          <ol class="steps" data-tabpanel="codex" hidden>
-            <li><div><p>Add the marketplace.</p>
-              <div class="cmd"><pre>codex plugin marketplace add ChunSikPark/PowerWorldHiveMind</pre><button type="button" data-copy>Copy</button></div></div></li>
-            <li><div><p>Open <code>/plugins</code>, install <b>powerworld-hivemind</b>, and start a new session.</p></div></li>
-            <li><div><p>Not yet tested on a released Codex build. If it fails, use the Anything else route and open an issue.</p></div></li>
-          </ol>
-          <ol class="steps" data-tabpanel="other" hidden>
-            <li><div><p>Clone the kit and install the two Python packages.</p>
-              <div class="cmd"><pre>git clone https://github.com/ChunSikPark/PowerWorldHiveMind
+          <img src="assets/desktop-code-toggle.png" alt="The Code button at the top left of the Claude app, next to Chat and Cowork" loading="lazy">
+        </li>
+        <li>
+          <h3>Paste one sentence</h3>
+          <p>Paste this into the message box and press Enter. It's a request, not a command: you're asking Claude to fetch the kit for you.</p>
+          <div class="cmd"><pre>Install the PowerWorld knowledge base: git clone https://github.com/ChunSikPark/PowerWorldHiveMind ~/.claude/skills/powerworld-hivemind</pre><button type="button" data-copy>Copy</button></div>
+          <p class="then">When it's done, type this to load it:</p>
+          <div class="cmd"><pre>/reload-plugins</pre><button type="button" data-copy>Copy</button></div>
+        </li>
+        <li>
+          <h3>Let it check your computer</h3>
+          <p>Type this. It installs what the kit needs and checks that PowerWorld can be driven from this machine.</p>
+          <div class="cmd"><pre>/powerworld-hivemind:powerworld-setup</pre><button type="button" data-copy>Copy</button></div>
+          <p class="then">If it says SimAuto isn't licensed, that's a PowerWorld licence question for whoever manages yours, not a mistake you made.</p>
+        </li>
+        <li>
+          <h3>Ask your first question</h3>
+          <p>Start with this one. The right answer is <b>"it silently writes no file"</b>. If it says "it saves the case", type <code>/reload-plugins</code> and ask again.</p>
+          <div class="cmd"><pre>Without running any code, what happens if I call pw.esa.SaveCase("out.pwb")?</pre><button type="button" data-copy>Copy</button></div>
+          <p class="then">Then point it at one of your own cases, in plain English:</p>
+          <div class="cmd"><pre>Open my case at C:\path\to\case.pwb and summarize it.</pre><button type="button" data-copy>Copy</button></div>
+          <div class="cmd"><pre>Run an N-1 contingency analysis and show me the worst violations.</pre><button type="button" data-copy>Copy</button></div>
+        </li>
+      </ol>
+      <p class="stuck">Stuck on a step? <a href="https://github.com/ChunSikPark/PowerWorldHiveMind/blob/main/GETTING-STARTED.md">The getting-started guide</a> shows what each failure looks like and how to fix it.</p>
+
+      <h3 class="other-h">Already use another AI coding tool?</h3>
+      <div class="inst-grid">
+        <article class="inst">
+          <h4>Codex</h4>
+          <p class="for">Through the Codex plugin marketplace.</p>
+          <div class="cmd"><pre>codex plugin marketplace add ChunSikPark/PowerWorldHiveMind</pre><button type="button" data-copy>Copy</button></div>
+          <p class="do">Then open <code>/plugins</code>, install <b>powerworld-hivemind</b>, and start a new session.</p>
+        </article>
+        <article class="inst">
+          <h4>Cursor, Windsurf, Copilot, Gemini CLI</h4>
+          <p class="for">Any agent that reads the files in a folder.</p>
+          <div class="cmd"><pre>git clone https://github.com/ChunSikPark/PowerWorldHiveMind
 cd PowerWorldHiveMind
-pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</button></div></div></li>
-            <li><div><p>Start Cursor, Windsurf, Gemini CLI or Copilot in that folder.</p></div></li>
-            <li><div><p>Tell it this.</p>
-              <div class="cmd"><pre>Read AGENTS.md and run the preflight.</pre><button type="button" data-copy>Copy</button></div></div></li>
-          </ol>
-          <p style="margin-top:24px">Never used Claude Code or Python? <a href="https://github.com/ChunSikPark/PowerWorldHiveMind/blob/main/GETTING-STARTED.md">Getting started</a> goes from nothing in six steps, about fifteen minutes, with screenshots.</p>
-        </div>
-        <div class="check">
-          <h3>Check that it loaded</h3>
-          <p>Ask your agent:</p>
-          <q>What does pw.esa.SaveCase("out.pwb") do?</q>
-          <div class="verdict">
-            <span class="dot" style="background:var(--open)"></span><span><b>"Silently writes no file."</b> The kit loaded.</span>
-            <span class="dot" style="background:var(--live)"></span><span><b>"Saves the case."</b> It did not. Run <code>/reload-plugins</code> or start a new conversation. Reopening the app restores the old one.</span>
-          </div>
-        </div>
+pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</button></div>
+          <p class="do">Start your agent in that folder and tell it: <code>Read AGENTS.md and run the preflight.</code></p>
+        </article>
       </div>
     </section>
 
@@ -362,7 +466,6 @@ pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</
         </div>
         <figure>
           <svg class="dia" id="routes" data-route="1" viewBox="0 0 760 300" role="img" aria-label="Two routes from the agent to Simulator: Python through esapp and SimAuto, or an aux script dropped into a watched folder that returns logs and CSVs.">
-            <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="context-stroke"/></marker></defs>
             <path class="w" d="M90 142H128" marker-end="url(#ah)" marker-start="url(#ah)"/>
             <rect class="box" x="10" y="120" width="80" height="44" rx="4"/><text class="t" x="50" y="147" text-anchor="middle">You</text>
             <rect class="box" x="130" y="120" width="100" height="44" rx="4"/><text class="t" x="180" y="147" text-anchor="middle">Agent</text>
@@ -391,41 +494,71 @@ pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</
       </div>
     </section>
 
+    <!-- FIND -->
+    <section data-panel="find" hidden>
+      <h2>How it finds the answer</h2>
+      <p class="sub">The agent never reads the whole kit. It turns your question into search terms, searches every page at once, and reads only the page that matches. The searches below ran on the kit itself when this site was built.</p>
+      <div class="qpick" id="qpick" role="group" aria-label="Pick a question"></div>
+      <div class="cols find-cols">
+        <ol class="ladder" id="ladder">
+          <li><b>Turn the question into two kinds of words</b>
+            <p>Your words, and the PowerWorld names they probably map to. A page might use either, so the agent searches both.</p>
+            <div class="terms" id="fTerms"></div></li>
+          <li><b>Search every page for all of them at once</b>
+            <div class="cmd"><pre id="fCmd"></pre></div>
+            <p id="fHit"></p>
+            <div class="rank-wrap"><table class="rank" id="fRank"></table></div></li>
+          <li><b>Read the top page's Abstract</b>
+            <p>A few lines that say whether this is the right page. If it isn't, the page's Connections say which one to open instead.</p>
+            <blockquote class="abs" id="fAbs"></blockquote></li>
+          <li><b>Read that page in full, then answer</b>
+            <div class="ans" id="fAns"></div></li>
+        </ol>
+        <aside class="why">
+          <h3>Why search first</h3>
+          <p>Measured on 2026-09-07 with 48 agents and 16 questions that had human-written answers. How often each starting point led to the right page:</p>
+          <div class="bar-row"><span>Search the pages</span><div class="track"><div class="fill kit" style="width:62.5%"></div></div><span class="n">10 of 16</span></div>
+          <div class="bar-row"><span>Routing table</span><div class="track"><div class="fill web" style="width:50%"></div></div><span class="n">8 of 16</span></div>
+          <div class="bar-row"><span>Start at the index</span><div class="track"><div class="fill web" style="width:43.75%"></div></div><span class="n">7 of 16</span></div>
+          <h3>Few pages, each read in full</h3>
+          <p>A question takes three to five pages. The limit is on how many pages the agent opens, never on how much of the right one it reads. Opening eight means the search terms were wrong.</p>
+          <h3>Field names get their own search</h3>
+          <p>For "which field do I use", the schema-librarian searches about 100,000 PowerWorld fields instead. Watch it in the agent team.</p>
+          <a class="more" href="https://github.com/ChunSikPark/PowerWorldHiveMind/blob/main/AGENTS.md#how-to-find-the-page--and-how-much-of-it-to-read">The full search rules</a>
+        </aside>
+      </div>
+    </section>
+
     <!-- AGENTS -->
     <section data-panel="agents" hidden>
       <h2>The agent team</h2>
-      <p class="sub">A study is more than one command, so 0.4 splits it into roles. They work on measured numbers, ask before changing anything, never save over your case, and answer with a picture where a picture beats a paragraph.</p>
-      <div class="cols even">
+      <p class="sub">A study is more than one command, so the work is split into roles. Pick one and watch it handle a request.</p>
+      <div class="cols agents-cols">
         <div>
-          <div class="said" id="agentCard">
-            <dl>
-              <dt>You say</dt><dd class="say" id="aSay"></dd>
-              <dt>You get back</dt><dd id="aGet"></dd>
-            </dl>
-            <a class="more" id="aLink" href="#">Read its role contract</a>
-          </div>
           <div class="roster" id="roster" role="group" aria-label="Agents"></div>
-          <p style="margin-top:14px;font-size:14px;color:var(--muted)">Drafts move into the live set once the script each one runs is built and tested, so an unfinished agent never improvises on a real case.</p>
+          <p class="roster-note">Every agent works from a plain request, asks before it changes anything, and never saves over your case.</p>
         </div>
-        <div>
-          <h3>What they show you</h3>
-          <div class="shows">
-            <div class="show"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 6h10M6 8l5 8m7-8-5 8"/></svg>
-              <p><b>The design, on a map</b>One card per design with its numbers. Pick one and the map redraws with the change drawn on and its overloads painted on. It lists where each design wins and leaves the choice to you.</p></div>
-            <div class="show"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18M3 12h18M3 19h18"/><rect x="5" y="3" width="4" height="4"/><rect x="11" y="10" width="4" height="4"/><rect x="16" y="17" width="4" height="4"/></svg>
-              <p><b>The process, as a picture</b>Before you approve, the plan is drawn as a swimlane from the same file the run executes, so it cannot show a step the run will skip.</p></div>
-            <div class="show"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-              <p><b>The run, live</b>A long N-1 or a year of TimeStep reports through a status page with a badge, a one-line answer, progress and a timeline. Check it from your phone.</p></div>
-          </div>
-          <div class="demo-links">
-            <a class="btn primary" href="demos/design-compare.html" target="_blank" rel="noopener">Open the Design Compare demo</a>
-            <a class="btn" href="demos/run-watch.html" target="_blank" rel="noopener">Open the Run Watch demo</a>
-          </div>
+        <div class="player">
+          <div class="player-head"><b id="pName"></b><span id="pRole"></span><button type="button" id="pReplay">Replay</button></div>
+          <div class="chat" id="chat" aria-live="polite"></div>
+          <p class="pnote" id="pNote"></p>
         </div>
       </div>
-      <figure class="lane">
-        <h3>A plan picture, before you approve</h3>
-        <div class="lane-scroll"><svg class="dia" viewBox="0 0 880 280" role="img" aria-label="Example swimlane for running N-1 with 200 iterations: you ask, the agent writes a settings change, you approve, a script applies it and reads it back, PowerWorld solves N-1, the agent reports a scoreboard.">
+      <h3 class="shows-h">What they show you</h3>
+      <div class="shows three">
+        <div class="show"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 6h10M6 8l5 8m7-8-5 8"/></svg>
+          <p><b>The design, on a map</b>One card per design with its numbers. Pick one and the map redraws with the change drawn on and its overloads painted on. It lists where each design wins and leaves the choice to you.</p></div>
+        <div class="show"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18M3 12h18M3 19h18"/><rect x="5" y="3" width="4" height="4"/><rect x="11" y="10" width="4" height="4"/><rect x="16" y="17" width="4" height="4"/></svg>
+          <p><b>The process, as a picture</b>Before you approve, the plan is drawn as a swimlane from the same file the run executes, so it can't show a step the run will skip.</p></div>
+        <div class="show"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <p><b>The run, live</b>A long N-1 or a month of time steps reports through a status page with a badge, a one-line answer, progress and a timeline. Check it from your phone.</p></div>
+      </div>
+      <div class="demo-links">
+        <a class="btn primary" href="demos/design-compare.html" target="_blank" rel="noopener">Open the Design Compare page</a>
+        <a class="btn" href="demos/run-watch.html" target="_blank" rel="noopener">Open the Run Watch page</a>
+      </div>
+      <template id="laneTpl">
+        <div class="lane-scroll"><svg class="dia" viewBox="0 0 880 280" role="img" aria-label="Plan for running N-1 with 200 iterations: you ask, the agent writes a settings change, you approve, a script applies it and reads it back, PowerWorld solves N-1, the agent reports a scoreboard.">
           <g class="s"><text x="0" y="33">You</text><text x="0" y="103">Agent</text><text x="0" y="173">Script</text><text x="0" y="243">PowerWorld</text></g>
           <path d="M100 70H880M100 140H880M100 210H880" stroke="var(--rule)" stroke-width="1.5"/>
           <path class="w" d="M226 28 238 98M356 98 368 28M486 28 498 168M616 168 628 238M746 238 758 98" marker-end="url(#ah)"/>
@@ -437,8 +570,7 @@ pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</
           <rect class="box" x="630" y="220" width="116" height="36" rx="3"/><text class="t" x="688" y="243" text-anchor="middle">5 Solve N-1</text>
           <rect class="box" x="760" y="80" width="116" height="36" rx="3"/><text class="t" x="818" y="103" text-anchor="middle">6 Scoreboard</text>
         </svg></div>
-        <figcaption>For "run N-1 with 200 iterations". Drawn from the file the run executes, and every safety check sits on the step it guards.</figcaption>
-      </figure>
+      </template>
     </section>
 
     <!-- SEE IT WORK -->
@@ -519,50 +651,174 @@ pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script>
 const GH = "https://github.com/ChunSikPark/PowerWorldHiveMind/blob/main/";
-const AGENTS = [
-  {n:"schema-librarian", live:true, path:"agents/schema-librarian.md",
-   say:"Which object and field do I use for a generator's reactive limit?",
-   get:"The object, the field, its key fields and whether it is writable, plus any note that the field is a trap."},
-  {n:"case-auditor", path:"docs/agents/case-auditor.md",
-   say:"Scan this case. Can it run a time step or an OPF?",
-   get:"A case summary (load, generation, headroom by fuel type, shunts), then READY or NOT READY per study, with exactly what stops it."},
-  {n:"study-runner", path:"docs/agents/study-runner.md",
-   say:"Run N-1 with 200 iterations and report islands.",
-   get:"The settings change for your yes, then AC, DC, N-1, OPF, SCOPF or TimeStep, and a scoreboard in a few lines."},
-  {n:"network-visualizer", path:"docs/agents/network-visualizer.md",
-   say:"Connect a 300 MW load here. What happens, and what's better?",
-   get:"A map comparing your design with up to three of its own, every one measured on the full N-1 with the same settings."},
-  {n:"run-supervisor", skill:true, path:"docs/agents/run-supervisor.md",
-   say:"Watch this overnight run.",
-   get:"A live status page, and a phone alert if the run stalls, leaks PowerWorld copies, fails or finishes."},
-  {n:"plan-pictures", skill:true, path:"docs/agents/plan-pictures.md",
-   say:"Nothing. It runs by itself at every approval.",
-   get:"The plan as a swimlane diagram, drawn from the file the run will execute, before you say yes."}
-];
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const DATA = fetch("data.json").then(r => r.json()).catch(() => null);
+const SAMPLE = "Sample run with invented numbers, to show the shape of the answer.";
 
-/* agents roster */
-const roster = $("#roster");
+/* ---------- the agent team: one scripted run per agent ---------- */
+const AGENTS = [
+  {n:"schema-librarian", kind:"agent", role:"Which object, field or command to use",
+   note:"Real output from the kit's lookup tool, captured Sep 30, 2026.",
+   msgs:[
+    {t:"you", text:"Which field sets the maximum iterations for the power flow?"},
+    {t:"tool", cmd:'lookup.py search "maximum iterations power flow"', res:"5 fields",
+     pre:"CTG_Options.ScreenMaxItr [yes] - Screening\\Max Iterations\nSim_Solution_Options.MaxItr [yes] - Inner Power Flow Loop\\Max Iterations\nCTGComboResults.CTGNItr [aux-only] - Results\\# of iterations"},
+    {t:"note", text:"The top hit is for contingency screening. The power flow field is second."},
+    {t:"tool", cmd:"lookup.py field Sim_Solution_Options MaxItr", res:"found, with one kit note",
+     pre:"type: Integer   writable: yes\ndescription: Maximum number of iterations in the inner power flow loop\nkit: MaxItr (inner loop) · MaxItr:1 (voltage-control loop)   tag S"},
+    {t:"agent", html:`<pre><b>Sim_Solution_Options.MaxItr</b>   Integer, writable
+what it does: maximum iterations in the inner power flow loop
+how to set it: SetData(Sim_Solution_Options, [MaxItr], [200]), then read it back
+the kit says: MaxItr is the inner loop. MaxItr:1 is the voltage-control loop.</pre>`}]},
+
+  {n:"case-auditor", kind:"agent", role:"Is the case sound, and can it run the study?", note:SAMPLE,
+   msgs:[
+    {t:"you", text:"Scan this case. Can it run a time step?"},
+    {t:"tool", cmd:"Open the case read-only", res:"nothing will be written"},
+    {t:"tool", cmd:"Solve the base case (AC, in memory)", res:"converged in 5 iterations"},
+    {t:"tool", cmd:"Count renewables with a weather model", res:"84 of 87"},
+    {t:"tool", cmd:"Run the readiness checks", res:"1 finding"},
+    {t:"agent", html:`<p><b>Base case: READY. Time step: READY.</b> 84 of 87 renewables will follow the weather. 3 solar units read 0 MW all run (41 MW of 3,210 MW).</p>
+<table><tr><th></th><th>MW</th></tr><tr><td>Load</td><td>6,420</td></tr><tr><td>Generation online</td><td>6,575</td></tr><tr><td>Losses</td><td>155</td></tr><tr><td>Headroom on online units</td><td>1,240</td></tr></table>
+<table><tr><th>What's wrong</th><th>Stops the study?</th><th>Whose call</th></tr><tr><td>3 solar units have no weather model</td><td>No, worth a look</td><td>Yours</td></tr></table>
+<p>Full findings: audit/findings.md. The case file is unchanged.</p>`}]},
+
+  {n:"study-runner", kind:"agent", role:"Runs AC, DC, N-1, OPF, SCOPF and time steps with your settings", note:SAMPLE,
+   msgs:[
+    {t:"you", text:"Run N-1 with 200 iterations and report islands."},
+    {t:"agent", html:`<pre>Ready to run N-1. Nothing has run yet.
+Settings: Sim_Solution_Options.MaxItr 50 → 200
+Monitored: areas 1–3, 69 kV and up (the case's own setup).
+Outages: 412 (full set).
+Reply "approved" to run. Details: runs/n1/manifest.json</pre>`},
+    {t:"you", text:"approved"},
+    {t:"tool", cmd:"Write MaxItr = 200, then read it back", res:"200, it stuck"},
+    {t:"tool", cmd:"Solve 412 outages on 4 PowerWorld copies", res:"410 solved, 2 did not"},
+    {t:"tool", cmd:"Check which outages cut off load", res:"1 outage, 38 MW"},
+    {t:"agent", html:`<p><b>N-1: 410 of 412 outages solved.</b> One corridor carries 9 of the 14 overloads.</p>
+<table><tr><th>Thermal overloads</th><th>Voltage violations</th><th>Did not solve</th><th>Cut off load</th></tr><tr><td>14</td><td>6</td><td>2</td><td>1 outage, 38 MW</td></tr></table>
+<p>Monitored: areas 1–3, 69 kV and up. Results: runs/n1/</p>`}]},
+
+  {n:"network-visualizer", kind:"agent", role:"Maps a design and compares it with alternatives", note:SAMPLE,
+   msgs:[
+    {t:"you", text:"I want to connect a 300 MW data center at bus 6015, with a new 345 kV line to 6027. What happens, and what's better?"},
+    {t:"tool", cmd:"Map the network around bus 6015", res:"5 substations out"},
+    {t:"tool", cmd:"Measure the load alone, full N-1", res:"6 overloads, 2 low buses"},
+    {t:"tool", cmd:"Measure your line, same settings", res:"1 overload, 1 low bus"},
+    {t:"agent", html:`<p>Your line cuts overloads 6 → 1. I have three challengers, cheapest first: redispatch, an uprate, a second circuit. Reply "approved" to measure them on the same settings.</p>`},
+    {t:"you", text:"approved"},
+    {t:"tool", cmd:"Measure 3 challengers, same settings and outages", res:"done"},
+    {t:"agent", html:`<p>Your line cuts overloads 6 → 1. Challenger 3 clears everything for one more circuit.</p>
+<p><a href="demos/design-compare.html" target="_blank" rel="noopener">Open the Design Compare page</a> and pick one with Choose, or tell me.</p>`}]},
+
+  {n:"run-supervisor", kind:"skill", role:"Watches a long run and alerts your phone", note:SAMPLE,
+   msgs:[
+    {t:"you", text:"Run the February time step and keep an eye on it. I'm heading out."},
+    {t:"tool", cmd:"10:00  Started: 672 steps in 12 slices", res:"watching"},
+    {t:"tool", cmd:"10:27  No step finished for 15 min, at 288 of 672", res:"alert sent to your phone"},
+    {t:"tool", cmd:"10:33  Steps finishing again", res:"stall lasted 21 min"},
+    {t:"tool", cmd:"10:52  Finished: 672 of 672", res:"summary sent"},
+    {t:"agent", html:`<pre>Time step, Feb 1 → 28: 672 steps run, in 12 slices. Took 52 min.
+Wind + solar: average 1,840 MW, lowest 212 MW at Feb 15 19:00.
+Biggest drop: 2,310 MW over 5 hours, ending Feb 15 19:00.
+3 units read 0 MW all run (no weather model, 41 MW installed).
+Reply with a number, or say what you want:
+1. Run N-1 at the lowest wind + solar hour
+2. Rerun once the 3 units have weather models
+3. Stop here.</pre>
+<p><a href="demos/run-watch.html" target="_blank" rel="noopener">Open the Run Watch page</a></p>`}]},
+
+  {n:"plan-pictures", kind:"skill", role:"Draws the plan before you approve it", note:SAMPLE,
+   msgs:[
+    {t:"you", text:"Run N-1 with 200 iterations. Show me the plan before anything runs."},
+    {t:"tool", cmd:"Read the plan file the run will execute", res:"6 steps, 1 safety check"},
+    {t:"tool", cmd:"Draw it as a swimlane", res:"plan.mmd and a page"},
+    {t:"agent", html:`<p>Here's the plan. Nothing has run yet.</p><div data-lane></div><p>Reply "approved" to run, or tell me what to change.</p>`}]}
+];
+
+const roster = $("#roster"), chat = $("#chat");
+let playId = 0;
 AGENTS.forEach((a, i) => {
   const b = document.createElement("button");
   b.type = "button";
-  b.setAttribute("aria-pressed", String(i === 0));
-  b.innerHTML = `<b>${a.n}</b><span class="pill${a.live ? " live" : ""}">${a.live ? "live" : a.skill ? "draft skill" : "draft"}</span>`;
-  b.addEventListener("click", () => pickAgent(i));
+  b.innerHTML = `<b>${a.n}</b><span class="pill">${a.kind}</span><i>${esc(a.role)}</i>`;
+  b.addEventListener("click", () => play(i));
   roster.append(b);
 });
-function pickAgent(i){
-  const a = AGENTS[i];
-  $("#aSay").textContent = "“" + a.say + "”";
-  $("#aGet").textContent = a.get;
-  $("#aLink").href = GH + a.path;
-  $$("button", roster).forEach((b, j) => b.setAttribute("aria-pressed", String(j === i)));
+function msgEl(m){
+  const d = document.createElement("div");
+  d.className = "m " + m.t;
+  if (m.t === "you" || m.t === "note") d.textContent = m.text;
+  else if (m.t === "tool") d.innerHTML = `<span class="p" aria-hidden="true">›</span><div><span class="c">${esc(m.cmd)}</span> <span class="res">→ ${esc(m.res)}</span>${m.pre ? `<pre>${esc(m.pre)}</pre>` : ""}</div>`;
+  else {
+    d.innerHTML = m.html;
+    const slot = $("[data-lane]", d);
+    if (slot) slot.replaceWith($("#laneTpl").content.cloneNode(true));
+  }
+  return d;
 }
-pickAgent(0);
+let current = 0;
+async function play(i){
+  current = i;
+  const id = ++playId, a = AGENTS[i];
+  $$("button", roster).forEach((b, j) => b.setAttribute("aria-pressed", String(j === i)));
+  $("#pName").textContent = a.n;
+  $("#pRole").textContent = a.role;
+  $("#pNote").textContent = a.note;
+  chat.replaceChildren();
+  for (const m of a.msgs) {
+    if (id !== playId) return;
+    const el = msgEl(m);
+    chat.append(el);
+    if (still()) { el.classList.add("in"); continue; }
+    requestAnimationFrame(() => el.classList.add("in"));
+    await new Promise(r => setTimeout(r, m.t === "you" ? 700 : m.t === "agent" ? 400 : 850));
+  }
+}
+$("#pReplay").addEventListener("click", () => play(current));
 
-/* sections */
+/* ---------- how it finds the answer: real searches from data.json ---------- */
+let findId = 0;
+async function showSearch(k){
+  const data = await DATA;
+  const all = data && data.searches;
+  if (!all || !all.length) { $("[data-panel=find] .find-cols").hidden = true; return; }
+  const s = all[k], id = ++findId;
+  $$("#qpick button").forEach((b, j) => b.setAttribute("aria-pressed", String(j === k)));
+  const terms = [...s.plain, ...s.ident];
+  $("#fTerms").innerHTML =
+    `<div><span class="tk">Your words</span>${s.plain.map(t => `<span class="chip">${esc(t)}</span>`).join("")}</div>` +
+    `<div><span class="tk">PowerWorld names</span>${s.ident.map(t => `<span class="chip id">${esc(t)}</span>`).join("")}</div>`;
+  $("#fCmd").textContent = `rg -ic ${terms.map(t => `-e "${t}"`).join(" ")} concepts methods demos references`;
+  $("#fHit").textContent = `${s.hit_pages} pages mention at least one term. Ranked by how many different terms each page hits, then by total hits:`;
+  $("#fRank").innerHTML =
+    `<thead><tr><th>Page</th>${terms.map(t => `<th>${esc(t)}</th>`).join("")}<th>Terms hit</th></tr></thead><tbody>` +
+    s.rank.map((r, j) => `<tr class="${j === 0 ? "lead" : ""}"><td><a href="${GH + r.page}" target="_blank" rel="noopener"><span>${esc(r.page.split("/")[0])}/</span>${esc(r.page.split("/")[1])}</a></td>` +
+      r.hits.map(h => `<td class="${h ? "h" : "z"}">${h || "–"}</td>`).join("") + `<td><b>${r.terms} of ${terms.length}</b></td></tr>`).join("") + "</tbody>";
+  $("#fAbs").innerHTML = `<cite><a href="${GH + s.top.page}" target="_blank" rel="noopener">${esc(s.top.page)}</a></cite>${esc(s.top.abstract)}`;
+  $("#fAns").innerHTML = s.answer
+    ? `${s.answer.html}<p class="src">From <a href="${GH + s.answer.page}" target="_blank" rel="noopener">${esc(s.answer.page)}</a>, read in full.</p>`
+    : `<p>The agent reads <a href="${GH + s.top.page}" target="_blank" rel="noopener">${esc(s.top.page)}</a> in full and answers from it.</p>`;
+  const steps = $$("#ladder > li");
+  steps.forEach(li => li.classList.remove("on"));
+  for (const li of steps) {
+    if (id !== findId) return;
+    li.classList.add("on");
+    if (!still()) await new Promise(r => setTimeout(r, 1100));
+  }
+}
+DATA.then(data => {
+  if (!data || !data.searches) return;
+  $("#qpick").innerHTML = data.searches.map((s, k) => `<button type="button" data-q="${k}">${esc(s.q)}</button>`).join("");
+  $$("#qpick button").forEach(b => b.addEventListener("click", () => showSearch(+b.dataset.q)));
+});
+
+/* ---------- sections ---------- */
 const IDS = $$(".feeder").map(f => f.dataset.id);
+const started = new Set();
 function open(id, focus){
   if (!IDS.includes(id)) id = "install";
   $$(".feeder").forEach(f => {
@@ -573,19 +829,18 @@ function open(id, focus){
   $$("[data-panel]").forEach(p => p.hidden = p.dataset.panel !== id);
   if (location.hash.slice(1) !== id) history.replaceState(null, "", "#" + id);
   if (focus) $("#panel").scrollIntoView({block:"start"});
+  if (!started.has(id)) {
+    started.add(id);
+    if (id === "agents") play(0);
+    if (id === "find") DATA.then(() => showSearch(0));
+  }
 }
-$$(".feeder").forEach(f => $(".tile", f).addEventListener("click", () => open(f.dataset.id, matchMedia("(max-width:960px)").matches)));
+$$(".feeder").forEach(f => $(".tile", f).addEventListener("click", () => open(f.dataset.id, matchMedia("(max-width:1100px)").matches)));
 $$("[data-open]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); open(a.dataset.open, true); }));
 window.addEventListener("hashchange", () => open(location.hash.slice(1)));
 open(location.hash.slice(1) || "install");
 
-/* install tabs */
-$$("[data-tab]").forEach(t => t.addEventListener("click", () => {
-  $$("[data-tab]").forEach(x => x.setAttribute("aria-selected", String(x === t)));
-  $$("[data-tabpanel]").forEach(p => p.hidden = p.dataset.tabpanel !== t.dataset.tab);
-}));
-
-/* copy buttons */
+/* ---------- copy buttons ---------- */
 $$("[data-copy]").forEach(b => b.addEventListener("click", async () => {
   const text = b.previousElementSibling.textContent;
   try { await navigator.clipboard.writeText(text); b.textContent = "Copied"; }
@@ -593,22 +848,19 @@ $$("[data-copy]").forEach(b => b.addEventListener("click", async () => {
   setTimeout(() => b.textContent = "Copy", 1600);
 }));
 
-/* route picker */
-$$("[data-route]").forEach(b => { if (b.tagName !== "BUTTON") return;
-  b.addEventListener("click", () => {
-    const r = b.dataset.route;
-    $("#routes").dataset.route = r;
-    $$(".route-pick button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
-    $$("[data-routetext]").forEach(p => p.hidden = p.dataset.routetext !== r);
-  });
-});
+/* ---------- route picker ---------- */
+$$(".route-pick button").forEach(b => b.addEventListener("click", () => {
+  const r = b.dataset.route;
+  $("#routes").dataset.route = r;
+  $$(".route-pick button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  $$("[data-routetext]").forEach(p => p.hidden = p.dataset.routetext !== r);
+}));
 
 /* the kit as a growing graph */
 (async () => {
   const fig = $("#grow");
-  let data;
-  try { data = await (await fetch("graph.json")).json(); } catch { fig.hidden = true; return; }
-  if (!window.d3 || !data.nodes || !data.nodes.length) { fig.hidden = true; return; }
+  const data = await DATA;
+  if (!window.d3 || !data || !data.nodes || !data.nodes.length) { fig.hidden = true; return; }
   const COLORS = {concepts:"#4A9EFF", methods:"#4CAF50", references:"#AB7DF6", demos:"#FF9800", agents:"#8A9591"};
   const NAMES = {concepts:"concepts", methods:"methods", references:"references", demos:"demos", agents:"agents and design"};
   $("#gLegend").innerHTML = Object.keys(COLORS).map(k =>

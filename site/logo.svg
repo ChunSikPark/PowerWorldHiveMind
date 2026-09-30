@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PowerWorldHiveMind">
+<style>.h{fill:none;stroke:#18201D;stroke-width:1.6}.w{stroke:#0B7A6C;stroke-width:1.8;fill:none;stroke-linecap:round}.n{fill:#18201D}.c{fill:#C4302B}
+@media (prefers-color-scheme:dark){.h{stroke:#E2E8E5}.w{stroke:#4CC3AE}.n{fill:#E2E8E5}.c{fill:#F2665B}}</style>
+<path class="h" d="M32.00 23.80 39.10 27.90 39.10 36.10 32.00 40.20 24.90 36.10 24.90 27.90Z M46.20 23.80 53.30 27.90 53.30 36.10 46.20 40.20 39.10 36.10 39.10 27.90Z M39.10 36.10 46.20 40.20 46.20 48.40 39.10 52.50 32.00 48.40 32.00 40.20Z M24.90 36.10 32.00 40.20 32.00 48.40 24.90 52.50 17.80 48.40 17.80 40.20Z M17.80 23.80 24.90 27.90 24.90 36.10 17.80 40.20 10.70 36.10 10.70 27.90Z M24.90 11.50 32.00 15.60 32.00 23.80 24.90 27.90 17.80 23.80 17.80 15.60Z M39.10 11.50 46.20 15.60 46.20 23.80 39.10 27.90 32.00 23.80 32.00 15.60Z"/>
+<path class="w" d="M32 32L46.20 32.00 M32 32L39.10 44.30 M32 32L24.90 44.30 M32 32L17.80 32.00 M32 32L24.90 19.70 M32 32L39.10 19.70 M46.20 32.00L39.10 44.30 M24.90 44.30L17.80 32.00 M24.90 19.70L39.10 19.70"/>
+<circle class="n" cx="46.20" cy="32.00" r="2.6"/><circle class="n" cx="39.10" cy="44.30" r="2.6"/><circle class="n" cx="24.90" cy="44.30" r="2.6"/><circle class="n" cx="17.80" cy="32.00" r="2.6"/><circle class="n" cx="24.90" cy="19.70" r="2.6"/><circle class="n" cx="39.10" cy="19.70" r="2.6"/>
+<circle class="c" cx="32" cy="32" r="4.2"/>
+</svg>
