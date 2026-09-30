@@ -42,6 +42,7 @@ Write every message the engineer reads the way you would say it to a colleague a
 - No internal shorthand: say "settings change" not "delta", "the settings file" not "manifest hash", "compared with the case before any fix" not "Δ vs base", "confirmed each setting stuck" not "read back".
 - Give numbers with units and a before → after: "thermal overloads 42 → 0".
 - Short sentences, one point each.
+- Describe this case, not the edge case: say what will happen when they run it, sized in numbers ("84 of 87 will follow the weather; 3 read 0 MW"). Never turn an imperfection the study runs through into a blocker.
 
 ````markdown
 One block per field:

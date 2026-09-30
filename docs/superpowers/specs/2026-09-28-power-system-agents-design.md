@@ -90,7 +90,8 @@ rules are written in Plan 2, and those rules ship in v1):
 |---|---|
 | base | N-0 (AC) converges; not a DC-only skeleton (`dc_skeleton`); no unit above its rating after the solve (`gen_over_nameplate`); switched shunt or LTC regulating nothing or an out-of-service bus; LTC `XFRegTargetType = Middle`; LTC regulating its low-voltage side while its high side is out of band (`ltc_regulates_lv_side`); lightly loaded EHV radial stubs; holds no `ViolationCTG` rows from an earlier run (`stale_ctg_results`, FYI — do not read them) |
 | monitoring (reported with base) | something is monitored (`mon.nothing_monitored`); the monitored footprint as the case holds it (`mon.footprint`); the normal and contingency rate sets in use carry ratings (`mon.rate_set_empty`); which rate sets carry values (`mon.rate_sets_populated`); buses with their own voltage limits (`mon.bus_limit_overrides`) |
-| timestep | renewables have `GenFuelType` WND/SUN, a PFW model string, valid Lat/Lon; the `.pww` weather file given with the request covers the units (`ts.pww_footprint`) — no file given → "weather coverage not checked — no weather file given", and timestep cannot be READY |
+| summary (every audit; facts, not findings) | load MW/Mvar; generation MW/Mvar and losses; headroom on online dispatchable units (wind/solar "weather-limited"); a fuel-type table keyed by the case's own `GenFuelType` code (units online/total, installed MW, output MW, share, headroom); online Mvar range; shunt count, Mvar now (`SSAMVR`), capacitive/inductive capacity (`SSMaxMVR`/`SSMinMVR`); size (buses, branches, transformers, areas, zones, kV levels). "Give me a summary" runs `base` and leads with these tables |
+| timestep | renewables have `GenFuelType` WND/SUN, a PFW model string, valid Lat/Lon; for each wind unit missing a model, its wind class (`CustomInteger:1` 1–4 or `GenUnitType` W1–W4), because `Auto_PFW` silently skips a unit with neither; the `.pww` weather file given with the request covers the units (`ts.pww_footprint`) — no file given → an FYI line, not a blocker. TimeStep runs with any number of PFW models, so missing models, lat/lon and coverage **never stop it**. They are Worth a look, stated as what the run will do ("84 of 87 renewables will follow the weather; 3 read 0 MW, 410 MW, 1.4%: bus … unit …") |
 | opf | an area on `BGAGC = "OPF"`; AGC-able gens; `GenCostModel` ≠ None with `GenCostCurvePoints > 0` and `GenMCost > 0` |
 
 The weather file is an **input** given with the request. The auditor is a subagent: it returns,
@@ -338,7 +339,8 @@ All on public synthetic cases.
 | supervisor, stall | a run whose `last_solve_at` stops advancing raises the stall alarm after the configured interval |
 | supervisor, gate | the next round never launches without an engineer's answer |
 | visualizer, large load | adding a load candidate changes N-0 flows and appears on the map's Before/Engineer switch |
-| auditor, no weather file | a timestep audit with no `.pww` given reports "weather coverage not checked — no weather file given" and timestep NOT READY |
+| auditor, no weather file | a timestep audit with no `.pww` given reports an FYI line and does not block timestep on it |
+| auditor, renewable gaps | 3 of 87 renewables without a PFW model → timestep READY, with a Worth-a-look line saying which units read 0 MW and their MW share; never NOT READY for missing models alone |
 | runner, monitoring stated | every N-1 result states what was monitored |
 | runner, SCOPF stamp | every SCOPF result is stamped "not yet verified" until the first public-case run passes |
 | visualizer, opening mode | the map opens in the right mode for its bus count (whole case under the cutoff, area view over it) and says which |
