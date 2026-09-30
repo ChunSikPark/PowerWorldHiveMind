@@ -229,8 +229,11 @@ const LEG = {run:"Running", stall:"No step finishing", wait:"Waiting for you", p
 const PIN_ICON = {fail:"x", stop:"square"};
 const $ = id => document.getElementById(id);
 const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const kind = k => KINDS.has(k) ? k : "run";
-const icon = i => ICON[i] || ICON.dot;
+const ALIAS = {started:"run", running:"run", resumed:"run", stalled:"stall", paused:"stall",
+  failed:"fail", error:"fail", finished:"done", stopped:"stop", your_move:"you", waiting:"you", answer:"you", approved:"you"};
+const kind = k => { const x = String(k ?? "").toLowerCase(); const y = ALIAS[x] || x; return KINDS.has(y) ? y : "run"; };
+const KIND_ICON = {run:"play", stall:"pause", fail:"x", you:"diamond", done:"check", stop:"square", plan:"dot", wait:"diamond"};
+const icon = (i, k) => ICON[i] || ICON[KIND_ICON[kind(k)]] || ICON.dot;
 const min = t => { const [h, m] = String(t).split(":").map(Number); return h * 60 + m; };
 const hm = x => String(Math.floor(x / 60)).padStart(2, "0") + ":" + String(x % 60).padStart(2, "0");
 
@@ -299,7 +302,7 @@ function strip(s){
   segs.forEach(g => {
     lane += `<span class="seg k-${kind(g.k)}" style="left:${at(min(g.from))}%;width:${at(min(g.to)) - at(min(g.from))}%"></span>`;
   });
-  pins.forEach(p => { over += `<span class="pin k-${kind(p.k)}" style="left:${at(min(p.at))}%">${icon(PIN_ICON[p.k])}</span>`; });
+  pins.forEach(p => { over += `<span class="pin k-${kind(p.k)}" style="left:${at(min(p.at))}%">${icon(PIN_ICON[kind(p.k)], p.k)}</span>`; });
   for (let t = t0; t <= t1; t += step){
     const p = at(t), shift = p === 0 ? "0" : p === 100 ? "-100%" : "-50%";
     over += `<span class="tick" style="left:${p}%"></span><span class="tlab" style="left:${p}%;transform:translateX(${shift})">${hm(t)}</span>`;
@@ -342,7 +345,7 @@ function render(s){
   const tl = $("timeline"), evs = s.events || [];
   tl.innerHTML = evs.map((e, i) =>
     `<li class="ev${i === evs.length - 1 ? " now" : ""}"><time>${esc(e.t)}</time>` +
-    `<span class="mark k-${kind(e.kind)}" aria-hidden="true">${icon(e.icon)}</span>` +
+    `<span class="mark k-${kind(e.kind)}" aria-hidden="true">${icon(e.icon, e.kind)}</span>` +
     `<span class="txt"><b>${esc(e.head)}</b><div>${esc(e.body)}</div></span></li>`).join("");
 }
 

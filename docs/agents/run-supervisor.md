@@ -82,7 +82,7 @@ Every event the supervisor acts on (started, stalled, resumed, failed chunk, fai
     - `head` + `rest` (the one-line answer) and `sub`;
     - `done`, `total`, `unit`, and `now` (HH:MM);
     - `updated_at` (ISO time; the page shows the newest run);
-    - `facts` `[{k, v}]`, `segs` `[{k, from, to}]` (the run clock: `run`, `stall`, `wait`, `plan`), `pins` `[{k, at}]`, `events` (the same entries as `events.jsonl`), and `move` (`{summary, options[]}` only when it is the engineer's turn).
+    - `facts` `[{k, v}]`, `segs` `[{k, from, to}]` (the run clock: `run`, `stall`, `wait`, `plan`), `pins` `[{k, at}]`, `events` (the same entries as `events.jsonl`). Use the page's own words: `state` and every event `kind` is one of `run`, `stall`, `fail`, `you`, `done` (plus `stop` when the engineer stops it); `icon` is one of `play`, `pause`, `x`, `diamond`, `check`, `square`; `segs[].k` is one of `run`, `stall`, `wait`, `plan`; `pins[].k` is `fail` or `stop`, and `move` (`{summary, options[]}` only when it is the engineer's turn).
   - Write only on an event, never on a timer, so the page moves when something happens. One write per event.
   - **Same privacy rule as push notifications:** no bus names, substation names or coordinates on the page. It lives in the cloud.
   - **Cap:** one document per run, events aggregated inside it. Delete a run's document when the engineer asks to clear old runs.
