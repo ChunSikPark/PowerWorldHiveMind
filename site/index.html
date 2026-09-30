@@ -562,7 +562,7 @@ pip install esapp TeamOverbyeWeather</pre><button type="button" data-copy>Copy</
           <div class="sc-body">
             <p class="sc-who"><b>plan-pictures</b> answers with</p>
             <h3>The plan, as a picture</h3>
-            <p>Before you approve anything, the plan is drawn as a swimlane from the file the run will execute, safety checks included.</p>
+            <p>Before you approve anything, the plan is drawn as a swimlane from the plan the engine wrote from your settings, safety checks included. If the settings change after that, it won't draw a stale plan.</p>
             <div class="sc-acts"><button type="button" class="btn primary" data-play="plan-pictures">Watch it work</button></div>
           </div>
         </article>
@@ -734,7 +734,7 @@ Reply "approved" to run. Details: runs/n1/manifest.json</pre>`},
     {t:"you", text:"approved"},
     {t:"tool", cmd:"Measure 3 challengers, same settings and outages", res:"done"},
     {t:"agent", html:`<p>Your line cuts overloads 6 → 1. Challenger 3 clears everything for one more circuit.</p>
-<p><a href="demos/design-compare.html" target="_blank" rel="noopener">Open the Design Compare page</a> and pick one with Choose, or tell me.</p>`}]},
+<p><a href="demos/design-compare.html" target="_blank" rel="noopener">Open the Design Compare page</a> and tell me which one. Choose on the page copies the line for you.</p>`}]},
 
   {n:"run-supervisor", kind:"skill", role:"Watches a long run and alerts your phone", note:SAMPLE,
    msgs:[
@@ -756,7 +756,7 @@ Reply with a number, or say what you want:
   {n:"plan-pictures", kind:"skill", role:"Draws the plan before you approve it", note:SAMPLE,
    msgs:[
     {t:"you", text:"Run N-1 with 200 iterations. Show me the plan before anything runs."},
-    {t:"tool", cmd:"Read the plan file the run will execute", res:"6 steps, 1 safety check"},
+    {t:"tool", cmd:"Read the plan the engine wrote from the settings", res:"6 steps, 1 safety check, up to date"},
     {t:"tool", cmd:"Draw it as a swimlane", res:"plan.mmd and a page"},
     {t:"agent", html:`<p>Here's the plan. Nothing has run yet.</p><div data-lane></div><p>Reply "approved" to run, or tell me what to change.</p>`}]}
 ];
