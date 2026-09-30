@@ -65,7 +65,34 @@ plain reading of it:
 
 The full failure table, with the exact error strings, is in the preflight page.
 
-## 5. Then stop
+## 5. Offer the PWHM tag
+
+Ask once, in plain words, and change nothing unless the user says yes:
+
+> Do you use Claude Code in a terminal? If so, I can add a small `[PWHM#<version>]` tag to
+> your status line. It shows which version of the kit you have and says when a new one is
+> out. It doesn't show in the desktop app.
+
+Skip this step without asking if the user's status line already shows `[PWHM#`.
+
+If they say yes:
+
+1. Read `~/.claude/settings.json` and copy it to `~/.claude/settings.json.pwhm-backup` before
+   changing anything.
+2. **If a `statusLine` is already set, keep it.** Say so in one line: *"You already have a
+   status line; the tag goes next to it and nothing of yours is replaced."* Write its
+   `command` string, unchanged, to `~/.claude/powerworld-hivemind-statusline.json` as
+   `{"previous": "<that command>"}`.
+3. Set `statusLine` to `{"type": "command", "command": "\"<python>\" \"<kit root>/statusline/pwhm_statusline.py\""}`,
+   where `<python>` is the full path from `python -c "import sys; print(sys.executable)"` and
+   `<kit root>` is `${CLAUDE_PLUGIN_ROOT}` written out as an absolute path with forward
+   slashes. Settings files don't expand variables.
+4. Run that command once with `echo {} |` in front, and confirm the output contains `[PWHM#`.
+5. Tell them it appears on the next refresh, and that saying *"remove the PWHM tag"* undoes it:
+   put back the `statusLine` from `powerworld-hivemind-statusline.json` (or remove the key if
+   that file doesn't exist), then delete that file.
+
+## 6. Then stop
 
 Say what passed, what the build date is, and — if it failed — which check and what it
 means. Do not begin an analysis. Ask the user what they want to do next; if they have a
