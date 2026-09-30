@@ -283,6 +283,27 @@ modelling, and extreme-event selection are deliberately out of scope.
 This kit is about **operating PowerWorld**. It will tell you which script action runs a
 PV study; it will not teach you what a PV curve means.
 
+## The agent team
+
+The kit is growing a small team of agents that work on measured numbers instead of guesses and
+answer in pictures where a picture beats a paragraph. Only finished agents live in `agents/`,
+which Claude Code loads on install. A draft moves there once the script it runs is built and
+tested, so an unfinished agent never improvises on a real case.
+
+| agent | what you ask it | status |
+|---|---|---|
+| [schema-librarian](agents/schema-librarian.md) | "Which object and field do I use for…?" | **live** |
+| [case-auditor](docs/agents/case-auditor.md) | "Scan this case. Can it run a time step or an OPF?" It opens with a case summary: load, generation, headroom by fuel type, shunts. | draft |
+| [study-runner](docs/agents/study-runner.md) | "Run N-1 with 200 iterations and report islands." It shows the settings change, waits for your yes, then runs AC, DC, N-1, OPF, SCOPF or TimeStep. | draft |
+| [network-visualizer](docs/agents/network-visualizer.md) | "Connect this 300 MW load here. What happens, and what's better?" Its answer is the [Design Compare](docs/agents/pages/design-compare.html) page. | draft |
+| [run-supervisor](docs/agents/run-supervisor.md) | "Watch this overnight run." It alarms on a stall and keeps the [Run Watch](docs/agents/pages/run-watch.html) page live. | draft (a skill) |
+| [plan-pictures](docs/agents/plan-pictures.md) | Shows every plan as a swimlane diagram before you approve it. | draft (a skill) |
+
+The design and its rules are in
+[docs/superpowers/specs/2026-09-28-power-system-agents-design.md](docs/superpowers/specs/2026-09-28-power-system-agents-design.md):
+plain requests in, short answers out, nothing runs without your approval, and your case is never
+saved over.
+
 ---
 
 ## Why this exists
