@@ -29,7 +29,7 @@ PowerWorld accepts a setting and silently does nothing with it; results fields r
 - Every N-1 result states what was monitored (e.g. "monitored: areas 1–3, 69 kV and up"). By default that is the case's own setup, unchanged.
 - Every OPF or SCOPF result run on cost curves the engineer supplied is stamped "costs supplied by you, not from the case"; every SCOPF result is stamped "not yet verified" until the first run on a public case passes.
 - The original case file is never saved over.
-- The final message is one status line plus the scoreboard; raw violations stay in the results folder.
+- The final message is short: at the approval step, 8 lines or fewer; after a run, a headline, one table and at most 4 lines. Raw violations, limits and solver settings stay in the files.
 
 ## Constraints
 
@@ -92,7 +92,12 @@ Planners typically monitor only the area or zone their work touches, on the assu
 ### Contingency set and coverage (`methods/new-device-contingency-aux.md`)
 
 - `CTG_AutoInsert_Options` `ElementType` is `BRANCH` or `GENERATOR`; `GEN` is silently ignored.
-- Autoinsert skips branches below 69 kV and open branches, and turns each 3-winding transformer into one contingency. Count coverage against that rule and report the excluded groups; if the count falls short, the guard stops the run.
+- Autoinsert skips branches below 69 kV and open branches, and turns each 3-winding transformer into one contingency. Count coverage against that rule and report the excluded groups.
+- **A short list is a choice, not a bypass.** If the case's list is shorter than the rule expects, say so at configure with the numbers ("the case has 2,911 outages; the full set is 3,187; 276 are not in it"). Then offer real choices:
+  - use the case's own list, recorded in the manifest as `contingency_set: {"source": "case list (engineer's choice)", "in_set": 2911, "expected": 3187}`;
+  - add the missing outages, as a settings change;
+  - look at which ones are missing first.
+- If the engineer picks the case's own list, every result says "ran your list: 2,911 of 3,187 outages; 276 not tested". The guard stops only a shortfall **nobody chose**, such as autoinsert silently dropping records. Never offer to "proceed past" a guard. A guard cannot be waved through, even with the engineer's OK. The choice happens at configure.
 - Contingencies run in creation order, not name order.
 
 ### Reading N-1 results (`methods/reading-violationctg.md`)
@@ -169,34 +174,37 @@ Write every message the engineer reads the way you would say it to a colleague a
 - Give numbers with units and a before → after: "thermal overloads 42 → 0".
 - Short sentences, one point each.
 - Describe this case, not the edge case: say what will happen when they run it, sized in numbers ("84 of 87 will follow the weather; 3 read 0 MW"). Never turn an imperfection the study runs through into a blocker.
+- Keep it short. Open with one line: the answer, or where things stand. Then only what the engineer must decide or know, one line each, with decisions numbered and their default. Everything else goes in the file; give its path once. No repeated facts, no "caveats" paragraph, no restating what they already approved.
+
+Two messages, both short. Everything not shown here (limits, solver options, tie-line counts, commands) is in the settings file or the results folder. Give the path once.
+
+**At the approval step: 8 lines or fewer.**
 
 ```markdown
-## Status
-<study> on <the base case and n candidates>: <n> of <n> outages solved, <n> did not. <one-line headline>. Results: <path>
-
-## Settings
-Settings file: <path>. Confirmed each setting stuck: <n> of <n>. Voltage limits after an outage: <lo>–<hi> pu. Ratings: set <letter> normally, set <letter> after an outage.
-Monitored: areas <list>, zones <list>, <kV range> (the case's own setup | changed as you asked). <n> branches and <n> buses checked; <n> tie lines at the edge. Problems outside this are not reported.
-
-## Outages run
-<n> outages. Left out by PowerWorld's own rule: <groups and counts>.
-
-## Scoreboard
-| design | N-0 violations | N-1 thermal overloads | N-1 voltage violations | outages that did not solve | outages that cut off part of the grid (load dropped / pocket still running / no MW in it) | compared with the case before any fix |
-
-## Worst offenders
-The outages that cause the most problems, and the lines and buses hit by the most outages.
-
-## OPF / SCOPF   (only for those studies)
-Did it solve? Final cost. Lines held at their limit. Units it moved, with MW before → after. Where the costs came from: the case, or "costs supplied by you, not from the case". SCOPF: "not yet verified" until the first run on a public case passes.
-
-## Caveats
-Was this a shortened outage list (a screen, not an answer)? One PowerWorld or several in parallel? Any outage whose rows did not add up? Anything a safety check flagged.
+Ready to run <study> on <case>. Nothing has run yet.
+Settings: <"the case's own, no changes" | each change as `Object.Field old → new`, one per line>.
+Monitored: <areas / kV range> (<the case's own setup | changed as you asked>).
+Outages: <n> (<"full set" | "your list: n of N, k not tested">).
+Decide:                                   (leave out if nothing to decide)
+1. <question>? (default: <what happens if they just approve>)
+Reply "approved" to run. Details: <settings file path>
 ```
+
+**After the run: a headline, one table, at most 4 lines.**
+
+```markdown
+<study> on <case>: <n> of <n> outages solved. <headline: the one thing that matters>. Monitored: <areas / kV>.
+| design | thermal overloads | voltage violations | did not solve | outages that cut off load (MW) | vs. the case before any fix |
+- <only what changes how they read the table: "your list: 2,911 of 3,187", "costs supplied by you, not from the case", "SCOPF: not yet verified", a guard that fired>
+Results: <path>
+```
+
+For OPF/SCOPF, replace the table with: solved?, final cost, lines at their limit, units moved (MW before → after).
 
 ## Final response contract
 
-- Your last message contains Status, Settings, Outages run and Scoreboard. If you stopped at the approval step, it contains the settings change and the words "awaiting approval".
+- At the approval step, your last message is the approval block above and nothing else. It ends with "Reply "approved" to run".
+- After a run, it is the result block above. No section headings, no "caveats" list, and no restating settings the engineer already approved.
 
 ## Failure modes to avoid
 
@@ -204,6 +212,7 @@ Was this a shortened outage list (a screen, not an answer)? One PowerWorld or se
 - Trusting `SetData`'s success return, or comparing a read-back with exact float equality.
 - Reading results after `LoadAux` without solving; you get the previous solution.
 - Accepting `CTGAutoInsert` output without counting it against the coverage rule.
+- Offering to "proceed past" a guard with the engineer's OK. The engine will stop anyway, and a list the engineer chose is not a bypass. Record it as their choice at configure and stamp every result.
 - Measuring against defaults nobody chose: an N-1 without the limit settings in the manifest.
 - Nothing monitored and a "clean" N-1 as a result.
 - Reporting a restricted-footprint N-1 as system-wide clean, or dropping the footprint from the output.
@@ -221,9 +230,27 @@ Was this a shortened outage list (a screen, not an answer)? One PowerWorld or se
 
 ## Examples
 
-**Good:** "Settings change for your approval. `Sim_Solution_Options.MaxItr` 100 → 200: the iteration limit, since you asked for more iterations. `CTG_Options.Include` NO → YES and `Sim_Solution_Options.EvalSolutionIsland` NO → YES: both are needed to report outages that cut off part of the grid. Unchanged, and recorded: voltage limits after an outage 0.90–1.10 pu, rating set A throughout. Monitoring is the case's own: areas 1–3, 69 kV and up, 1,184 branches and 902 buses. Problems outside that are not reported. Awaiting approval." … later: "N-1 on the base case and 4 candidates. All 5,344 outages solved. PowerWorld's own rule left out 212 branches below 69 kV and 31 open ones. Best is candidate 2: thermal overloads 42 → 0, and no new outages cut off load. All 3 settings changes stuck. Ran 6 copies of PowerWorld in parallel. Results: results/r7."
+**Good** (approval, 7 lines):
+```
+Ready to run N-1 on the base case + 4 candidates. Nothing has run yet.
+Settings: MaxItr 100 → 200 (more iterations)
+          CTG_Options.Include NO → YES and EvalSolutionIsland NO → YES (report outages that cut off load)
+Monitored: areas 1–3, 69 kV and up (the case's own setup).
+Outages: full set, 5,344.
+Reply "approved" to run. Details: results/r7/manifest.json
+```
+**Good** (result):
+```
+N-1 on base + 4 candidates: 5,344 of 5,344 solved. Candidate 2 is best: thermal overloads 42 → 0, no new load cut off. Monitored: areas 1–3, 69 kV+.
+| design | thermal | voltage | did not solve | cut off load (MW) | vs. before any fix |
+| base   | 42 | 11 | 0 | 0 | — |
+| cand 2 | 0  | 9  | 0 | 0 | thermal −42, voltage −2 |
+Results: results/r7
+```
 
-**Bad:** "Ran N-1 with improved settings; the system looks secure." No delta shown, no approval, no limits, no coverage, no islands, no path.
+**Bad:** "Ran N-1 with improved settings; the system looks secure." No settings change shown, no approval, no scope, no path.
+
+**Bad, the other way:** a 30-line report with Status / Settings / Outages / Caveats headings that repeats the limits, the solver options and the tie-line count the engineer never asked about. The engineer has to dig for the one decision.
 
 ## Final checklist
 

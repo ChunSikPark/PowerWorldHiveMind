@@ -171,7 +171,10 @@ it unless the engineer asks.
 
 **Guards:**
 - contingency coverage counted before a sweep (records vs lines plus two-winding transformers);
-  `CTGAutoInsert` is not trusted without the count
+  `CTGAutoInsert` is not trusted without the count. A shorter list the engineer **chose** at
+  configure (`contingency_set.source = "case list (engineer's choice)"`) runs, and every result is
+  stamped "ran your list: <in_set> of <expected>; <n> not tested". The guard stops only a shortfall
+  nobody chose, and it cannot be overridden after approval.
 - DC only via `SolvePowerFlow(DC)`, followed by an AC re-solve before any AC result is read
 - islands reported with all three checks — dropped (`LoadMW`/`GenMW`), energized
   (`CTG_Options.Include`), structural (`DetermineBranchesThatCreateIslands`) — gated on MW only
@@ -328,7 +331,7 @@ All on public synthetic cases.
 | runner, serial vs parallel | the same violation set and the same devices ranked; values agree within 1e-4 relative |
 | runner, manifest replay | two runs of one manifest give the same violation set and the same devices ranked; values agree within 1e-4 relative |
 | runner, read-back | a write that does not stick fails the run loudly |
-| runner, coverage | a deliberately incomplete contingency set fails the guard |
+| runner, coverage | an incomplete contingency set that nobody chose fails the guard; the same set chosen at configure runs, and every result is stamped "ran your list: n of N" |
 | runner, OPF gate | on a case with no cost data, OPF and SCOPF are refused, not run |
 | runner, user-supplied costs | an OPF run on cost curves the engineer supplied carries the stamp "costs supplied by you, not from the case" on every result |
 | runner, OPF | on a case with cost data, OPF returns a solved status and a final cost, and binding lines match `LineLPUnenforceableMVA` |

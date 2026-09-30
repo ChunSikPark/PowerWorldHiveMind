@@ -80,21 +80,21 @@ Write every message the engineer reads the way you would say it to a colleague a
 - Give numbers with units and a before → after: "thermal overloads 42 → 0".
 - Short sentences, one point each.
 - Describe this case, not the edge case: say what will happen when they run it, sized in numbers ("84 of 87 will follow the weather; 3 read 0 MW"). Never turn an imperfection the study runs through into a blocker.
+- Keep it short. Open with one line: the answer, or where things stand. Then only what the engineer must decide or know, one line each, with decisions numbered and their default. Everything else goes in the file; give its path once. No repeated facts, no "caveats" paragraph, no restating what they already approved.
+
+One line before the picture, the picture, one line after. Nothing else.
 
 ```markdown
-## <gate>: <what you are approving>
-Drawn from <plan file path>. <n> steps, <n> safety checks.
+<gate>: <n> steps, <n> safety checks, drawn from <plan file path>. Styled page: <link>   (Claude Code only)
 
 <the Mermaid picture in the chosen view>
-
-Styled page: <link>   (Claude Code only)
 
 Approve this plan? Reply yes, no, or say what to change. Say "flowchart" to see what can stop the run.
 ```
 
 ## Final response contract
 
-- Your last message contains the picture, the path of the plan file it was drawn from, and the approval question.
+- Your last message is one line naming the gate and the plan file it was drawn from, the picture, and the approval question — nothing else.
 - If the picture and the file disagree, your last message says so and contains no approval question.
 
 ## Failure modes to avoid
@@ -123,7 +123,9 @@ The `steps` array in `results/r7/manifest.json`, as the study-runner wrote it at
 ]
 ```
 
-**Good:** drawn from that array alone — 6 entries, 6 steps; 2 checks listed, 2 drawn. "Settings approval: N-1 on the base case and 4 candidates. Drawn from results/r7/manifest.json. 6 steps, 2 safety checks."
+**Good:** drawn from that array alone — 6 entries, 6 steps; 2 checks listed, 2 drawn.
+
+"Settings approval: 6 steps, 2 safety checks, drawn from results/r7/manifest.json."
 
 ```mermaid
 flowchart LR

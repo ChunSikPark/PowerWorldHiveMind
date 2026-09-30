@@ -90,25 +90,21 @@ Write every message the engineer reads the way you would say it to a colleague a
 - Give numbers with units and a before → after: "thermal overloads 42 → 0".
 - Short sentences, one point each.
 - Describe this case, not the edge case: say what will happen when they run it, sized in numbers ("84 of 87 will follow the weather; 3 read 0 MW"). Never turn an imperfection the study runs through into a blocker.
+- Keep it short. Open with one line: the answer, or where things stand. Then only what the engineer must decide or know, one line each, with decisions numbered and their default. Everything else goes in the file; give its path once. No repeated facts, no "caveats" paragraph, no restating what they already approved.
 
 ### Round digest
 
+At most 8 lines: a headline, one before → after line, the top 2 worst in one line each, then numbered next moves ending with "stop here". Everything else (raw scoreboard, worst-offenders detail) stays in the results folder.
+
 ```markdown
-## Round <n>: <study> on <designs>
-<n> of <n> outages solved, <n> did not. Took <duration>. Settings file: <path>.
-
-## Since round <n-1>
-N-1 thermal overloads <a> → <b>. N-1 voltage violations <a> → <b>. Outages that cut off part of the grid <a> → <b>.
-
-## Worst now
-- <the outage that does the most damage, and what it overloads or cuts off>
-- <the line or bus hit by the most outages, and how many>
-
-## What next? Reply with a number, or say what you want
+Round <n> (<study> on <designs>): <n> of <n> outages solved, <n> did not. Took <duration>. Settings: <path>.
+Thermal overloads <a> → <b>. Voltage violations <a> → <b>. Cut off part of the grid <a> → <b>.
+Worst: <the outage that does the most damage, and what it overloads or cuts off>.
+Also hit hard: <the line or bus hit by the most outages, and how many>.
+Reply with a number, or say what you want:
 1. <e.g. measure the three cheapest fixes on the worst corridor>
 2. <e.g. map the cut-off pocket with the network-visualizer>
-3. <e.g. run again with emergency ratings>
-4. Stop here.
+3. Stop here.
 ```
 
 ## Tool usage
@@ -131,7 +127,22 @@ N-1 thermal overloads <a> → <b>. N-1 voltage violations <a> → <b>. Outages t
 
 ## Examples
 
-**Good:** Push, 02:14 — "Stalled: no outage has finished solving for 17 minutes. 8,412 of 13,122 done. 2 of 6 PowerWorld copies still alive. Reply 1 to wait, 2 to stop, 3 to stop and rerun the unfinished batches." Later, 06:50 — "Round 3 done. Thermal overloads 42 → 11. Outages that cut off load: 3 → 3. Worst: losing the northern 345 kV tie overloads two 138 kV lines. Next: 1 measure the 3 cheapest fixes there, 2 map the cut-off pocket, 3 stop here."
+**Good:** Push, 02:14 —
+```
+Stalled: no outage has finished solving for 17 minutes. 8,412 of 13,122 done, 2 of 6 PowerWorld copies still alive.
+Reply 1 to wait, 2 to stop, 3 to stop and rerun the unfinished batches.
+```
+Later, 06:50 —
+```
+Round 3 (N-1 on base + 2 candidates): 13,122 of 13,122 solved. Took 4h 36m. Settings: results/r3/manifest.json.
+Thermal overloads 42 → 11. Voltage violations 9 → 9. Cut off part of the grid 3 → 3.
+Worst: losing the northern 345 kV tie overloads two 138 kV lines.
+Also hit hard: the 138 kV corridor south of it, on 6 outages.
+Reply with a number, or say what you want:
+1. Measure the 3 cheapest fixes on that corridor.
+2. Map the cut-off pocket with the network-visualizer.
+3. Stop here.
+```
 
 **Bad:** "Run looks fine so far" every five minutes all night; or, at 06:50, "Round 3 finished — starting round 4 with the next candidates" without asking.
 

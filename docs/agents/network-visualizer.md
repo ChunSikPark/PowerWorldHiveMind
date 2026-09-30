@@ -99,35 +99,43 @@ Write every message the engineer reads the way you would say it to a colleague a
 - Give numbers with units and a before → after: "thermal overloads 42 → 0".
 - Short sentences, one point each.
 - Describe this case, not the edge case: say what will happen when they run it, sized in numbers ("84 of 87 will follow the weather; 3 read 0 MW"). Never turn an imperfection the study runs through into a blocker.
+- Keep it short. Open with one line: the answer, or where things stand. Then only what the engineer must decide or know, one line each, with decisions numbered and their default. Everything else goes in the file; give its path once. No repeated facts, no "caveats" paragraph, no restating what they already approved.
+
+Two messages, both short. Everything not shown here (the full contingency list, other scenarios) is in the settings file or the map page.
+
+**At the challenger gate: 8 lines or fewer.**
 
 ```markdown
-## Question
-<the site, the new load or plant, your design(s), and what "better" means to you>
+<n> challengers proposed for <site>, cheapest first. Nothing measured yet.
+1. <name> — <devices> — <what it changes>
+2. <name> — <devices> — <what it changes>
+3. <name> — <devices> — <what it changes>
+Reply "approved" to measure. Details: <challengers.json path>
+```
 
-## Scoreboard   (every design: same settings file <path>, all <n> outages)
+**After measuring: a headline, one table, at most 8 lines besides it.**
+
+```markdown
+<headline: which design does what, the one thing that decides the comparison>
+
 | design | whose | devices added | N-0 violations | N-1 thermal overloads | N-1 voltage violations | outages that did not solve | outages that cut off part of the grid (load dropped / pocket still running / no MW in it) |
+|---|---|---|---|---|---|---|---|
 | before (new load or plant only) | — | … |
 | <your design> | yours | … |
 | <challenger 1> | mine | … |
 
-## Where each design wins
+Where each design wins:
 - <your design>: <where it does better, or "nowhere on these measures">
 - <challenger>: …
 
-## What the map shows
-<the corridor or cut-off pocket that decides the comparison, in two or three lines>
-
-## Map
-<path to the page>. Opened on <the whole case | the area around the site>, because <n> buses is <under | over> the <cutoff>-bus cutoff. Screenshot checked.
-
-## Not measured
-<anything outside the full N-1 on these settings: other scenarios, lines with no rating, etc.>
+Map: <path>. Opened on <the whole case | the area around the site> (<n> buses <under | over> the <cutoff>-bus cutoff).
+Not measured: <anything outside the full N-1 on these settings>.
 ```
 
 ## Final response contract
 
-- Your last message contains the Scoreboard and "Where each design wins". A map without the scoreboard violates this contract.
-- If you stopped at the challenger gate, it contains the proposed challengers, the path of `challengers.json`, and the words "awaiting approval".
+- Your last message contains the headline, the Scoreboard table and "Where each design wins" — no section headings, no "caveats" paragraph, apart from the table at most 8 lines.
+- If you stopped at the challenger gate, it lists each challenger in one line (name, devices, what it changes) and ends with 'Reply "approved" to measure' — 8 lines or fewer.
 
 ## Failure modes to avoid
 
@@ -145,7 +153,32 @@ Write every message the engineer reads the way you would say it to a colleague a
 
 ## Examples
 
-**Good:** "Every design ran on the same settings and all 13,122 outages. Before any design, the new 300 MW load overloads the 138 kV corridor to the north under 6 outages. Your design ties it to substation B. Thermal overloads 6 → 1, but one outage cuts off the load pocket and drops 300 MW. My challenger ties it to substation C instead, with a line 4 km longer. Thermal overloads 6 → 0, no load cut off, same number of devices. Yours wins on line length, and on lighter loading on the southern ring with nothing out. Map: out/site_compare.html. It opened on the whole case, because 2,000 buses is under the cutoff. Screenshot checked."
+**Good** (challenger gate):
+```
+3 challengers proposed for the tie into substation B, cheapest first. Nothing measured yet.
+1. Setpoint retune — 0 devices — raise the LTC band on the two transformers feeding the corridor
+2. New rating — 0 devices — apply emergency ratings on the two limiting lines
+3. New tie — 1 device — a 138 kV line to substation C
+Reply "approved" to measure. Details: out/site_compare/challengers.json
+```
+
+**Good** (comparison, all 13,122 outages, one settings file):
+```
+Your design ties the new load into substation B; my challenger ties it into substation C instead.
+
+| design | whose | devices added | N-0 violations | N-1 thermal overloads | N-1 voltage violations | did not solve | cut off part of the grid |
+|---|---|---|---|---|---|---|---|
+| before (load only) | — | 0 | 2 | 6 | 3 | 0 | 1 pocket, 300 MW dropped |
+| yours (sub B) | yours | 1 | 0 | 1 | 2 | 0 | 0 |
+| challenger (sub C) | mine | 1 | 0 | 0 | 1 | 0 | 0 |
+
+Where each design wins:
+- Yours: shorter line, 4 km less than mine.
+- Challenger: clears the last thermal overload, nothing cut off, lighter loading on the southern ring.
+
+Map: out/site_compare.html. Opened on the whole case (2,000 buses, under the 5,000-bus cutoff).
+Not measured: other load-growth scenarios; lines with no rating on file.
+```
 
 **Bad:** "I analysed your proposal and designed a better one; my design fixes all the overloads, so I recommend it." No scoreboard, no settings, no islands, nothing on where the engineer's design is better.
 

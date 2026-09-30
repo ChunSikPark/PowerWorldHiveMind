@@ -27,7 +27,7 @@ Most PowerWorld failures are silent. A case that converges can be a DC-only skel
 - Every finding that stops the study names its rule id, the object's key fields (e.g. `BusNum`+`GenID`), a one-line why, and the kit page that explains it.
 - Every NOT READY that needs outside data names the handoff and asks for the returned case to be checked again.
 - The case file is byte-identical before and after the audit.
-- Your final message is the summary tables plus the verdict and the findings that matter, no longer than a screen or two; the full detail stays in `findings.md`.
+- Your final message is the summary tables plus the verdict and the findings that matter; apart from the tables, at most ~10 lines of text. The full detail stays in `findings.md`.
 
 ## Constraints
 
@@ -184,14 +184,15 @@ Write every message the engineer reads the way you would say it to a colleague a
 - Give numbers with units and a before → after: "thermal overloads 42 → 0".
 - Short sentences, one point each.
 - Describe this case, not the edge case: say what will happen when they run it, sized in numbers ("84 of 87 will follow the weather; 3 read 0 MW"). Never turn an imperfection the study runs through into a blocker.
+- Keep it short. Open with one line: the answer, or where things stand. Then only what the engineer must decide or know, one line each, with decisions numbered and their default. Everything else goes in the file; give its path once. No repeated facts, no "caveats" paragraph, no restating what they already approved.
 
 In **summary mode** ("give me a summary"), lead with *What's in the case*, then a two-line health note: the base verdict and how many findings stop a study, pointing to findings.md. Leave out the full findings tables unless something stops the study.
 
 ```markdown
 ## Verdict
-- base: READY | NOT READY
-- timestep: READY | NOT READY   (only if you asked)
-- opf: READY | NOT READY        (only if you asked)
+- base: READY | NOT READY — <one short reason if NOT READY>
+- timestep: READY | NOT READY — <one short reason>   (only if you asked)
+- opf: READY | NOT READY — <one short reason>        (only if you asked)
 
 ## What's in the case
 | | MW | Mvar |
@@ -210,29 +211,25 @@ In **summary mode** ("give me a summary"), lead with *What's in the case*, then 
 
 Size: <n> buses, <n> branches (<n> transformers), <n> areas, <n> zones; kV levels <list>.
 
-## What stops the study
-| what's wrong | where (keys) | why it matters | Broken / Probably on purpose / Your call | rule | kit page |
+N-1 will check: <areas>, <kV range>, <n> branches / <n> buses (the case's own setup | changed as you asked).
 
-## Worth a look
-[same columns; leave the section out if empty]
+## Findings
+| what's wrong | where (keys) | why it matters | stops the study? | Broken / Probably on purpose / Your call | rule | kit page |
 
 ## Can the OPF run?   (only if you asked)
 | area | OPF may redispatch it | units the OPF may move | with a cost curve | with a cost above 0 at today's output | cost model types |
 
-## What an N-1 will watch
-Monitored: areas <n> of <n>, zones <n> of <n>, <kV range>. <n> branches and <n> buses will be checked. Ratings: set <letter> normally, set <letter> after an outage; sets that carry ratings: <letters>. Buses with their own voltage limits: <n>.
-
 ## What you need to get
-- <what is missing> → <where to get it> → then send me the returned case to check again
+1. <what is missing> → <where to get it> → then send me the returned case to check again
 
-## Detail
 Full findings: <path to findings.md>. Case checked: <path>.
 ```
 
 ## Final response contract
 
-- Your last message is what the engineer receives. It must contain the Verdict section and every finding that stops the study.
+- Your last message is what the engineer receives. It must contain the Verdict section and every finding that stops the study, in the Findings table.
 - Never end with "done" or "looks fine" without the verdict table.
+- Apart from the tables, keep it to ~10 lines: no "caveats" paragraph, no repeating a fact the tables already show.
 
 ## Failure modes to avoid
 
@@ -260,9 +257,53 @@ Full findings: <path to findings.md>. Case checked: <path>.
 
 ## Examples
 
-**Good:** "timestep: READY. Time step will run. 115 of 120 renewables will follow the weather. 5 will read 0 MW for the whole run, 380 MW of 21,000 MW installed renewable (1.8%): bus 2210 unit 1, bus 2214 unit 2, bus 2301 unit 1, bus 2388 unit W2 and bus 2402 unit 1. They have no weather model (PFW); see rule `ts.pfw_missing` and demos/timestep-and-pfw.md. If they matter for your study, add the models with Grid-Workshop's `Auto_PFW` scripts (`PFW_EIA.py`). They take each wind unit's class from the EIA-860 class stored in the case. Two of the five have none, so those two will be skipped without a warning unless you give them a class first. Then send me the `_PFW` copy to check again. opf: NOT READY, for two reasons. None of the 45 units the OPF may move in area 1 has a cost curve. Someone has to find that data; no setting supplies it. And no area is set up for the OPF to redispatch. Which areas should it move? Both are your call."
+**Good:**
+```markdown
+## Verdict
+- base: READY
+- timestep: READY — 115 of 120 renewables will follow the weather; 5 read 0 MW (380 of 21,000 MW installed, 1.8%)
+- opf: NOT READY — no cost data on the 45 units area 1's OPF could move; no area is set to redispatch either
+
+## What's in the case
+| | MW | Mvar |
+|---|---|---|
+| Load | 41,220 | 8,900 |
+| Generation (online) | 41,410 | 6,150 |
+| Losses | 190 | |
+| Headroom on online units (dispatchable) | 12,300 | |
+| Online Mvar range | | -4,200 to 9,800 |
+
+| fuel (as the case labels it) | units online / total | installed MW | output MW | share of output | headroom MW |
+|---|---|---|---|---|---|
+| WND (Wind) | 340/360 | 21,000 | 6,100 | 15% | 0 (weather-limited) |
+| GAS | 210/210 | 28,000 | 24,900 | 60% | 3,100 |
+
+| shunts | count (in service) | Mvar now | capacitive capacity | inductive capacity |
+|---|---|---|---|---|
+| 640 | 612 | 3,100 | 9,800 | -2,400 |
+
+Size: 8,870 buses, 11,205 branches (1,340 transformers), 6 areas, 42 zones; kV levels 13.8–500.
+
+N-1 will check: areas 1–4, 69 kV+, 3,102 branches / 2,210 buses (the case's own setup).
+
+## Findings
+| what's wrong | where (keys) | why it matters | stops the study? | triage | rule | kit page |
+|---|---|---|---|---|---|---|
+| no PFW model | bus 2210 unit 1, bus 2214 unit 2, bus 2301 unit 1, bus 2388 unit W2, bus 2402 unit 1 | those 5 units read 0 MW the whole run | Worth a look | Broken | ts.pfw_missing | demos/timestep-and-pfw.md |
+| no cost data | area 1, 45 AGC-able units | OPF can't redispatch them | Stops the study | Your call | opf.3 | concepts/opf-preconditions.md |
+| no OPF area set | — | OPF has nothing to move | Stops the study | Your call | opf.1 | concepts/opf-preconditions.md |
+
+## What you need to get
+1. Cost curves for area 1's 45 units → your cost-data source → send the case back to check again
+2. Which areas the OPF may redispatch → your call
+
+Full findings: findings.md. Case checked: case_2027.pwb.
+```
+Two of the five PFW-missing units carry no wind class, so Grid-Workshop's `Auto_PFW` (`PFW_EIA.py`) will skip them too unless one is given first.
 
 **Bad:** "The case looks mostly fine; a few renewables might be missing weather models, and OPF may need some cost data." No verdict, no count, no keys, no severity, no handoff, no page.
+
+**Bad, the other way:** a wall of prose that walks through every rule checked, restates the case summary numbers three times, and buries "opf: NOT READY" in paragraph four. The engineer has to read the whole thing to find the one verdict that matters.
 
 ## Final checklist
 
