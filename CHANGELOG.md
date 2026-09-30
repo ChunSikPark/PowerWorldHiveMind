@@ -1,6 +1,31 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 — 2026-09-30
+
+- **An agent team, designed and drafted.** `docs/superpowers/specs/2026-09-28-power-system-agents-design.md`
+  sets out a small team that works on measured numbers instead of guesses. Methods are knowledge
+  and agents are roles, so adding a study never adds an agent.
+  - `schema-librarian` is live.
+  - `case-auditor`, `study-runner` and `network-visualizer` ship as role-contract drafts in
+    `docs/agents/`. They load only once their engines are built.
+  - `run-supervisor` and `plan-pictures` are drafts of main-session skills.
+  - The auditor opens every scan with a case summary: load, generation, headroom by fuel type,
+    shunt capacity. It says what a study will actually do ("84 of 87 renewables will follow the
+    weather; 3 read 0 MW") and blocks only what cannot run.
+  - The runner turns a plain request into a settings change, stops for approval, and covers AC,
+    DC, N-1, OPF, SCOPF and now TimeStep. Long runs hand off to the supervisor.
+  - Every draft follows the same rules: plain requests in, short answers out (an approval is
+    8 lines or fewer, a break is 3 plain lines), and approval recorded in the settings file.
+- **Pages are the answer where a picture beats a paragraph.** Two reference pages ship in
+  `docs/agents/pages/`.
+  - `design-compare.html` draws every option on the network around the site, with its overloads
+    and low buses painted on, side by side.
+  - `run-watch.html` is a live status page for a long run: a badge top right, a one-line answer,
+    progress, a run clock and the timeline.
+- **Study references.** `references/powerworld-study-options.md` (curated, provenance-tagged),
+  `references/powerworld-option-objects-v25.md` (every option object's fields),
+  `references/powerworld-study-commands.md` (every study SCRIPT command) and the Simulator 25
+  field export, `references/powerworld-object-fields-v25.xlsx`.
 
 - **A fourth skill, `schema-lookup`, and the kit's first agent, `schema-librarian`.** Answers which
   PowerWorld object, field or SCRIPT command to use from the Simulator 25 field export
