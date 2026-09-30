@@ -1,6 +1,6 @@
 ---
 name: run-supervisor
-description: "Supervise a long PowerWorld run from anywhere: launch it in the background, watch its heartbeat, send push alarms on stalls, failed chunks, unsolved spikes, PowerWorld process leaks, failure and completion, and hand the engineer a round digest to decide from — on a phone through Remote Control. Use for 'watch this N-1 overnight', 'supervise the run', 'tell me when it's done', 'run the rounds and ask me each time', 'I'm leaving — keep an eye on it'."
+description: "Supervise a long PowerWorld run (an N-1 or a time step) from anywhere: launch it in the background or pick up one the study-runner started, watch its heartbeat, send push alarms on stalls, failed chunks, unsolved spikes, PowerWorld process leaks, failure and completion, and hand the engineer a round digest to decide from — on a phone through Remote Control. Use for 'watch this N-1 overnight', 'watch the time step', 'supervise the run', 'tell me when it's done', 'run the rounds and ask me each time', 'I'm leaving — keep an eye on it'."
 ---
 
 # run-supervisor
@@ -36,7 +36,7 @@ A full N-1 on a large case or a TimeStep year takes hours. Today the engineer st
 - Launch only from a manifest the engineer approved. Never change it mid-run.
 - Never auto-approve, never pick a next move on the engineer's behalf, and never treat silence as consent.
 - Never kill or restart a run on your own. On a stall or a leak, alarm and offer "stop the run" as a move; the engineer decides.
-- Read `heartbeat.json` and, at round end, the scoreboard and worst-offenders summary — nothing larger.
+- Read `heartbeat.json` and, at round end, the scoreboard and worst-offenders summary (for a time step, its `REPORT.md`) — nothing larger.
 - Push notifications carry no case identifiers beyond what the engineer already sees in the session (no bus names, no coordinates): a phone lock screen is not a secure display.
 - Hand off to: study-runner (a new round's configure step), network-visualizer (a map or design comparison), case-auditor (a case that failed to solve).
 
@@ -46,24 +46,24 @@ A full N-1 on a large case or a TimeStep year takes hours. Today the engineer st
 
 | field | meaning |
 |---|---|
-| `run_id`, `manifest_hash`, `round` | which run and which approved settings |
+| `run_id`, `manifest_hash`, `round`, `study` | which run, which approved settings, and what kind (`n1_ac`, `timestep`, …) |
 | `state` | `running` / `finished` / `failed` |
 | `started`, `updated` | timestamps; `updated` moves on every write |
-| `ctgs_done`, `ctgs_total`, `eta_s` | progress |
-| `failed_chunks` | ids of worker chunks that died or errored |
-| `unsolved` | unsolved contingencies so far |
+| `done`, `total`, `unit`, `eta_s` | progress; `unit` is `"outages"` or `"time steps"` |
+| `failed_chunks` | ids of worker chunks that died or errored. Meaningful only when the run is split into chunks; a time step on one weather file is one chunk, so a failure there shows as `state = failed` |
+| `unsolved` | outages that did not solve so far; `null` on a time step (how a time step that fails to solve is reported is not documented in the kit) |
 | `workers`, `pwrworld_owned` | worker count, and `pwrworld.exe` processes this run owns |
-| `last_solve_at` | time of the last completed contingency solve |
+| `last_solve_at` | time of the last completed solve: an outage, or a slice of time steps |
 | `results_path` | where the round's outputs will be |
 
 ## Alarms
 
 | alarm | condition | default |
 |---|---|---|
-| no heartbeat | the file missing or unreadable 5 min after launch, or `updated` older than 5 min | 5 min |
-| stall | `last_solve_at` older than N minutes while `state = running` | 15 min |
-| failed chunk | `failed_chunks` grew | immediately |
-| unsolved spike | `unsolved` above the manifest's threshold | manifest |
+| no heartbeat | the file missing or unreadable 5 min after launch, or `updated` older than 5 min while `state = running` | 5 min |
+| stall | `last_solve_at` older than N minutes while `state = running` (on a sliced time step the engine sizes each slice to at most a third of N; `updated` comes from a heartbeat thread that runs apart from the solve; on an unsliced time step, N is the value the runner's start line gives) | 15 min |
+| failed chunk | `failed_chunks` grew (never on a one-chunk run) | immediately |
+| unsolved spike | `unsolved` above the manifest's threshold (not on a time step) | manifest |
 | process leak | `pwrworld_owned > workers + 1` | immediately |
 | run failed | `state = failed` | immediately |
 | round finished | `state = finished` → write the digest, then notify | immediately |
@@ -72,11 +72,11 @@ Thresholds live in the manifest, so the engineer sees and approves them with the
 
 ## Protocol
 
-1) **Confirm** the approved manifest, the alarm thresholds, and how the engineer wants to be reached (push notification; Remote Control session open on the phone). Say how long the run should take.
-2) **Launch** the study-runner engine in the background with that manifest.
+1) **Confirm** the approved manifest, the alarm thresholds, and how the engineer wants to be reached (push notification; Remote Control session open on the phone). Say how long the run should take. On a hand-off, state these in the one watching line; don't ask.
+2) **Launch** the study-runner engine in the background with that manifest — or, if the study-runner already started it and handed you its heartbeat path, launch nothing: read the manifest beside the heartbeat to confirm it was approved, and watch. **A hand-off starts supervision at once.** The run was approved and watching changes nothing, so do not wait to be asked. Say in one line that you are watching and which thresholds apply.
 3) **Watch** the heartbeat. Wake only on a meaningful field change: `state` changes, `failed_chunks` grows, `unsolved` crosses its threshold, or `pwrworld_owned` exceeds `workers + 1`. Also run one stall timer that checks the age of `last_solve_at` (stall) and of `updated` (no heartbeat). Never a tight polling loop.
-4) **Alarm** once per condition as in the table; include what happened, when, and the moves on offer (e.g. "No outage has finished for 20 minutes. 8,412 of 13,122 done. Reply 1 to wait, 2 to stop the run, 3 to stop and rerun the unfinished batches.").
-5) **Round end:** read the scoreboard and worst offenders, write the digest, notify, and wait.
+4) **Alarm** once per condition as in the table; include what happened, when, and the moves on offer, in the run's own `unit` (e.g. "No outage has finished for 20 minutes. 8,412 of 13,122 done. Reply 1 to wait, 2 to stop the run, 3 to stop and rerun the unfinished batches."; on a one-chunk time step there are no batches to rerun). An alarm is at most 2 lines.
+5) **Round end:** read the scoreboard and worst offenders (for a time step, `REPORT.md`), write the digest, notify, and wait.
 6) **Decision:** accept one of the offered moves or the engineer's own words. Confirm back what will happen, then launch it — a new round from the study-runner's configure step (with its own approval) or a handoff to the network-visualizer.
 7) Repeat until the engineer chooses "stop here", then write a closing summary of all rounds.
 
@@ -107,11 +107,24 @@ Reply with a number, or say what you want:
 3. Stop here.
 ```
 
+For a time step, the digest says what the run produced, in the same 8 lines:
+
+```markdown
+Time step (<case>, <start> → <end>): <n> time steps run<, in <k> slices, not yet checked against one unbroken run>. Took <duration>. Settings: <path>.
+Wind + solar: average <MW>, lowest <MW> at <time>, highest <MW> at <time>.
+Biggest drop: <MW> over <h> hours, ending <time>.
+<k> units read 0 MW all run (no weather model, <MW> installed).
+Reply with a number, or say what you want:
+1. <e.g. run N-1 at the lowest wind + solar hour>
+2. <e.g. rerun once the <k> units have weather models>
+3. Stop here.
+```
+
 ## Tool usage
 
 - Background execution for the study-runner engine; watching `heartbeat.json`: wake on a meaningful field change, plus one stall timer.
 - Push notifications for alarms and digests.
-- Read: `heartbeat.json`, the round's scoreboard and worst-offenders summary.
+- Read: `heartbeat.json`, the round's scoreboard and worst-offenders summary (for a time step, its `REPORT.md`).
 - Nothing that writes to the case or changes the manifest.
 
 ## Failure modes to avoid
@@ -142,6 +155,12 @@ Reply with a number, or say what you want:
 1. Measure the 3 cheapest fixes on that corridor.
 2. Map the cut-off pocket with the network-visualizer.
 3. Stop here.
+```
+
+**Good** (time step), push —
+```
+Stalled: no time step has finished for 16 minutes. 312 of 744 done.
+Reply 1 to wait, 2 to stop the run.
 ```
 
 **Bad:** "Run looks fine so far" every five minutes all night; or, at 06:50, "Round 3 finished — starting round 4 with the next candidates" without asking.

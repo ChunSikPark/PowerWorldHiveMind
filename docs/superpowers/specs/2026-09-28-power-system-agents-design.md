@@ -147,7 +147,38 @@ message's sender. Found in the 2026-09-29 runner trial, where a relayed "run it"
 - The original case is never saved; variants run on fresh copies with their aux delta loaded and
   the case **solved after `LoadAux`** before anything is read.
 
-**v1 methods:** AC power flow, DC power flow, N-1 contingency, OPF, SCOPF.
+**v1 methods:** AC power flow, DC power flow, N-1 contingency, OPF, SCOPF, TimeStep.
+
+- **TimeStep** (added 2026-09-30; sources `demos/timestep-and-pfw.md`,
+  `methods/timestep-simulation-setup.md`, `concepts/timestep-workflow.md`, `concepts/pww-data.md`,
+  `references/time-step-simulation-backend.md`, and the *Time-step simulation* table of
+  `references/powerworld-study-commands.md`). Configure items: the case (run on a copy), the `.pww`
+  file, the window (`Start`/`End` for `TimeStepLoadPWWRange(…, "Weather Only")`; the step is the
+  file's own `SAMPLE_seconds`), the units (`GenFuelType` WND/SUN, `TimeDomainSelected` inside the
+  `TIMESTEPSaveSelectedModifyStart/Finish` bracket), and the fields recorded each step
+  (`TimeStepSaveFieldsSet(GEN, [GenMW], SELECTED)` by default). `TimeStepDoSinglePoint` runs first;
+  then `TimeStepDoRun`, `TimeStepSaveResultsByTypeCSV`. At approval the runner states, in the case's
+  terms, which renewables follow the weather (`TSPFWModelString` longer than 2 characters) and which
+  read 0 MW, with IDs (at most 5; the rest in the file) and MW share; missing PFW models never block
+  it. If `PauseOnError` or `PauseOnNoSolution` is YES, the approval says a pause looks like a stall.
+  `SAMPLE_seconds = 0` means irregular steps (`concepts/pww-data.md`).
+  **Slicing** (`slice_steps` in the manifest): `TimeStepDoRun` gives no documented progress signal, so
+  with `"Weather Only"` — whose timestamps the kit treats as independent points
+  (`concepts/timestep-workflow.md`) — the engine runs the window as `TimeStepDoRun(Start, End)`
+  slices and counts between them. For any other solution type slicing is forced off and the window
+  runs in one unbroken call, because PowerWorld's time-step controller time delays make results
+  differ from a plain repeated solve. Each slice takes at most a third of the stall threshold, sized
+  from the single-point time. Sliced results carry "run in <k> slices, not yet checked against one
+  unbroken run" until the §10 slice test passes. **Not documented in the kit:** splitting one weather
+  file across parallel workers (so one file runs as one chunk; the only documented parallel runner
+  gives each worker a whole file), a setting that changes the step, and how solution types other
+  than `"Weather Only"` change the results.
+- **Long runs hand off.** A run expected to take longer than a few minutes — a time step over weeks,
+  a full N-1 on a large case — is launched by the runner calling `study.py run` in the foreground;
+  the engine detaches the run so it outlives the subagent and returns at once (never a background
+  shell). The runner returns one line ("<study> started: <n> <unit>, about <t>. Watching:
+  <heartbeat path>.") and ends; the main session's run-supervisor skill (§8a) watches it. A subagent
+  cannot wait hours. Alarm thresholds go in the manifest's `alarms`, approved with the settings.
 
 - **OPF and SCOPF need cost data** for the generators the study moves: real data in the case (the
   auditor's opf condition 3), or cost curves the engineer supplies themselves — even deliberately
@@ -195,12 +226,20 @@ it unless the engineer asks.
   runner parameter, recorded in the manifest; its default is set in the implementation plan.
 
 **Output:** `results/<run>/manifest.json`, `readback.json`, `scoreboard.csv`, `violations.csv`, `islands.csv`,
-`rankings.csv`, `reduced_set.aux`, `REPORT.md`, and one status line to the engineer.
+`rankings.csv`, `reduced_set.aux`, `REPORT.md`, and one status line to the engineer. For a time step
+the engine writes `readback.json`, `timestep_summary.csv` (one row per step) and `REPORT.md` (wind and
+solar average, lowest and highest with their times, the biggest drop, and the units that read 0 MW),
+from which the runner's result and the supervisor's digest are written.
 
 **Heartbeat (for run supervision, §8a).** While a run is live the engine rewrites
-`results/<run>/heartbeat.json` at least once a minute: `state` (`running` / `finished` / `failed`),
-contingencies done and total, ETA, failed chunks, unsolved so far, the count of `pwrworld.exe`
-processes the run owns, and the time of the last completed solve. Written atomically (temp file,
+`results/<run>/heartbeat.json` at least once a minute: `study`, `state` (`running` / `finished` /
+`failed`), progress as `done`, `total` and `unit` (`"outages"` or `"time steps"`), ETA, failed chunks
+(meaningful only when the run is split into chunks; a time step on one weather file is one chunk),
+unsolved so far (`null` on a time step: how a failed step is reported is not documented in the kit),
+the count of `pwrworld.exe` processes the run owns, and `last_solve_at`, the time of the last
+completed solve of either kind (an outage, or a slice of time steps). `updated` is written by a
+heartbeat thread that runs independently of the solve, so a slow slice never reads as a dead run.
+Written atomically (temp file,
 then replace) so a reader never sees half a file. Watching a run means reading this file, never the
 raw results.
 
@@ -292,17 +331,22 @@ session can — it runs the study in the background, wakes on meaningful heartbe
 stall timer rather than polling, sends push notifications, and can be opened from the Claude
 mobile or web app through Remote Control.
 
-1. **Launch** the study-runner engine in the background with an approved manifest.
+1. **Launch** the study-runner engine in the background with an approved manifest — or pick up a
+   run the study-runner already started and handed off (§5, *Long runs hand off*): launch nothing,
+   confirm the manifest beside the heartbeat is approved, and watch.
 2. **Watch** `heartbeat.json`. Wake only on a meaningful field change: `state` changes,
    `failed_chunks` grows, `unsolved` crosses its threshold, or `pwrworld_owned` exceeds
    workers + 1. Also run **one** stall timer that checks the age of `last_solve_at` (stall) and of
    `updated` (no heartbeat). Never a tight polling loop.
-3. **Alarm** (push notification) on: no progress for N minutes (default 15), any failed chunk,
-   an unsolved count above the manifest's threshold, more `pwrworld.exe` processes than workers
-   (a leak), the run failing, and the run finishing.
+3. **Alarm** (push notification) on: no progress for N minutes (default 15; on a time step, longer
+   than one slice takes), any failed chunk (only on runs split into chunks), an unsolved count above
+   the manifest's threshold (N-1), more `pwrworld.exe` processes than workers (a leak), the run
+   failing, and the run finishing. Alarms speak in the run's own `unit`: outages or time steps.
 4. **Round digest** when a round finishes: the scoreboard's headline, the worst offenders, islands,
    and two to four concrete next moves — e.g. "measure the three cheapest candidates on the worst
-   corridor", "map the islanded pocket with the network-visualizer", "stop here".
+   corridor", "map the islanded pocket with the network-visualizer", "stop here". For a time step
+   the digest says what the run produced — wind and solar average, lowest and highest with their
+   times, the biggest drop, and the units that read 0 MW — not N-1 counts.
 5. **The engineer decides** from the phone. The answer is a choice among the offered moves or free
    text; nothing proceeds without it — no auto-approval, same as every other gate in this design.
 6. The chosen move launches the next round (study-runner or network-visualizer) and supervision
@@ -348,6 +392,9 @@ All on public synthetic cases.
 | runner, heartbeat | during a run the heartbeat advances; a killed worker shows up as a failed chunk within one heartbeat interval |
 | supervisor, stall | a run whose `last_solve_at` stops advancing raises the stall alarm after the configured interval |
 | supervisor, gate | the next round never launches without an engineer's answer |
+| runner, timestep hand-off | the approval block says "time step will run" and which renewables read 0 MW (IDs, MW share) in 8 lines or fewer; after approval the runner calls the engine in the foreground, the engine detaches the run, and the runner returns one line with the step count, the time estimate and the heartbeat path, and ends; the heartbeat keeps advancing after the subagent has ended |
+| runner, timestep slices | on `"Weather Only"`, a window run in `TimeStepDoRun(Start, End)` slices and the same window run in one call give the same per-step MW within 1e-4 relative; until this passes, every sliced result carries "run in <k> slices, not yet checked against one unbroken run" |
+| supervisor, timestep heartbeat | on a heartbeat with `unit = "time steps"`, one chunk and `unsolved = null`: one stall alarm when `last_solve_at` freezes while `updated` moves, none for `updated` alone, no failed-chunk or unsolved alarm, and a finish digest that reports what the run produced with numbered moves ending "stop here" |
 | visualizer, large load | adding a load candidate changes N-0 flows and appears on the map's Before/Engineer switch |
 | auditor, no weather file | a timestep audit with no `.pww` given reports an FYI line and does not block timestep on it |
 | auditor, renewable gaps | 3 of 87 renewables without a PFW model → timestep READY, with a Worth-a-look line saying which units read 0 MW and their MW share; never NOT READY for missing models alone |
@@ -387,7 +434,11 @@ All on public synthetic cases.
    `XFRegTargetType = Middle`, `base.ltc_middle_target`; an LTC regulating its low-voltage side
    while its high side is out of band, `base.ltc_regulates_lv_side`; a lightly loaded EHV stub
    rising on its own line charging, `base.floating_stub`), then the base/timestep/opf profiles.
-3. study-runner — ACPF, DCPF, N-1, then OPF and SCOPF (behind the auditor's opf gate).
+3. study-runner — ACPF, DCPF, N-1, then OPF and SCOPF (behind the auditor's opf gate), then
+   TimeStep last: it reuses the auditor's timestep profile for the "who follows the weather" count
+   and the N-1 heartbeat, generalised to `done`/`total`/`unit`. Its background hand-off is exercised
+   end to end only once run supervision (5) exists; until then it is tested against the heartbeat
+   file alone.
 4. network-visualizer — measure the opening cutoff, large-load candidate, thermal view, full-N-1 comparison through the study-runner engine.
 5. run supervision — the `run-supervisor` mode over the runner's heartbeat; after Plan 3, because it
    supervises the runner's runs.
