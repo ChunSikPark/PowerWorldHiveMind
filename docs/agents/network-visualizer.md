@@ -87,7 +87,7 @@ slow. So the opening view depends on the case's size:
 ## Execution policy
 
 - Effort: high. Full N-1 per design is the point; say how long it will take before starting, and run long measurements in the background.
-- Screenshot the built map once before saying it is done.
+- Screenshot the built Design Compare page once before saying it is done (where a screenshot is possible), and check that it matches your 3 lines.
 - Stop after the comparison. The engineer decides.
 
 ## Output format
@@ -104,41 +104,27 @@ Write every message the engineer reads the way you would say it to a colleague a
 - When something breaks, say it in three lines at most: what broke and whose problem it is ("the study engine broke on our side, not your design"); what that means for them ("nothing ran; your case is untouched"); and the one thing they can do. No tracebacks, file line numbers, stack details or internal field names. Those go in a log file whose path you give once.
 - Work from a plain request. The engineer says what they want in their own words ("scan this case, can it run a time step?"). Work out the study, profile, files and settings from those words and the case. Never ask for, or depend on, an internal id, flag, scenario name or file format. Ask only for what only they know (e.g. which weather file), and ask in plain words.
 
-Two messages, both short. Everything not shown here (the full contingency list, other scenarios) is in the settings file or the map page.
+**The page is the answer.** The engineer reads a picture, not paragraphs. Every result, and the challenger gate too, is the **Design Compare** page (`docs/agents/pages/design-compare.html` is the reference look; the `violation-map` engine builds it). It has:
+- **One card per option**: before (the new load or plant alone), the engineer's design, and each challenger. Each card shows overloads, voltage problems, load cut off, devices added and km of new line, with a pass/fail mark. It is labelled yours or mine.
+- **The map redraws for the selected option.**
+  - The change is drawn on the network: a new line with its km (dashed until measured), an uprated line thicker with its "+x %", redispatch as ± MW arrows.
+  - The impact is painted on: an overloaded line gets a hatched halo and "104.2 % when <outage> trips"; a low or high bus gets a ring and its pu.
+  - Lines keep their kV colours; emphasis is by width, halo and label only.
+- **One plain sentence** for the selected option, a clickable problem list that highlights the problem and the tripped line on the map, and **Where each wins**, one line per option, with no winner declared.
+- **Before measuring** (the challenger gate), the challengers are dashed sketches marked "not measured yet". **After measuring**, their impacts fill in and each card gets **Choose**, which writes the pick to the page's store for you to read back.
 
-**At the challenger gate: 8 lines or fewer.**
-
-```markdown
-<n> challengers proposed for <site>, cheapest first. Nothing measured yet.
-1. <name> — <devices> — <what it changes>
-2. <name> — <devices> — <what it changes>
-3. <name> — <devices> — <what it changes>
-Reply "approved" to measure. Details: <challengers.json path>
-```
-
-**After measuring: a headline, one table, at most 8 lines besides it.**
+The chat carries only this, 3 lines or fewer:
 
 ```markdown
-<headline: which design does what, the one thing that decides the comparison>
-
-| design | whose | devices added | N-0 violations | N-1 thermal overloads | N-1 voltage violations | outages that did not solve | outages that cut off part of the grid (load dropped / pocket still running / no MW in it) |
-|---|---|---|---|---|---|---|---|
-| before (new load or plant only) | — | … |
-| <your design> | yours | … |
-| <challenger 1> | mine | … |
-
-Where each design wins:
-- <your design>: <where it does better, or "nowhere on these measures">
-- <challenger>: …
-
-Map: <path>. Opened on <the whole case | the area around the site> (<n> buses <under | over> the <cutoff>-bus cutoff).
-Not measured: <anything outside the full N-1 on these settings>.
+<the one sentence that decides it, e.g. "Your line cuts overloads 6 → 1; challenger 3 clears everything for one more circuit.">
+Design Compare: <page path or link> (opens on <the whole case | the area around the site>).
+<"Reply approved to measure the 3 challengers" | "Pick one with Choose on the page, or tell me">
 ```
 
 ## Final response contract
 
-- Your last message contains the headline, the Scoreboard table and "Where each design wins" — no section headings, no "caveats" paragraph, apart from the table at most 8 lines.
-- If you stopped at the challenger gate, it lists each challenger in one line (name, devices, what it changes) and ends with 'Reply "approved" to measure' — 8 lines or fewer.
+- Your last message is the 3-line block above, and the page it links exists and matches it. No scoreboard or challenger list pasted into the chat; they live on the page.
+- A result with no page is a failed result. If the map engine breaks, say so in 3 plain lines and stop. Never fall back to a text scoreboard.
 
 ## Failure modes to avoid
 
@@ -159,32 +145,21 @@ Not measured: <anything outside the full N-1 on these settings>.
 
 **Good** (challenger gate):
 ```
-3 challengers proposed for the tie into substation B, cheapest first. Nothing measured yet.
-1. Setpoint retune — 0 devices — raise the LTC band on the two transformers feeding the corridor
-2. New rating — 0 devices — apply emergency ratings on the two limiting lines
-3. New tie — 1 device — a 138 kV line to substation C
-Reply "approved" to measure. Details: out/site_compare/challengers.json
+Your tie into substation B cuts overloads 6 → 1; here are 3 cheaper-first challengers, drawn as sketches.
+Design Compare: out/site_compare/design-compare.html (opens on the whole case).
+Reply approved to measure the 3 challengers.
 ```
 
-**Good** (comparison, all 13,122 outages, one settings file):
+**Good** (after measuring, all 13,122 outages, one settings file):
 ```
-Your design ties the new load into substation B; my challenger ties it into substation C instead.
-
-| design | whose | devices added | N-0 violations | N-1 thermal overloads | N-1 voltage violations | did not solve | cut off part of the grid |
-|---|---|---|---|---|---|---|---|
-| before (load only) | — | 0 | 2 | 6 | 3 | 0 | 1 pocket, 300 MW dropped |
-| yours (sub B) | yours | 1 | 0 | 1 | 2 | 0 | 0 |
-| challenger (sub C) | mine | 1 | 0 | 0 | 1 | 0 | 0 |
-
-Where each design wins:
-- Yours: shorter line, 4 km less than mine.
-- Challenger: clears the last thermal overload, nothing cut off, lighter loading on the southern ring.
-
-Map: out/site_compare.html. Opened on the whole case (2,000 buses, under the 5,000-bus cutoff).
-Not measured: other load-growth scenarios; lines with no rating on file.
+Your tie into B leaves one overload; my tie into C clears it, same device count, 4 km longer.
+Design Compare: out/site_compare/design-compare.html (opens on the whole case).
+Pick one with Choose on the page, or tell me.
 ```
 
-**Bad:** "I analysed your proposal and designed a better one; my design fixes all the overloads, so I recommend it." No scoreboard, no settings, no islands, nothing on where the engineer's design is better.
+**Bad:** a 20-line scoreboard pasted into the chat with "the map is at out/…" at the bottom. The engineer has to read a table to see what a picture would show at a glance.
+
+**Bad:** "I analysed your proposal and designed a better one; my design fixes all the overloads, so I recommend it." It declares a winner and shows nothing.
 
 ## Final checklist
 
@@ -196,4 +171,4 @@ Not measured: other load-growth scenarios; lines with no rating on file.
 - Does the page open by case size (whole case with the site highlighted under the cutoff, the area view over it), and say which mode and why?
 - Does zooming into a site hide the rest of the grid, with boundary stubs, click to re-centre, and "Render further network"?
 - Does every line the engineer reads follow the Plain English rule?
-- Map screenshot checked; original case untouched; instances exited?
+- Design Compare page built, screenshot checked, and it matches the 3-line chat message? Original case untouched; instances exited?

@@ -1,0 +1,663 @@
+<title>Design Compare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F2F5F3; --surface:#FFFFFF; --sunk:#E9EEEB; --ink:#18201D; --muted:#5B6863; --rule:#D3DAD6; --grid:#E4EAE7;
+  --shadow:rgba(20,32,28,.10);
+  --eng:#A8650A; --eng-bg:#FBEFDA;
+  --agent:#0B7A6C; --agent-bg:#DDF0EB;
+  --kv345:#C4302B; --kv138:#27322F; --kv69:#7A7E22;
+  --over:#C2267A; --over-bg:#F9E1EE;
+  --low:#1F5FBF; --low-bg:#E1EAF9;
+  --ok:#2C7A4B; --ok-bg:#E0F0E6; --bad:#B23A30; --bad-bg:#F8E3E0;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#101513; --surface:#19201D; --sunk:#202825; --ink:#E2E8E5; --muted:#9AA6A1; --rule:#2E3733; --grid:#1F2724;
+    --shadow:rgba(0,0,0,.35);
+    --eng:#E3A449; --eng-bg:#3A2B13;
+    --agent:#4CC3AE; --agent-bg:#12302B;
+    --kv345:#F2665B; --kv138:#B4C2BE; --kv69:#BCC05C;
+    --over:#F173B4; --over-bg:#3D1A2C;
+    --low:#7FAEF5; --low-bg:#172640;
+    --ok:#6CCB8E; --ok-bg:#16301F; --bad:#E57C70; --bad-bg:#3B1E1B;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#101513; --surface:#19201D; --sunk:#202825; --ink:#E2E8E5; --muted:#9AA6A1; --rule:#2E3733; --grid:#1F2724;
+  --shadow:rgba(0,0,0,.35);
+  --eng:#E3A449; --eng-bg:#3A2B13;
+  --agent:#4CC3AE; --agent-bg:#12302B;
+  --kv345:#F2665B; --kv138:#B4C2BE; --kv69:#BCC05C;
+  --over:#F173B4; --over-bg:#3D1A2C;
+  --low:#7FAEF5; --low-bg:#172640;
+  --ok:#6CCB8E; --ok-bg:#16301F; --bad:#E57C70; --bad-bg:#3B1E1B;
+}
+*{box-sizing:border-box;}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;padding-inline:16px;font-variant-numeric:tabular-nums;}
+main{max-width:1160px;margin:0 auto;padding-block:28px 64px;display:grid;grid-template-columns:minmax(0,1fr);gap:22px;min-width:0;}
+h1,h2,h3{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;font-weight:600;margin:0;text-wrap:balance;}
+h1{font-size:30px;line-height:1.15;letter-spacing:-.005em;}
+h2{font-size:18px;}
+h3{font-size:15px;}
+p{margin:0;}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace;}
+button{font:inherit;color:inherit;}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:flex-end;justify-content:space-between;}
+.title{display:grid;gap:8px;min-width:0;}
+.eyebrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500;}
+.fake{font-family:"IBM Plex Mono",monospace;letter-spacing:.08em;font-weight:600;color:var(--bad);border:1.5px solid var(--bad);padding:1px 7px;border-radius:3px;}
+h1 .dot{color:var(--muted);font-weight:500;}
+h1 .site{white-space:nowrap;}
+.lede{color:var(--muted);max-width:72ch;}
+.demo{display:grid;gap:6px;justify-items:start;}
+.demo-l{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:6px;background:var(--surface);padding:2px;}
+.seg button{border:0;background:none;padding:6px 12px;border-radius:4px;font-size:13px;cursor:pointer;color:var(--muted);white-space:nowrap;}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);}
+
+/* option strip */
+.strip-head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;}
+.strip-head .k{font-size:13px;color:var(--muted);}
+.btn{border:1px solid var(--agent);background:var(--agent);color:var(--surface);padding:7px 14px;border-radius:5px;font-weight:600;font-size:14px;cursor:pointer;}
+.btn[disabled]{opacity:.7;cursor:progress;}
+.strip{overflow-x:auto;padding-block:4px 8px;margin-inline:-4px;padding-inline:4px;scrollbar-width:thin;}
+.cards{display:grid;grid-auto-flow:column;grid-template-rows:auto auto auto;grid-auto-columns:minmax(206px,1fr);gap:0 10px;}
+.card{position:relative;display:grid;grid-row:span 3;grid-template-rows:subgrid;gap:10px;background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:12px 14px 12px;--role:var(--muted);--role-bg:var(--sunk);}
+.card.eng{--role:var(--eng);--role-bg:var(--eng-bg);}
+.card.agent{--role:var(--agent);--role-bg:var(--agent-bg);}
+.card.sel{border-color:var(--role);box-shadow:0 0 0 1px var(--role),0 4px 14px var(--shadow);}
+.card.sketch{border-style:dashed;}
+.card.sketch.sel{box-shadow:0 4px 14px var(--shadow);border-width:2px;padding:11px 13px 11px;}
+.pick{all:unset;display:grid;gap:2px;align-content:start;cursor:pointer;padding-right:62px;}
+.pick::after{content:"";position:absolute;inset:0;border-radius:8px;}
+.pick:focus-visible::after{outline:2px solid var(--ink);outline-offset:2px;}
+.who{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--role);}
+.nm{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:18px;font-weight:600;line-height:1.2;}
+.sb{font-size:12.5px;color:var(--muted);line-height:1.35;}
+.mark{position:absolute;top:12px;right:12px;display:inline-flex;gap:4px;align-items:center;font:600 10.5px/1 "IBM Plex Mono",monospace;letter-spacing:.06em;padding:4px 6px;border-radius:3px;}
+.mark svg{width:10px;height:10px;}
+.mark.pass{color:var(--ok);background:var(--ok-bg);}
+.mark.fail{color:var(--bad);background:var(--bad-bg);}
+.mark.na{color:var(--muted);background:var(--sunk);}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0;align-content:start;border-top:1px solid var(--rule);padding-top:10px;}
+.nums div{display:grid;gap:0;}
+.nums dt{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+.nums dd{margin:0;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:22px;font-weight:600;line-height:1.15;}
+.nums dd.bad{color:var(--bad);} .nums dd.good{color:var(--ok);} .nums dd.na{color:var(--muted);font-weight:500;}
+.nums dd small{font-size:12px;font-weight:500;color:var(--muted);margin-left:2px;}
+.foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted);min-height:30px;}
+.foot b{color:var(--ink);font-weight:600;}
+.choose{position:relative;z-index:1;border:1px solid var(--role);background:transparent;color:var(--role);padding:4px 12px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;}
+.choose[aria-pressed="true"]{background:var(--role);color:var(--surface);}
+.pending{font-style:italic;}
+
+.say{font-size:17px;line-height:1.45;max-width:78ch;padding-left:14px;border-left:3px solid var(--say,var(--muted));}
+.say.eng{--say:var(--eng);} .say.agent{--say:var(--agent);}
+.say b{font-weight:600;}
+.note{font-size:13.5px;color:var(--muted);min-height:1.5em;}
+.note b{color:var(--ink);}
+
+/* map */
+.mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;align-items:start;}
+.mapbox{background:var(--surface);border:1px solid var(--rule);border-radius:8px;overflow:hidden;min-width:0;}
+.maphead{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--rule);font-size:13px;color:var(--muted);}
+.maphead b{color:var(--ink);font-weight:600;}
+.badge{font:600 11px/1 "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;padding:4px 7px;border-radius:3px;border:1px dashed var(--agent);color:var(--agent);}
+#map{display:block;width:100%;height:auto;font-family:"IBM Plex Sans",system-ui,sans-serif;}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 14px;border-top:1px solid var(--rule);font-size:12px;color:var(--muted);}
+.legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.legend svg{width:30px;height:14px;flex:none;}
+
+.side{display:grid;gap:14px;align-content:start;}
+.plist{display:grid;gap:8px;}
+.plist .hint{font-size:12.5px;color:var(--muted);}
+.plist ul{list-style:none;margin:0;padding:0;display:grid;gap:6px;}
+.prob{width:100%;display:grid;grid-template-columns:18px 1fr;gap:1px 8px;text-align:left;background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--pc);border-radius:5px;padding:7px 10px;cursor:pointer;--pc:var(--muted);}
+.prob.over{--pc:var(--over);} .prob.low{--pc:var(--low);} .prob.fixed{--pc:var(--ok);}
+.prob svg{grid-row:span 2;width:14px;height:14px;margin-top:3px;}
+.prob .pt{font-size:14px;} .prob .pt b{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:13px;}
+.prob .ps{font-size:12.5px;color:var(--muted);}
+.prob[aria-pressed="true"]{background:var(--sunk);box-shadow:inset 0 0 0 1px var(--pc);}
+.prob.fixed .pt{color:var(--muted);}
+.empty{font-size:13.5px;color:var(--muted);padding:8px 10px;border:1px dashed var(--rule);border-radius:5px;}
+.cleared{font-size:13px;color:var(--muted);}
+.cleared b{color:var(--ok);}
+
+/* SVG vocabulary */
+.mapbg{fill:url(#dc-grid);}
+.gridbg{fill:var(--surface);} .gridln{fill:none;stroke:var(--grid);stroke-width:1;}
+.ln{fill:none;stroke-linecap:round;}
+.k345{stroke:var(--kv345);stroke-width:3.4;}
+.k138{stroke:var(--kv138);stroke-width:2.3;}
+.k69{stroke:var(--kv69);stroke-width:1.7;}
+.ln.stub{stroke-width:1.5;opacity:.8;}
+.ln.new{stroke-width:4.4;}
+.ln.sketch{stroke-dasharray:9 6;}
+.ln.uprated{stroke-width:6.5;}
+.ln.uprated.sketch{stroke-dasharray:9 6;}
+.ln.tripped{stroke-dasharray:2 6;opacity:.6;}
+.halo{fill:none;stroke-linecap:round;stroke-width:15;opacity:.3;}
+.halo.eng{stroke:var(--eng);} .halo.agent{stroke:var(--agent);}
+.halo.sketch{opacity:.16;}
+.ohalo{fill:none;stroke:url(#dc-hatch);stroke-width:17;stroke-linecap:round;}
+.ha{fill:var(--over);} .hb{fill:var(--over-bg);}
+.ohalo.focus{stroke-width:24;}
+.stubend{fill:var(--surface);stroke:var(--muted);stroke-width:1.3;}
+.stubl{font:500 10.5px "IBM Plex Mono",monospace;fill:var(--muted);}
+.bus{fill:var(--surface);stroke:var(--ink);stroke-width:1.6;}
+.blab{font:500 11px "IBM Plex Mono",monospace;fill:var(--muted);}
+.blab.key{fill:var(--ink);font-weight:600;}
+.gen{fill:var(--surface);stroke:var(--ink);stroke-width:1.4;}
+.genw{fill:none;stroke:var(--ink);stroke-width:1.3;}
+.genl{fill:none;stroke:var(--ink);stroke-width:1.2;}
+.siteb{fill:var(--ink);}
+.sitering{fill:none;stroke:var(--ink);stroke-width:1.2;stroke-dasharray:2 2.5;}
+.leader{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:2 3;}
+.lowring{fill:var(--low-bg);stroke:var(--low);stroke-width:2.4;}
+.lowring.focus{stroke-width:3.5;}
+.okring{fill:none;stroke:var(--ok);stroke-width:2;stroke-dasharray:3 3;}
+.xmark{stroke:var(--ink);stroke-width:2.6;stroke-linecap:round;}
+.xbg{fill:var(--surface);stroke:var(--ink);stroke-width:1.2;}
+.arrow{fill:var(--agent);stroke:var(--agent);stroke-width:1.4;}
+.arrow.sketch{fill:var(--surface);stroke-dasharray:3 2;}
+.lbl .lbg{fill:var(--surface);stroke-width:1.2;}
+.lbl text{font-size:12px;fill:var(--ink);}
+.lbl .l1{font-weight:600;}
+.lbl .l2{font-size:10.5px;fill:var(--muted);}
+.lbl.over .lbg{stroke:var(--over);} .lbl.over .ic{fill:var(--over);}
+.lbl.low .lbg{stroke:var(--low);} .lbl.low .ic{fill:var(--low);}
+.lbl.fixed .lbg{stroke:var(--ok);stroke-dasharray:3 2;} .lbl.fixed .ic{fill:none;stroke:var(--ok);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;} .lbl.fixed .l1{fill:var(--ok);}
+.lbl.chip-eng .lbg{fill:var(--eng-bg);stroke:var(--eng);} .lbl.chip-eng .l1{fill:var(--eng);}
+.lbl.chip-agent .lbg{fill:var(--agent-bg);stroke:var(--agent);} .lbl.chip-agent .l1{fill:var(--agent);}
+.lbl.chip-agent.sketch .lbg{stroke-dasharray:4 3;fill:var(--surface);}
+.lbl.site .lbg{fill:var(--surface);stroke:var(--ink);} .lbl.site .l1{font-size:12.5px;}
+.lbl.out .lbg{stroke:var(--ink);} .lbl.out .l1{font-size:11px;font-weight:500;}
+.pz{cursor:pointer;}
+.dim{opacity:.28;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.ohalo.focus,.lowring.focus{animation:pulse 1.6s ease-in-out infinite;}
+
+/* where each wins */
+.wins{display:grid;gap:0;border-top:1px solid var(--rule);}
+.wins li{display:grid;grid-template-columns:170px 1fr;gap:4px 16px;padding:9px 10px;border-bottom:1px solid var(--rule);font-size:14.5px;}
+.wins ol{list-style:none;margin:0;padding:0;}
+.wins .wn{font-weight:600;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:15px;}
+.wins .wn.eng{color:var(--eng);} .wins .wn.agent{color:var(--agent);} .wins .wn.base{color:var(--muted);}
+.wins li.sel{background:var(--surface);}
+.wins .na{color:var(--muted);font-style:italic;}
+.call{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:17px;font-weight:600;padding:10px 10px 0;}
+.foot-note{font-size:12px;color:var(--muted);}
+
+@media (max-width:900px){
+  .mapgrid{grid-template-columns:minmax(0,1fr);}
+}
+@media (max-width:640px){
+  h1{font-size:24px;}
+  .say{font-size:16px;}
+  .wins li{grid-template-columns:1fr;}
+  .blab:not(.key){display:none;}
+  .blab{font-size:17px;}
+  .lbl text{font-size:17px;} .lbl .l2{font-size:15px;} .lbl.site .l1{font-size:17px;} .lbl.out .l1{font-size:15px;}
+  .stubl{display:none;}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important;}
+}
+</style>
+
+<main>
+  <header class="top">
+    <div class="title">
+      <div class="eyebrow"><span class="fake">FAKE DEMO</span><span>synthetic grid · invented numbers · single-outage (N-1) study</span></div>
+      <h1>Design Compare <span class="dot">·</span> <span class="site">bus 6015 (+300 MW load)</span></h1>
+      <p class="lede">A new 300 MW / 60 Mvar data center lands at bus 6015. Your fix is one new 345 kV line. The network visualizer measured it and sketched three challengers. Pick a card; the map shows what that option does to the grid.</p>
+    </div>
+    <div class="demo">
+      <span class="demo-l" id="demo-l">Demo</span>
+      <div class="seg" role="group" aria-labelledby="demo-l">
+        <button type="button" id="mode-before" data-mode="before" aria-pressed="false">Before measuring</button>
+        <button type="button" id="mode-after" data-mode="after" aria-pressed="true">After measuring</button>
+      </div>
+    </div>
+  </header>
+
+  <section aria-labelledby="opt-h" style="display:grid;gap:10px;min-width:0;">
+    <div class="strip-head">
+      <h2 id="opt-h">Options</h2>
+      <span class="k" id="strip-k"></span>
+      <button type="button" class="btn" id="measure" hidden>Measure these 3</button>
+    </div>
+    <div class="strip"><div class="cards" id="cards"></div></div>
+    <p class="note" id="note" role="status" aria-live="polite"></p>
+  </section>
+
+  <p class="say" id="say"></p>
+
+  <section class="mapgrid" aria-label="Map and problem list">
+    <figure class="mapbox" style="margin:0;">
+      <div class="maphead"><span id="maphead"></span><span class="badge" id="mapbadge" hidden>Not measured yet</span></div>
+      <svg id="map" viewBox="0 0 1000 620" role="img" aria-label="">
+        <defs>
+          <pattern id="dc-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect class="hb" width="7" height="7"/><rect class="ha" width="3" height="7"/>
+          </pattern>
+          <pattern id="dc-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <rect class="gridbg" width="40" height="40"/><path class="gridln" d="M40 0H0V40"/>
+          </pattern>
+        </defs>
+        <g id="layers"></g>
+      </svg>
+      <figcaption class="legend" aria-label="Legend">
+        <span><svg viewBox="0 0 30 14" aria-hidden="true"><line x1="2" y1="7" x2="28" y2="7" class="ln k345"/></svg>345 kV</span>
+        <span><svg viewBox="0 0 30 14" aria-hidden="true"><line x1="2" y1="7" x2="28" y2="7" class="ln k138"/></svg>138 kV</span>
+        <span><svg viewBox="0 0 30 14" aria-hidden="true"><line x1="2" y1="7" x2="28" y2="7" class="ln k69"/></svg>≤69 kV</span>
+        <span><svg viewBox="0 0 30 14" aria-hidden="true"><line x1="4" y1="7" x2="26" y2="7" class="halo eng" style="stroke-width:10"/><line x1="4" y1="7" x2="26" y2="7" class="ln k345"/></svg>your new line</span>
+        <span><svg viewBox="0 0 30 14" aria-hidden="true"><line x1="4" y1="7" x2="26" y2="7" class="halo agent" style="stroke-width:10"/><line x1="4" y1="7" x2="26" y2="7" class="ln k345"/></svg>agent's addition</span>
+        <span><svg viewBox="0 0 30 14" aria-hidden="true"><line x1="2" y1="7" x2="28" y2="7" class="ln k345 sketch" style="stroke-dasharray:6 4"/></svg>not measured yet</span>
+        <span><svg viewBox="0 0 30 14" aria-hidden="true"><line x1="3" y1="7" x2="27" y2="7" class="ln k138 uprated" style="stroke-width:6"/></svg>uprated</span>
+        <span><svg viewBox="0 0 30 14" aria-hidden="true"><line x1="5" y1="7" x2="25" y2="7" class="ohalo" style="stroke-width:12"/><line x1="5" y1="7" x2="25" y2="7" class="ln k138"/></svg>overload</span>
+        <span><svg viewBox="0 0 30 14" aria-hidden="true"><circle cx="15" cy="7" r="5.5" class="lowring" style="stroke-width:2"/><circle cx="15" cy="7" r="2.5" class="bus"/></svg>low voltage</span>
+        <span><svg viewBox="0 0 30 14" aria-hidden="true"><circle cx="15" cy="7" r="6" class="gen"/><path d="M11 7q2-4 4 0t4 0" class="genw"/></svg>generator</span>
+        <span><svg viewBox="0 0 30 14" aria-hidden="true"><line x1="2" y1="7" x2="28" y2="7" class="ln k138 tripped"/><path d="M11 3l8 8M19 3l-8 8" class="xmark" style="stroke-width:2"/></svg>line out</span>
+      </figcaption>
+    </figure>
+
+    <aside class="side">
+      <div class="plist">
+        <h3 id="plist-h">Problems when one line trips</h3>
+        <p class="hint">Limits: 100 % of rating, 0.95 pu. Click one to find it on the map.</p>
+        <div id="plist"></div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="wins-sec" aria-labelledby="wins-h" style="display:grid;gap:10px;">
+    <h2 id="wins-h">Where each wins</h2>
+    <div class="wins"><ol id="wins"></ol><p class="call">No winner declared. Your call.</p></div>
+    <p class="foot-note">Every bus number, rating and result on this page is invented for the demo. No real utility, place or case.</p>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const NS="http://www.w3.org/2000/svg";
+
+/* ---------- network (invented) ---------- */
+const BUS={
+  "6003":{x:80,y:250,gen:[-2,-27],lab:[90,273,"start"],key:1},
+  "6005":{x:240,y:190,lab:[231,196,"end"]},
+  "6008":{x:310,y:70,lab:[320,60,"start"]},
+  "6011":{x:480,y:80,lab:[486,68,"start"]},
+  "6012":{x:660,y:80,lab:[666,68,"start"],key:1},
+  "6015":{x:500,y:300,site:1},
+  "6019":{x:390,y:235,lab:[381,224,"end"]},
+  "6021":{x:570,y:185,lab:[580,183,"start"]},
+  "6023":{x:650,y:320,lab:[642,311,"end"]},
+  "6027":{x:810,y:215,lab:[821,209,"start"],key:1},
+  "6031":{x:330,y:420,lab:[339,441,"start"],key:1},
+  "6033":{x:440,y:395,lab:[452,413,"start"]},
+  "6035":{x:470,y:520,lab:[470,541,"middle"]},
+  "6038":{x:260,y:290,lab:[251,306,"end"]},
+  "6040":{x:790,y:400,lab:[801,396,"start"]},
+  "6044":{x:650,y:470,lab:[633,457,"end"],key:1},
+  "6047":{x:880,y:500,lab:[888,492,"start"]},
+  "6049":{x:770,y:560,lab:[770,581,"middle"]},
+  "6052":{x:150,y:470,gen:[-25,0],lab:[139,449,"end"],key:1},
+  "6055":{x:280,y:560,gen:[0,25],lab:[292,580,"start"]},
+  "6058":{x:70,y:560,lab:[80,578,"start"]},
+  "6060":{x:905,y:330,lab:[914,324,"start"]},
+  "6062":{x:920,y:100,lab:[920,86,"middle"]}
+};
+const LINES=[
+  ["6003","6008",345],["6008","6011",345],["6011","6012",345],["6012","6027",345],["6027","6060",345],["6012","6062",345],
+  ["6003","6052",138],["6003","6038",138],["6005","6038",138],["6005","6008",138],["6019","6038",138],["6015","6019",138],
+  ["6015","6021",138],["6011","6021",138],["6015","6023",138],["6023","6044",138],["6023","6040",138],["6027","6040",138],
+  ["6040","6044",138],["6015","6033",138],["6031","6033",138],["6031","6052",138],["6031","6038",138],["6052","6055",138],
+  ["6033","6035",69],["6035","6044",69],["6044","6049",69],["6047","6049",69],["6040","6047",69],["6055","6058",69],
+  ["6052","6058",69],["6035","6055",69]
+];
+const STUBS=[
+  ["6008",310,16,345,"to 5941",318,24,"start"],
+  ["6062",984,100,345,"to 6108",986,90,"end"],
+  ["6060",984,382,345,"to 6121",986,400,"end"],
+  ["6047",984,522,69,"to 6133",986,540,"end"],
+  ["6058",18,604,69,"to 5987",26,614,"start"],
+  ["6003",16,214,138,"to 5962",16,203,"start"]
+];
+const key=(a,b)=>(+a<+b?a+"-"+b:b+"-"+a);
+const dash=id=>id.replace("-","–");
+const kvOf={}; LINES.forEach(([a,b,kv])=>kvOf[key(a,b)]=kv);
+
+/* label anchor points (centre of the tag) */
+const OPOS={"6015-6019":[400,303],"6015-6021":[633,236],"6019-6038":[314,221],"6031-6052":[233,404],"6011-6021":[606,127],"6023-6044":[580,398]};
+const VPOS={"6044":[742,472],"6015":[556,339]};
+
+/* ---------- options (FAKE numbers, kept consistent everywhere) ---------- */
+const YOURLINE={a:"6015",b:"6027",kv:345,role:"eng",chip:"Your line · 18 km",chipAt:[680,209]};
+const OPTS=[
+  {id:"before",role:"base",who:"Base case",name:"Before",sub:"Load only, nothing built",
+   n:{over:6,volt:2,shed:0,dev:"0",km:"–"},adds:[],
+   overloads:[
+     {line:"6015-6019",pct:131.4,out:"6015-6021"},
+     {line:"6015-6021",pct:127.8,out:"6015-6019"},
+     {line:"6019-6038",pct:118.6,out:"6015-6021"},
+     {line:"6031-6052",pct:112.9,out:"6012-6027"},
+     {line:"6011-6021",pct:109.3,out:"6015-6019"},
+     {line:"6023-6044",pct:106.1,out:"6015-6021"}],
+   lows:[{bus:"6044",pu:0.91,out:"6015-6021"},{bus:"6015",pu:0.92,out:"6015-6019"}],
+   fixed:[],
+   say:"The load alone overloads <b>6 lines</b> and pulls <b>2 buses</b> low when single lines trip. No load is cut off.",
+   wins:"Nothing to build, and nothing works: 6 overloads, 2 low buses."},
+  {id:"yours",role:"eng",who:"Yours",name:"Your line",sub:"New 345 kV line 6015–6027, 18 km",
+   n:{over:1,volt:1,shed:0,dev:"1",km:"18 km"},adds:[YOURLINE],
+   overloads:[{line:"6031-6052",pct:104.2,out:"6012-6027"}],
+   lows:[{bus:"6044",pu:0.94,out:"6015-6027"}],
+   fixed:[],cleared:"5 of 6 overloads and 1 of 2 low buses",
+   say:"Your line cuts overloads <b>6 → 1</b>. One line still overloads: <b>6031–6052 at 104.2 %</b> when 6012–6027 trips. One bus runs low.",
+   wins:"Fewest devices (1, tied with Challengers 1 and 2) and the shortest new line, 18 km."},
+  {id:"c1",role:"agent",who:"Challenger 1",name:"Your line + redispatch",sub:"Move 120 MW off units at 6052 onto units at 6003, same total",
+   n:{over:0,volt:1,shed:0,dev:"1",km:"18 km"},adds:[YOURLINE],redispatch:{down:"6052",up:"6003",mw:120},
+   overloads:[],lows:[{bus:"6044",pu:0.94,out:"6015-6027"}],
+   fixed:[{kind:"line",line:"6031-6052",pct:91.8,was:"104.2 %",out:"6012-6027"}],
+   say:"Moving <b>120 MW</b> from the units at 6052 to the units at 6003 clears the last overload. Bus <b>6044 still runs low</b> at 0.94 pu.",
+   sketch:"Sketch: your line, plus 120 MW moved from the units at 6052 to the units at 6003. Not measured yet.",
+   wins:"Clears the last overload with no hardware beyond your line, by holding 120 MW off 6052. 6044 still low."},
+  {id:"c2",role:"agent",who:"Challenger 2",name:"Your line + uprate",sub:"Raise the 6031–6052 rating 10 %",
+   n:{over:0,volt:1,shed:0,dev:"1",devx:"+1 uprate",km:"18 km"},adds:[YOURLINE],uprate:"6031-6052",
+   overloads:[],lows:[{bus:"6044",pu:0.94,out:"6015-6027"}],
+   fixed:[{kind:"line",line:"6031-6052",pct:94.7,was:"104.2 %",out:"6012-6027",of:"of new rating"}],
+   say:"Raising the <b>6031–6052</b> rating 10 % clears the last overload. Bus <b>6044 still runs low</b> at 0.94 pu.",
+   sketch:"Sketch: your line, plus a 10 % uprate on 6031–6052. Not measured yet.",
+   wins:"Clears the last overload with one uprate and no redispatch. 6044 still low."},
+  {id:"c3",role:"agent",who:"Challenger 3",name:"Your line + 2nd circuit",sub:"Second 6012–6027 circuit, 11 km",
+   n:{over:0,volt:0,shed:0,dev:"2",km:"29 km"},
+   adds:[YOURLINE,{a:"6012",b:"6027",kv:345,role:"agent",off:9,chip:"2nd circuit · 11 km",chipAt:[800,128]}],
+   overloads:[],lows:[],
+   fixed:[{kind:"line",line:"6031-6052",pct:88.6,was:"104.2 %",out:"6012-6027"},{kind:"bus",bus:"6044",pu:0.97,was:"0.94 pu",out:"6015-6027"}],
+   say:"Fixes <b>every overload and voltage problem</b>, for one more circuit (11 km).",
+   sketch:"Sketch: your line, plus a second 6012–6027 circuit (11 km). Not measured yet.",
+   wins:"The only option with nothing left: 0 overloads, 0 voltage problems. Costs a second circuit, 29 km of new line in total."}
+];
+
+const state={mode:"after",sel:"yours",focus:null,chosen:null,measuring:false};
+const opt=()=>OPTS.find(o=>o.id===state.sel);
+const measured=o=>o.role!=="agent"||state.mode==="after";
+
+/* ---------- helpers ---------- */
+function seg(a,b,off){
+  const A=BUS[a],B=BUS[b];const dx=B.x-A.x,dy=B.y-A.y,n=Math.hypot(dx,dy);const o=off||0;
+  const ox=dy/n*o,oy=-dx/n*o;
+  return {x1:A.x+ox,y1:A.y+oy,x2:B.x+ox,y2:B.y+oy,mx:(A.x+B.x)/2+ox,my:(A.y+B.y)/2+oy};
+}
+const L=(s,c,extra)=>`<line x1="${s.x1}" y1="${s.y1}" x2="${s.x2}" y2="${s.y2}" class="${c}"${extra||""}/>`;
+const kvc=kv=>kv>=345?"k345":kv>=138?"k138":"k69";
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const ICON={
+  over:'<path class="ic" d="M0,-6 L6.4,5 L-6.4,5Z"/>',
+  low:'<path class="ic" d="M-6.2,-4.5 L6.2,-4.5 L0,6Z"/>',
+  fixed:'<path class="ic" d="M-5,0 L-1.5,4 L5.5,-4.5"/>'
+};
+function tag(x,y,cls,l1,l2,icon,pid){
+  return `<g class="lbl ${cls}${pid?" pz":""}" transform="translate(${x},${y})"${pid?` data-pid="${pid}"`:""}><rect class="lbg" rx="3"/>${icon?`<g class="icw">${ICON[icon]}</g>`:""}<text class="l1">${l1}</text>${l2?`<text class="l2">${l2}</text>`:""}</g>`;
+}
+function fitLabels(){
+  document.querySelectorAll("#map .lbl").forEach(g=>{
+    const t1=g.querySelector(".l1"),t2=g.querySelector(".l2"),ic=g.querySelector(".icw");
+    const fs=parseFloat(getComputedStyle(t1).fontSize)||12;const k=fs/12;
+    const icw=ic?16*k:0;
+    const w=Math.max(t1.getComputedTextLength()+icw,t2?t2.getComputedTextLength():0)+14*k;
+    const lh=13*k,h=t2?(fs+lh+10*k):(fs+10*k);
+    const x0=-w/2,y0=-h/2;
+    const b1=t2?y0+5*k+fs*.82:y0+5*k+fs*.82;
+    t1.setAttribute("x",x0+7*k+icw);t1.setAttribute("y",b1);
+    if(t2){t2.setAttribute("x",x0+7*k);t2.setAttribute("y",b1+lh);}
+    if(ic)ic.setAttribute("transform",`translate(${x0+7*k+6.5*k},${b1-fs*.36}) scale(${k})`);
+    const r=g.querySelector(".lbg");r.setAttribute("x",x0);r.setAttribute("y",y0);r.setAttribute("width",w);r.setAttribute("height",h);
+  });
+}
+
+function problems(o){
+  if(!measured(o))return [];
+  const p=[];
+  o.overloads.forEach(v=>p.push({id:"o:"+v.line,kind:"over",line:v.line,out:v.out,
+    l1:`${v.pct.toFixed(1)} %`,l2:`when ${dash(v.out)} trips`,
+    text:`<b>${dash(v.line)}</b> at ${v.pct.toFixed(1)} %`,sub:`when ${dash(v.out)} trips`}));
+  o.lows.forEach(v=>p.push({id:"v:"+v.bus,kind:"low",bus:v.bus,out:v.out,
+    l1:`${v.pu.toFixed(2)} pu`,l2:`when ${dash(v.out)} trips`,
+    text:`Bus <b>${v.bus}</b> at ${v.pu.toFixed(2)} pu`,sub:`when ${dash(v.out)} trips`}));
+  o.fixed.forEach(v=>{
+    if(v.kind==="line")p.push({id:"f:"+v.line,kind:"fixed",line:v.line,out:v.out,
+      l1:`${v.pct.toFixed(1)} %`,l2:`was ${v.was}`,
+      text:`<b>${dash(v.line)}</b> at ${v.pct.toFixed(1)} %${v.of?" "+v.of:""}`,sub:`was ${v.was} when ${dash(v.out)} trips`});
+    else p.push({id:"f:"+v.bus,kind:"fixed",bus:v.bus,out:v.out,
+      l1:`${v.pu.toFixed(2)} pu`,l2:`was ${v.was}`,
+      text:`Bus <b>${v.bus}</b> at ${v.pu.toFixed(2)} pu`,sub:`was ${v.was} when ${dash(v.out)} trips`});
+  });
+  return p;
+}
+
+/* ---------- cards ---------- */
+const MARK={
+  pass:'<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 5.2 4 7.7 8.7 2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>PASS',
+  fail:'<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2l6 6M8 2 2 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>FAIL',
+  na:'NOT RUN'
+};
+function renderCards(){
+  $("#cards").innerHTML=OPTS.map(o=>{
+    const m=measured(o),sel=o.id===state.sel;
+    const pass=o.n.over===0&&o.n.volt===0&&o.n.shed===0;
+    const mk=m?(pass?"pass":"fail"):"na";
+    const cls=["card",o.role,sel?"sel":"",m?"":"sketch"].join(" ");
+    const num=(v,unit)=>m?`<dd class="${v>0?"bad":"good"}">${v}${unit?`<small>${unit}</small>`:""}</dd>`:`<dd class="na">–</dd>`;
+    const foot=m
+      ?`<span><b>${o.n.dev}</b> device${o.n.dev==="1"?"":"s"}${o.n.devx?" "+o.n.devx:""} · <b>${o.n.km}</b> new line</span>`
+      :`<span class="pending">Not measured yet</span>`;
+    const choose=(o.role!=="base"&&state.mode==="after")
+      ?`<button type="button" class="choose" data-choose="${o.id}" aria-pressed="${state.chosen===o.id}" aria-label="Choose ${esc(o.name)}">${state.chosen===o.id?"Chosen":"Choose"}</button>`:"";
+    return `<div class="${cls}">
+      <button type="button" class="pick" data-sel="${o.id}" aria-pressed="${sel}"><span class="who">${o.who}</span><span class="nm">${o.name}</span><span class="sb">${o.sub}</span></button>
+      <span class="mark ${mk}">${MARK[mk]}</span>
+      <div><dl class="nums">
+        <div><dt>Overloads</dt>${num(o.n.over)}</div>
+        <div><dt>Low volt.</dt>${num(o.n.volt)}</div>
+        <div><dt>Load cut</dt>${m?`<dd class="good">${o.n.shed}<small>MW</small></dd>`:`<dd class="na">–</dd>`}</div>
+      </dl></div>
+      <div class="foot">${foot}${choose}</div>
+    </div>`;
+  }).join("");
+  const unm=state.mode==="before";
+  $("#measure").hidden=!unm;
+  $("#measure").disabled=state.measuring;
+  $("#measure").textContent=state.measuring?"Measuring…":"Measure these 3";
+  $("#strip-k").textContent=unm?"Your line is measured. The three challengers are sketches.":"All five measured on the same outage list.";
+}
+
+/* ---------- map ---------- */
+function renderMap(){
+  const o=opt(),m=measured(o),probs=problems(o);
+  const focus=probs.find(p=>p.id===state.focus)||null;
+  const many=o.overloads.length+o.lows.length>2;
+  const addKeys=new Set(o.adds.filter(a=>!a.off).map(a=>key(a.a,a.b)));
+  const trippedKey=focus?focus.out:null;
+  const dimOthers=!!focus;
+  let bg=`<rect x="0" y="0" width="1000" height="620" class="mapbg"/>`;
+  let stubs="",halos="",lines="",marks="",buses="",labels="",top="";
+
+  STUBS.forEach(([b,x,y,kv,t,lx,ly,an])=>{
+    const s={x1:BUS[b].x,y1:BUS[b].y,x2:x,y2:y};
+    stubs+=L(s,`ln stub ${kvc(kv)}`)+`<circle cx="${x}" cy="${y}" r="3.2" class="stubend"/><text x="${lx}" y="${ly}" class="stubl" text-anchor="${an}">${t}</text>`;
+  });
+
+  // additions: halos + lines
+  o.adds.forEach(a=>{
+    const s=seg(a.a,a.b,a.off);const sk=a.role==="agent"&&!m;
+    halos+=L(s,`halo ${a.role}${sk?" sketch":""}`);
+    const trip=trippedKey&&key(a.a,a.b)===trippedKey&&!a.off;
+    lines+=L(s,`ln new ${kvc(a.kv)}${sk?" sketch":""}${trip?" tripped":""}`);
+    labels+=tag(a.chipAt[0],a.chipAt[1],`chip-${a.role}${sk?" sketch":""}`,a.chip);
+  });
+
+  // problem halos
+  probs.filter(p=>p.kind==="over").forEach(p=>{
+    const [a,b]=p.line.split("-");const s=seg(a,b);
+    const f=focus&&focus.id===p.id;
+    halos+=`<g class="pz${dimOthers&&!f?" dim":""}" data-pid="${p.id}">${L(s,"ohalo"+(f?" focus":""))}</g>`;
+  });
+
+  // existing lines
+  LINES.forEach(([a,b,kv])=>{
+    const k=key(a,b);const s=seg(a,b);
+    let c=`ln ${kvc(kv)}`;
+    if(o.uprate===k)c+=" uprated"+(m?"":" sketch");
+    if(trippedKey===k)c+=" tripped";
+    // 2nd circuit shifts the first one a hair so both read as a pair
+    lines+=L(s,c);
+  });
+
+  // uprate tag
+  if(o.uprate){
+    labels+=tag(206,480,`chip-agent${m?"":" sketch"}`,"+10 %");
+  }
+
+  // redispatch arrows
+  if(o.redispatch){
+    const sk=m?"":" sketch";
+    // down at 6052 (left of gen symbol)
+    marks+=`<path class="arrow${sk}" d="M96,452 v22 h-6 l10,14 l10,-14 h-6 v-22z"/>`;
+    labels+=tag(58,470,`chip-agent${sk}`,"−120 MW");
+    // up at 6003
+    marks+=`<path class="arrow${sk}" d="M40,300 v-22 h-6 l10,-14 l10,14 h-6 v22z"/>`;
+    labels+=tag(44,318,`chip-agent${sk}`,"+120 MW");
+  }
+
+  // tripped X
+  if(trippedKey){
+    const [a,b]=trippedKey.split("-");const s=seg(a,b);
+    marks+=`<g transform="translate(${s.mx},${s.my})"><circle r="9" class="xbg"/><path d="M-4.5,-4.5l9,9M4.5,-4.5l-9,9" class="xmark"/></g>`;
+    top+=tag(s.mx,s.my+(s.my<150?24:-22),"out",`${dash(trippedKey)} out`);
+  }
+
+  // buses
+  Object.entries(BUS).forEach(([id,B])=>{
+    if(B.gen){
+      const gx=B.x+B.gen[0],gy=B.y+B.gen[1];
+      buses+=`<line x1="${B.x}" y1="${B.y}" x2="${gx}" y2="${gy}" class="genl"/><circle cx="${gx}" cy="${gy}" r="8" class="gen"/><path d="M${gx-5},${gy} q2.5,-5 5,0 t5,0" class="genw"/>`;
+    }
+    if(B.site){
+      buses+=`<circle cx="${B.x}" cy="${B.y}" r="15" class="sitering"/><rect x="${B.x-7}" y="${B.y-7}" width="14" height="14" class="siteb"/>`;
+    }else{
+      buses+=`<circle cx="${B.x}" cy="${B.y}" r="5" class="bus"/>`;
+      labels+=`<text x="${B.lab[0]}" y="${B.lab[1]}" text-anchor="${B.lab[2]}" class="blab${B.key?" key":""}">${id}</text>`;
+    }
+  });
+  // site chip + leader
+  marks+=`<path class="leader" d="M468,209 L494,289"/>`;
+  labels+=tag(455,190,"site","+300 MW data center","bus 6015 · 60 Mvar");
+
+  // problem labels + low markers
+  probs.forEach(p=>{
+    const f=focus&&focus.id===p.id;const d=dimOthers&&!f?" dim":"";
+    if(p.kind==="over"){
+      const [x,y]=OPOS[p.line];
+      const short=many&&!f;
+      top+=`<g class="pz${d}" data-pid="${p.id}">`+tag(x,y,"over",p.l1,short?"":p.l2,"over")+`</g>`;
+    }else if(p.kind==="low"){
+      const B=BUS[p.bus];
+      marks+=`<g class="pz${d}" data-pid="${p.id}"><circle cx="${B.x}" cy="${B.y}" r="${B.site?21:13}" class="lowring${f?" focus":""}"/></g>`;
+      const [x,y]=VPOS[p.bus];
+      top+=`<g class="pz${d}" data-pid="${p.id}">`+tag(x,y,"low",p.l1,p.l2,"low")+`</g>`;
+    }else{
+      if(p.line){const [x,y]=OPOS[p.line];top+=`<g class="pz${d}" data-pid="${p.id}">`+tag(x,y,"fixed",p.l1,p.l2,"fixed")+`</g>`;}
+      else{const B=BUS[p.bus];marks+=`<circle cx="${B.x}" cy="${B.y}" r="13" class="okring${d}"/>`;const [x,y]=VPOS[p.bus];top+=`<g class="pz${d}" data-pid="${p.id}">`+tag(x,y,"fixed",p.l1,p.l2,"fixed")+`</g>`;}
+    }
+  });
+
+  // halos drawn under the busy low ring on site; buses above lines; labels last
+  $("#layers").innerHTML=bg+stubs+halos+lines+buses+marks+labels+top;
+  fitLabels();
+
+  // header + aria
+  $("#mapbadge").hidden=m;
+  $("#maphead").innerHTML=`<b>${o.name}</b> · local area around bus 6015`;
+  let aria=`Network map around bus 6015, option ${o.name}. `;
+  if(!m)aria+=o.sketch;
+  else{
+    aria+=o.adds.length?`Adds ${o.adds.map(a=>a.chip).join(" and ")}. `:"Nothing added. ";
+    if(o.uprate)aria+="Line 6031–6052 uprated 10 percent. ";
+    if(o.redispatch)aria+="120 megawatts moved from units at 6052 to units at 6003. ";
+    aria+=`${o.n.over} thermal overload${o.n.over===1?"":"s"}, ${o.n.volt} voltage problem${o.n.volt===1?"":"s"}, no load cut off. `;
+    o.overloads.forEach(v=>aria+=`${dash(v.line)} at ${v.pct} percent when ${dash(v.out)} trips. `);
+    o.lows.forEach(v=>aria+=`Bus ${v.bus} at ${v.pu} per unit when ${dash(v.out)} trips. `);
+  }
+  $("#map").setAttribute("aria-label",aria.trim());
+}
+
+/* ---------- side list ---------- */
+function renderList(){
+  const o=opt(),m=measured(o);
+  if(!m){$("#plist").innerHTML=`<p class="empty">Not measured yet. Press <b>Measure these 3</b> to run the same outages on this sketch.</p>`;return;}
+  const probs=problems(o);
+  const item=p=>`<li><button type="button" class="prob ${p.kind}" data-pid="${p.id}" aria-pressed="${state.focus===p.id}">
+      <svg viewBox="-8 -8 16 16" aria-hidden="true">${p.kind==="over"?'<path d="M0,-6 L6.4,5 L-6.4,5Z" style="fill:var(--over)"/>':p.kind==="low"?'<path d="M-6.2,-4.5 L6.2,-4.5 L0,6Z" style="fill:var(--low)"/>':'<path d="M-5,0 L-1.5,4 L5.5,-4.5" style="fill:none;stroke:var(--ok);stroke-width:2" stroke-linecap="round" stroke-linejoin="round"/>'}</svg>
+      <span class="pt">${p.text}</span><span class="ps">${p.sub}</span></button></li>`;
+  const ov=probs.filter(p=>p.kind==="over"),lo=probs.filter(p=>p.kind==="low"),fx=probs.filter(p=>p.kind==="fixed");
+  let h="";
+  h+=ov.length?`<ul aria-label="Thermal overloads">${ov.map(item).join("")}</ul>`:`<p class="empty">No thermal overloads.</p>`;
+  h+=lo.length?`<ul aria-label="Voltage problems">${lo.map(item).join("")}</ul>`:`<p class="empty">No voltage problems.</p>`;
+  if(fx.length)h+=`<h3 style="margin-top:6px;">Fixed by this option</h3><ul aria-label="Fixed">${fx.map(item).join("")}</ul>`;
+  if(o.cleared)h+=`<p class="cleared">Cleared compared to Before: <b>${o.cleared}</b>.</p>`;
+  h+=`<p class="cleared">Load cut off: <b>0 MW</b>.</p>`;
+  $("#plist").innerHTML=`<div style="display:grid;gap:8px;">${h}</div>`;
+}
+
+function renderSay(){
+  const o=opt(),m=measured(o);
+  const el=$("#say");el.className="say "+o.role;
+  el.innerHTML=m?o.say:o.sketch;
+}
+function renderWins(){
+  $("#wins").innerHTML=OPTS.map(o=>`<li class="${o.id===state.sel?"sel":""}"><span class="wn ${o.role}">${o.role==="agent"?o.who:o.name}</span><span>${measured(o)?o.wins:'<span class="na">Not measured yet.</span>'}</span></li>`).join("");
+}
+function renderMode(){
+  $("#mode-before").setAttribute("aria-pressed",state.mode==="before");
+  $("#mode-after").setAttribute("aria-pressed",state.mode==="after");
+}
+function render(){renderMode();renderCards();renderSay();renderMap();renderList();renderWins();}
+
+/* ---------- events ---------- */
+document.addEventListener("click",e=>{
+  const c=e.target.closest("[data-choose]");
+  if(c){
+    const id=c.dataset.choose;state.chosen=state.chosen===id?null:id;
+    if(state.sel!==id){state.sel=id;state.focus=null;}
+    const o=opt();
+    $("#note").innerHTML=state.chosen?`You picked <b>${o.role==="agent"?o.who+": ":""}${o.name}</b>. In the real page this tells your agent which option you picked.`:"";
+    render();return;
+  }
+  const s=e.target.closest("[data-sel]");
+  if(s){state.sel=s.dataset.sel;state.focus=null;render();return;}
+  const p=e.target.closest("[data-pid]");
+  if(p){const id=p.dataset.pid;state.focus=state.focus===id?null:id;renderMap();renderList();
+    const b=document.querySelector(`.prob[data-pid="${CSS.escape(id)}"]`);if(b&&p.tagName==="BUTTON")b.focus();return;}
+  const m=e.target.closest("[data-mode]");
+  if(m){state.mode=m.dataset.mode;state.focus=null;state.measuring=false;if(state.mode==="before")state.chosen=null;$("#note").textContent="";render();return;}
+});
+$("#measure").addEventListener("click",()=>{
+  state.measuring=true;renderCards();
+  setTimeout(()=>{state.measuring=false;state.mode="after";state.focus=null;render();},850);
+});
+let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(fitLabels,120);});
+render();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitLabels);
+})();
+</script>
