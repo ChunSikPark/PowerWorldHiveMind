@@ -33,6 +33,10 @@ Then run `/reload-plugins`, then `/powerworld-hivemind:powerworld-setup`. The se
 the Python packages and checks that this machine can drive PowerWorld, SimAuto licence
 included. That's it.
 
+When a newer version is published, Claude tells you at the start of a session and offers to
+update. To check, the kit reads one version number from GitHub at most once a day and changes
+nothing on your machine. Set `PWHM_NO_UPDATE_CHECK=1` to turn it off.
+
 **Check it worked:** ask what `pw.esa.SaveCase("out.pwb")` does. "Silently writes no file"
 means the kit loaded.
 
