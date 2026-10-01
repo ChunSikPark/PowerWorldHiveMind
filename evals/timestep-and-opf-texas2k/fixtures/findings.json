@@ -1,7 +1,7 @@
 {
  "source": "case",
  "case": "Texas2k_series25_case1_summerpeak_PFW.pwb",
- "audited_at": "2026-09-30T23:23:12",
+ "audited_at": "2026-09-30T23:42:07",
  "profiles": [
   "base",
   "timestep",
@@ -504,7 +504,7 @@
    "rule": "opf.3",
    "severity": "Worth a look",
    "triage": "Your call",
-   "what": "5 of the 736 units the OPF could move carry no cost curve",
+   "what": "5 of the 736 units the OPF could move carry no cost data",
    "why": "the OPF runs on the priced units; these ones have no price to be dispatched on",
    "page": "concepts/opf-preconditions.md",
    "stops": [],

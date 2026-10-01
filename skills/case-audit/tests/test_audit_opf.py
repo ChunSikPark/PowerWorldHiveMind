@@ -82,6 +82,7 @@ def test_an_unpriced_unit_beside_priced_ones_is_worth_a_look(frames):
     _no_cost(frames["Gen"], 0)
     [f] = opf_conditions(case(frames))
     assert (f.rule, f.severity, f.triage) == ("opf.3", WORTH, YOUR_CALL) and [w["GenID"] for w in f.where] == ["1"]
+    assert f.what == "1 of the 3 units the OPF could move carry no cost data"
 
 
 def test_zero_cost_renewables_are_priced(frames):
@@ -147,7 +148,7 @@ def test_an_area_of_only_cubic_units_with_no_curve_points_is_ready(frames):
     r = report.build(case(frames), ["opf"])
     assert r["verdicts"]["opf"]["verdict"] == "READY"
     assert not [f for f in r["findings"] if f["rule"] == "opf.3"]
-    assert "no cost curve" not in report.render_md(r)
+    assert "carry no cost" not in report.render_md(r)
     assert r["opf_areas"][0]["with_cost_data"] == 3
 
 

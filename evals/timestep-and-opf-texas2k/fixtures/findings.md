@@ -1,7 +1,7 @@
 # Case audit
 
 Case checked: `Texas2k_series25_case1_summerpeak_PFW.pwb`  
-Audited: 2026-09-30T23:23:12  
+Audited: 2026-09-30T23:42:07  
 Case file unchanged by the audit: yes
 
 ## Verdict
@@ -49,7 +49,7 @@ Headroom on dispatchable units the OPF may move: 17,771 MW.
 | an N-1 will check 8 of 8 areas, 5344 branches and 2751 buses | — | a clean N-1 result covers only this footprint, not the whole system | FYI | Probably on purpose | mon.footprint | field export (schema-only) |
 | rate sets with values: A (5344 branches), B (2782 branches), C (2782 branches) | — | shows which rating letters a limit set could point at | FYI | Probably on purpose | mon.rate_sets_populated | methods/reading-violationctg.md |
 | weather file not given, so I didn't check it covers these units | — | send the .pww if you want its coverage checked | FYI | Your call | ts.pww_footprint | concepts/pww-data.md |
-| 5 of the 736 units the OPF could move carry no cost curve | 5 object(s), listed below | the OPF runs on the priced units; these ones have no price to be dispatched on | Worth a look | Your call | opf.3 | concepts/opf-preconditions.md |
+| 5 of the 736 units the OPF could move carry no cost data | 5 object(s), listed below | the OPF runs on the priced units; these ones have no price to be dispatched on | Worth a look | Your call | opf.3 | concepts/opf-preconditions.md |
 | 95 thermal unit(s) the OPF could move have a cost curve that reads 0 at today's output | 95 object(s), listed below | the OPF will treat their next MW as free; check the curve if that is not intended | Worth a look | Probably on purpose | opf.3 | concepts/opf-preconditions.md |
 
 ## Can the OPF run?
@@ -65,7 +65,7 @@ Headroom on dispatchable units the OPF may move: 17,771 MW.
 | 8 | yes (super area Texas on OPF) | 40 | 40 | 25 | Cubic 40 |
 
 ## What you need to get
-1. 5 of the 736 units the OPF could move carry no cost curve → your own cost-data source; no script supplies cost curves, and a default one makes the dispatch meaningless → then send the returned case to be checked again
+1. 5 of the 736 units the OPF could move carry no cost data → your own cost-data source; no script supplies cost curves, and a default one makes the dispatch meaningless → then send the returned case to be checked again
 
 ## Every object, per finding
 

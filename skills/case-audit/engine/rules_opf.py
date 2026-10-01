@@ -21,8 +21,9 @@ def _units(cd: CaseData) -> pd.DataFrame:
     g = g[g.GenStatus == "Closed"].copy()
     g["agc"] = g.GenAGCAble == "YES"
     g["renewable"] = is_renewable(g.GenFuelType)
-    # priced = a cost model plus either curve points or a cost above 0 at today's output. A Cubic
-    # model is evaluated from its coefficients and reads 0 curve points (measured on Texas2k), so
+    # priced = a cost model plus either curve points or a cost above 0 at today's output. Some
+    # Cubic units read 0 curve points with a cost above 0 (measured on Texas2k: a cubic model is
+    # evaluated from its coefficients), so
     # GenMCost > 0 is cost data too; a zero GenMCost on a unit with points is a price of zero
     # (wind, solar), not missing data.
     has_model = (g.GenCostModel.str.upper() != "NONE") & (g.GenCostModel != "")
@@ -127,7 +128,7 @@ def opf_conditions(cd: CaseData) -> list[Finding]:
     if not bare.empty:
         out.append(Finding(
             "opf.3", WORTH, YOUR_CALL,
-            what=f"{len(bare)} of the {len(movable)} units the OPF could move carry no cost curve",
+            what=f"{len(bare)} of the {len(movable)} units the OPF could move carry no cost data",
             why="the OPF runs on the priced units; these ones have no price to be dispatched on",
             page=PAGE, where=_units_where(bare), handoff=COST_HANDOFF,
             details={"units": int(len(movable)), "priced": int(movable.priced.sum())}))
