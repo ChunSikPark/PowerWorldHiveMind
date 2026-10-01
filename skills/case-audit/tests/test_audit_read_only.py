@@ -14,8 +14,10 @@ from pathlib import Path
 ENGINE = Path(__file__).resolve().parents[1] / "engine"
 FORBIDDEN = ("SaveCase", "LoadAux", "ChangeParameters", "SetData", "WriteAuxFile", "Delete", "CreateData",
              "ProcessAuxFile", "exec_aux", "ResetToFlatStart", "Scale", "EnterMode", "SaveState",
-             "RunScriptCommand", "edit_mode", "flat_start", "pflow", "save")
+             "RunScriptCommand", "edit_mode", "flat_start", "pflow", "save",
+             "__import__", "import_module", "importlib")   # not "esapp": reader.py's error text names it
 ALLOWED_ATTRS = {"esa", "SolvePowerFlow", "GetParametersMultipleElement", "exit"}
+CALLED_ATTRS = ALLOWED_ATTRS - {"esa"}        # these must be called on the spot, never stored
 
 
 def imports_esapp(tree) -> bool:
@@ -81,6 +83,9 @@ def bound_use_violations(source: str, name: str = "<src>") -> list[str]:
     _parents(tree)
     bound, out = bound_names(tree), []
     for n in ast.walk(tree):
+        if isinstance(n, ast.ImportFrom) and (n.module or "").split(".")[0] == "esapp"                 and any(a.name == "*" for a in n.names):
+            out.append(f"{name}:{n.lineno} star import from esapp hides what is bound")
+    for n in ast.walk(tree):
         if not (isinstance(n, ast.Name) and n.id in bound):
             continue
         where = f"{name}:{n.lineno} {n.id}"
@@ -99,6 +104,8 @@ def bound_use_violations(source: str, name: str = "<src>") -> list[str]:
             if isinstance(node.ctx, ast.Store):
                 out.append(f"{where}.{node.attr} assigned")
         top = node.parent
+        if node is not n and node.attr in CALLED_ATTRS and not (isinstance(top, ast.Call) and top.func is node):
+            out.append(f"{where}.{node.attr} referenced without being called on the spot")
         if node is not n and node.attr == "esa" and not isinstance(top, ast.Attribute) and not _plain_bind(top):
             out.append(f"{where}.esa bound other than by a plain `name = ...`")
         if node is n:
@@ -158,6 +165,14 @@ def test_the_check_catches_writes():
         assert bound_use_violations(imp + bad), bad   # caught by the binding rule alone, not the scan
     assert violations('E.RunScriptCommand("SaveCase(x);")')
     assert violations('getattr(E, "LoadAux")')
+    # three bypasses the review found
+    assert violations("from esapp import *\npw = PowerWorld(p)\npw[Gen, 'GenMW'] = df\n")      # star import
+    assert violations("import importlib\nm = importlib.import_module('esapp')\n")                # dynamic import
+    assert violations("m = __import__('esapp')\n")
+    assert violations(OPEN + "g = E.exit\ns = g.__self__\ns.SolvePowerFlow('DC')\n")           # stored method
+    assert violations(OPEN + "g = E.SolvePowerFlow\n")
+    assert violations(OPEN + "g = E.GetParametersMultipleElement\n")
+
 
 
 def test_the_readers_own_calls_pass():
