@@ -112,5 +112,51 @@ answer takes 3.2x fewer searches.
 Median wall-clock per question: **58 s** with HiveMind, **147 s** for the fresh
 assistant searching the web.
 
-The table cells describe what each question was about rather than quoting it; the questions
-and grading prompts are not published. Back to [README](README.md).
+---
+
+## 4. The case-auditor agent
+
+Sections 1–3 test the kit as a reference. This one tests an agent: the **case-auditor**, which
+reads a case, decides whether it can run base, N-1, time step, OPF or SCOPF, and says what
+stops each study.
+
+**Both setups get the same audit output.** The kit's audit engine ran on two public synthetic
+cases, Hawaii40 and Texas2k. Six more cases were seeded from Hawaii40 with known defects: a case
+that does not solve, a DC-only skeleton, a generator a little over its rating and one far over it,
+OPF areas with no cost data, and renewables with no weather model. Each question hands the
+engine's findings to the assistant in plain words, the way an engineer would paste them.
+
+| Setup | What that means |
+|---|---|
+| **With the agent** | the kit is installed, and the question is routed to the case-auditor agent |
+| **Plain model** | the same model with no kit, given the same question and the same findings |
+
+8 cases, 3 runs each, 24 runs per setup, run with `claude plugin eval` on the unreleased kit after v0.4.0
+(2026-10-01). The model was Sonnet. A blind Haiku judge, which did not know which setup wrote the
+answer, decided whether each answer described this case correctly. Fixed checks covered the rest.
+Every check is pass or fail.
+
+| | With the agent | Plain model |
+|---|:--:|:--:|
+| **Described this case correctly** (blind judge) | **21 of 24** | 10 of 24 |
+| Gave each study the right READY / NOT READY, in the agent's verdict form | 39 of 39 | 12 of 39 |
+| Said that a replayed audit never opened the case | 17 of 18 | 9 of 18 |
+| Invented no cost data, used only the three severity labels, did not paste the raw findings | 51 of 51 | 50 of 51 |
+| **Passed every check in the run** | **20 of 24** | 0 of 24 |
+
+**Where the agent helps is judgment, not honesty.** The plain model hardly ever invents
+anything: it passed 50 of 51 of those checks. What it gets wrong is the call. It treats an
+imperfection as a blocker, misses the one finding that stops the study, or buries the verdict.
+The verdict-form row partly measures format, because only the agent was given the form. Read the
+judge's row as the headline.
+
+Cost per run: **$0.11** with the agent, $0.06 for the plain model. Median time per run: 27 s
+against 16 s. The agent costs more because it is a second model call.
+
+The eval suite ships in the kit under `evals/`, so anyone can rerun it. The three-runs-per-case
+numbers above come from one run of the suite. On native Windows, the eval tool's `add_dirs` and
+`scaffold_script` do not reach the agent, so each case carries its findings in the prompt. The
+details are in `evals/README.md`.
+
+For sections 1–3, the table cells describe what each question was about rather than quoting it;
+those questions and grading prompts are not published. Back to [README](README.md).
