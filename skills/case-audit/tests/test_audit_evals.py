@@ -29,6 +29,11 @@ LOCAL = re.compile(r"[A-Za-z]:[\\/]|/(Users|home)/")
 REPLAY = "Replayed from a stored snapshot; no case was opened."
 NL = chr(10)
 INTRO = "PowerWorld isn't on this machine, but I already ran the case audit on it. Here is its findings.md:"
+# Eval run 2: the main session answered every case itself and never dispatched case-auditor.
+ROUTING = ("You are the main session of the PowerWorldHiveMind kit. When the user asks about a PowerWorld "
+           "case's readiness, health or contents, hand the request to the case-auditor agent with the Agent "
+           "tool: pass the user's words and the audit output below verbatim, add nothing. Then relay the "
+           "agent's final message to the user verbatim, once, adding nothing before or after it.")
 
 FINDINGS = ("## Findings" + NL + "| what's wrong | where (keys) | why it matters | stops the study? | triage | rule | kit page |"
             + NL + "|---|---|---|---|---|---|---|" + NL)
@@ -150,6 +155,15 @@ def test_case_loads(case):
     assert (d / "case.yaml").read_text(encoding="utf-8").split() == ["schema_version:", '"1.1"', "name:", case]
     assert {"regex", "tool_used", "llm"} <= {g["type"] for g in graders(case).values()}
     assert ("says-no-case-was-opened" in graders(case)) == (case in SEEDED)
+
+
+@pytest.mark.parametrize("case", CASES)
+def test_every_prompt_routes_the_main_session_to_the_auditor(case):
+    p = front(EVALS / case / "prompt.md")
+    # a YAML double-quoted scalar: the text holds ": ", so it cannot be bare, and no quote or backslash
+    assert p["keys"]["append_system_prompt"] == '"' + ROUTING + '"'
+    assert '"' not in ROUTING and "\\" not in ROUTING
+    assert "case-auditor" not in p["body"].split(INTRO)[0]          # the question itself stays plain
 
 
 @pytest.mark.parametrize("case", CASES)
