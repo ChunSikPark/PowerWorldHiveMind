@@ -875,7 +875,9 @@ DATA.then(data => {
 /* ---------- sections ---------- */
 const IDS = $$(".feeder").map(f => f.dataset.id);
 const started = new Set();
-function open(id, focus){
+// Not "open": a top-level function by that name replaces window.open, so clicking a
+// graph node ran this instead and landed on Install.
+function openSection(id, focus){
   if (!IDS.includes(id)) id = "install";
   $$(".feeder").forEach(f => {
     const on = f.dataset.id === id;
@@ -891,10 +893,10 @@ function open(id, focus){
     if (id === "find") DATA.then(() => showSearch(0));
   }
 }
-$$(".feeder").forEach(f => $(".tile", f).addEventListener("click", () => open(f.dataset.id, matchMedia("(max-width:1100px)").matches)));
-$$("[data-open]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); open(a.dataset.open, true); }));
-window.addEventListener("hashchange", () => open(location.hash.slice(1)));
-open(location.hash.slice(1) || "install");
+$$(".feeder").forEach(f => $(".tile", f).addEventListener("click", () => openSection(f.dataset.id, matchMedia("(max-width:1100px)").matches)));
+$$("[data-open]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); openSection(a.dataset.open, true); }));
+window.addEventListener("hashchange", () => openSection(location.hash.slice(1)));
+openSection(location.hash.slice(1) || "install");
 
 /* ---------- copy buttons ---------- */
 $$("[data-copy]").forEach(b => b.addEventListener("click", async () => {
