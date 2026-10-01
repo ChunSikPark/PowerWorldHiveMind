@@ -121,3 +121,41 @@ def test_unread_step_makes_no_tap_limit_claim(frames):
     w = f.where[0]
     assert w["hv_bus"] == 3 and w["at_tap_limit"] is False and w["pushing_hv_away"] is False
     assert f.details["pushing"] == 0
+
+
+def test_zero_mvar_shunt_on_a_disconnected_target_is_still_a_placeholder(frames):
+    frames["Bus"].loc[frames["Bus"].BusNum == 5, "BusStatus"] = "Disconnected"
+    frames["Shunt"].loc[0, ["SSRegNum", "SSMaxMVR", "SSMinMVR"]] = [5, 0.0, 0.0]
+    out = regulates_nothing(case(frames))
+    assert [f.triage for f in out] == [ON_PURPOSE] and out[0].where[0]["reason"] == "disconnected"
+
+
+def _gsu_bus_7(frames):
+    b, g = frames["Bus"], frames["Gen"]
+    b.loc[len(b)] = {**b.iloc[3].to_dict(), "BusNum": 7, "BusName": "BUS7", "BusNomVolt": 22.0}
+    g.loc[len(g)] = {**g.iloc[0].to_dict(), "BusNum": 7, "GenID": "G7"}
+
+
+def _xf_to_7(frames, ckt):
+    br = frames["Branch"]
+    br.loc[len(br)] = {**br.loc[XF].to_dict(), "BusNum": 3, "BusNum:1": 7, "BusNomVolt:1": 22.0,
+                       "XFRegBus": 7.0, "LineCircuit": ckt}
+
+
+def test_unit_bus_with_a_closed_line_is_not_a_step_up(frames):
+    _hv_high(frames)
+    _gsu_bus_7(frames)
+    _xf_to_7(frames, "1")
+    br = frames["Branch"]
+    br.loc[len(br)] = {**br.iloc[0].to_dict(), "BusNum": 7, "BusNum:1": 6, "BusNomVolt": 22.0}   # a line at bus 7
+    [f] = ltc_regulates_lv_side(case(frames))
+    assert sorted(w["BusNum:1"] for w in f.where) == [4, 7] and f.details["generator_step_ups_skipped"] == 0
+
+
+def test_parallel_step_ups_are_both_skipped(frames):
+    _hv_high(frames)
+    _gsu_bus_7(frames)
+    _xf_to_7(frames, "1")
+    _xf_to_7(frames, "2")
+    [f] = ltc_regulates_lv_side(case(frames))
+    assert [w["BusNum:1"] for w in f.where] == [4] and f.details["generator_step_ups_skipped"] == 2

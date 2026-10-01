@@ -50,7 +50,7 @@ def regulates_nothing(cd: CaseData) -> list[Finding]:
             row = {"device": "switched shunt", "BusNum": bus(r.BusNum), "ShuntID": r.ShuntID,
                    "SSRegNum": None if pd.isna(r.SSRegNum) else bus(r.SSRegNum), "reason": why}
             empty = abs(r.SSMaxMVR) < ZERO_MVAR_EPS and abs(r.SSMinMVR) < ZERO_MVAR_EPS
-            (placeholders if empty and why != "disconnected" else broken).append(row)
+            (placeholders if empty else broken).append(row)
     for _, r in active_ltcs(cd).iterrows():
         if "Disconnected" in (status.get(r["BusNum"]), status.get(r["BusNum:1"])):
             continue
