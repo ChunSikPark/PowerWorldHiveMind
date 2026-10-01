@@ -18,7 +18,7 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SKIP = ("skills/", "commands/", "dist/", "assets/", "evals/", "site/", ".github/", ".obsidian/")
+SKIP = ("skills/", "commands/", "dist/", "assets/", "evals/", "docs/superpowers/", "site/", ".github/", ".obsidian/")
 LINK = re.compile(r"\]\(([^)\s#]+\.md)(?:#[^)]*)?\)")
 GROUPS = {"concepts", "methods", "references", "demos"}
 CONTENT = ["concepts", "methods", "demos", "references"]
