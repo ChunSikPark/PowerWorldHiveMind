@@ -47,12 +47,12 @@ def _units_where(df) -> list[dict]:
 
 
 def _groups(cd: CaseData) -> dict:
-    """OPF group -> its areas. ("area", n) for an area on OPF itself; ("super area", name) for the
-    areas on OPF only through their super area."""
-    a, on = cd.get("Area"), opf_areas(cd)
+    """OPF group -> its areas. ("super area", name) pools every OPF area inside a super area that is on
+    OPF, whether the area is on OPF itself or only through it; ("area", n) is an OPF area outside one."""
+    a, on, sa_on = cd.get("Area"), opf_areas(cd), set(opf_super_areas(cd))
     groups = {}
     for _, r in a[a.AreaNum.isin(on)].iterrows():
-        key = ("area", bus(r.AreaNum)) if r.BGAGC.upper() == "OPF" else ("super area", r.SAName)
+        key = ("super area", r.SAName) if r.SAName in sa_on else ("area", bus(r.AreaNum))
         groups.setdefault(key, []).append(r.AreaNum)
     return groups
 
@@ -67,12 +67,25 @@ def _name(key) -> str:
 
 def opf_conditions(cd: CaseData) -> list[Finding]:
     groups, g = _groups(cd), _units(cd)
+    all_off = not g.agc.any()
+    why_off = "AGC is off on every unit; writing GenMW turns it off, so a dispatch step is the likely cause"
     if not groups:
-        return [Finding(
+        stop = Finding(
             "opf.1", STOPS, YOUR_CALL,
             what="no area or super area is set to let the OPF redispatch it",
             why="the OPF will not start: which areas it may move is your study choice",
-            page=PAGE, stops=OPF)]
+            page=PAGE, stops=OPF)
+        # conditions 2 and 3 are checked separately: cost data is the long-lead item, so show it now
+        rows = [{"AreaNum": r["AreaNum"], "agc_units": r["agc_units"], "with_curve": r["with_curve"]}
+                for r in area_table(cd)]
+        none_priced = not (g.agc & g.priced).any()
+        preview = Finding(
+            "opf.preview", WORTH, YOUR_CALL,
+            what="preview for when areas are put on OPF: the units each area could let the OPF move, and how many carry cost data",
+            why=why_off if all_off else "an OPF needs AGC-able units with real cost curves in each area it controls",
+            page=PAGE, where=rows, handoff=COST_HANDOFF if none_priced else "",
+            details={"agc_off_everywhere": all_off, "units_with_cost_data": int((g.agc & g.priced).sum())})
+        return [stop, preview]
     out, empty, unpriced, thin, movable_all = [], [], [], [], []
     for key, areas in groups.items():
         movable = g[g.AreaNum.isin(areas) & g.agc]
@@ -88,12 +101,10 @@ def opf_conditions(cd: CaseData) -> list[Finding]:
                     thin.append({"AreaNum": bus(a), "SAName": key[1], "movable_units": int(len(own)),
                                  "priced_units": int(own.priced.sum())})
     if empty:
-        all_off = not g.agc.any()
         out.append(Finding(
             "opf.2", STOPS, YOUR_CALL,
             what="no unit the OPF may move in " + ", ".join(_name(k) for k, _ in empty),
-            why=("AGC is off on every unit; writing GenMW turns it off, so a dispatch step is the likely cause"
-                 if all_off else "an OPF group with no AGC-able unit gives the OPF nothing to redispatch"),
+            why=(why_off if all_off else "an OPF group with no AGC-able unit gives the OPF nothing to redispatch"),
             page=PAGE, stops=OPF, where=[w for _, w in empty], details={"agc_off_everywhere": all_off}))
     if unpriced:
         out.append(Finding(

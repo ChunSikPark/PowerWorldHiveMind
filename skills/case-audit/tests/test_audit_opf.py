@@ -11,7 +11,7 @@ def test_all_three_conditions_hold(frames):
 
 def test_no_opf_area_or_super_area(frames):
     frames["Area"].loc[0, "BGAGC"] = "Off AGC"
-    [f] = opf_conditions(case(frames))
+    [f] = [f for f in opf_conditions(case(frames)) if f.severity == STOPS]       # the preview rides along
     assert f.rule == "opf.1" and f.severity == STOPS and f.triage == YOUR_CALL and f.stops == ("opf",)
 
 
@@ -92,3 +92,36 @@ def test_area_table(frames):
     [a] = area_table(case(frames))
     assert a == {"AreaNum": 1, "BGAGC": "OPF", "SAName": "", "opf": True, "via_super_area": False,
                  "agc_units": 3, "with_curve": 3, "cost_above_zero": 3, "cost_models": {"Cubic": 3}}
+
+
+def _area_on_opf_inside_an_opf_super_area(frames):
+    frames["Area"].loc[0, "SAName"] = "S"                                   # area 1: OPF itself, inside S
+    frames["Area"].loc[1] = {**frames["Area"].iloc[0].to_dict(), "AreaNum": 2, "BGAGC": "Off AGC"}
+    frames["SuperArea"] = pd.DataFrame({"SAName": ["S"], "BGAGC": ["OPF"]})
+
+
+def test_an_opf_area_inside_an_opf_super_area_is_pooled_with_its_members(frames):
+    _area_on_opf_inside_an_opf_super_area(frames)                           # area 2: load only
+    [f] = opf_conditions(case(frames))
+    assert (f.rule, f.severity, f.triage) == ("opf.2", FYI, ON_PURPOSE)
+    assert [w["AreaNum"] for w in f.where] == [2]
+
+
+def test_an_unpriced_unit_in_a_pooled_member_does_not_stop_the_super_area(frames):
+    _area_on_opf_inside_an_opf_super_area(frames)
+    frames["Gen"].loc[3] = {**frames["Gen"].iloc[0].to_dict(), "AreaNum": 2, "GenID": "9", "GenCostCurvePoints": 0}
+    found = opf_conditions(case(frames))
+    assert found and all(f.severity != STOPS for f in found)
+
+
+def test_no_opf_area_still_previews_conditions_2_and_3(frames):
+    frames["Area"].loc[0, "BGAGC"] = "Off AGC"
+    frames["Gen"].GenAGCAble = "NO"
+    frames["Gen"].GenCostCurvePoints = 0
+    found = opf_conditions(case(frames))
+    assert [f.rule for f in found] == ["opf.1", "opf.preview"]
+    stop, prev = found
+    assert stop.severity == STOPS and prev.severity == WORTH and prev.triage == YOUR_CALL and prev.stops == ()
+    assert "cost-data source" in prev.handoff and "preview" in prev.what
+    assert prev.details["agc_off_everywhere"] and "dispatch" in prev.why
+    assert prev.where == [{"AreaNum": 1, "agc_units": 0, "with_curve": 0}]
