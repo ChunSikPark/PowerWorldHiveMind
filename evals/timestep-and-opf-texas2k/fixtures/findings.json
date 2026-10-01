@@ -1,0 +1,1448 @@
+{
+ "source": "case",
+ "case": "Texas2k_series25_case1_summerpeak_PFW.pwb",
+ "audited_at": "2026-09-30T22:43:34",
+ "profiles": [
+  "base",
+  "timestep",
+  "opf"
+ ],
+ "weather_file": null,
+ "read_only": {
+  "sha256_before": "c5a3de12c495d3cb42a52d7b659144fc88dca916d4d378de4c6e7b9dfa34b646",
+  "sha256_after": "c5a3de12c495d3cb42a52d7b659144fc88dca916d4d378de4c6e7b9dfa34b646",
+  "unchanged": true
+ },
+ "variants_beside": [],
+ "solve": {
+  "converged": true,
+  "raised": null,
+  "max_mismatch_mva": 0.01975702,
+  "tolerance_mva": 0.1,
+  "tolerance_unread": false
+ },
+ "verdicts": {
+  "base": {
+   "verdict": "READY",
+   "reason": "",
+   "stopped_by": []
+  },
+  "n1": {
+   "verdict": "READY",
+   "reason": "monitoring only; the runner counts outage coverage",
+   "stopped_by": []
+  },
+  "timestep": {
+   "verdict": "READY",
+   "reason": "400 of 400 renewables will follow the weather",
+   "stopped_by": []
+  },
+  "opf": {
+   "verdict": "READY",
+   "reason": "",
+   "stopped_by": []
+  },
+  "scopf": {
+   "verdict": "READY",
+   "reason": "2738 contingencies in the case; the runner counts outage coverage",
+   "stopped_by": []
+  }
+ },
+ "case_summary": {
+  "load_mw": 85758.99995629,
+  "load_mvar": 21615.6610714,
+  "generation_mw": 90185.48792601,
+  "generation_mvar": 11898.04323536,
+  "losses_mw": 4426.487969719994,
+  "headroom_dispatchable_mw": 17771.412059739996,
+  "generation_includes_overshoot_mw": 0.0,
+  "mvar_range": [
+   -10030.7999887,
+   29627.999928150002
+  ],
+  "fuel": [
+   {
+    "fuel": "BIT (Bituminous Coal)",
+    "units_online": 18,
+    "units_total": 21,
+    "installed_mw": 13537.6000404,
+    "output_mw": 4144.99999285,
+    "share_of_output": 0.04596083126201681,
+    "headroom_mw": 7542.600047560001,
+    "weather_limited": false
+   },
+   {
+    "fuel": "DFO (Distillate Fuel Oil)",
+    "units_online": 8,
+    "units_total": 10,
+    "installed_mw": 514.20000345,
+    "output_mw": 170.00000624,
+    "share_of_output": 0.0018850040083995714,
+    "headroom_mw": 236.1999959,
+    "weather_limited": false
+   },
+   {
+    "fuel": "MWH (Electricity use for Energy Storage)",
+    "units_online": 66,
+    "units_total": 121,
+    "installed_mw": 14277.199983609999,
+    "output_mw": 7304.899994290001,
+    "share_of_output": 0.08099861920448985,
+    "headroom_mw": 0.0,
+    "weather_limited": false
+   },
+   {
+    "fuel": "NG (Natural Gas)",
+    "units_online": 305,
+    "units_total": 507,
+    "installed_mw": 58087.69997966,
+    "output_mw": 19751.3838947,
+    "share_of_output": 0.21900844968432656,
+    "headroom_mw": 9412.61600264,
+    "weather_limited": false
+   },
+   {
+    "fuel": "NUC (Nuclear)",
+    "units_online": 4,
+    "units_total": 4,
+    "installed_mw": 4980.00001907,
+    "output_mw": 4400.00400543,
+    "share_of_output": 0.048788381663354224,
+    "headroom_mw": 579.99601364,
+    "weather_limited": false
+   },
+   {
+    "fuel": "OBL (Other Biomass Liquids)",
+    "units_online": 3,
+    "units_total": 4,
+    "installed_mw": 160.00000015,
+    "output_mw": 141.99999943,
+    "share_of_output": 0.0015745326958423696,
+    "headroom_mw": 0.0,
+    "weather_limited": false
+   },
+   {
+    "fuel": "OTH (Other)",
+    "units_online": 8,
+    "units_total": 10,
+    "installed_mw": 227.89999769000002,
+    "output_mw": 137.90000007,
+    "share_of_output": 0.0015290708432285243,
+    "headroom_mw": 0.0,
+    "weather_limited": false
+   },
+   {
+    "fuel": "SUN (Solar)",
+    "units_online": 128,
+    "units_total": 178,
+    "installed_mw": 32312.500079,
+    "output_mw": 21119.90001949,
+    "share_of_output": 0.23418291019079693,
+    "headroom_mw": null,
+    "weather_limited": true
+   },
+   {
+    "fuel": "WAT (Water)",
+    "units_online": 19,
+    "units_total": 22,
+    "installed_mw": 552.8000004400001,
+    "output_mw": 480.19999935,
+    "share_of_output": 0.005324581708134304,
+    "headroom_mw": 0.0,
+    "weather_limited": false
+   },
+   {
+    "fuel": "WND (Wind)",
+    "units_online": 177,
+    "units_total": 222,
+    "installed_mw": 41832.30003267,
+    "output_mw": 32534.20001416,
+    "share_of_output": 0.3607476187394109,
+    "headroom_mw": null,
+    "weather_limited": true
+   }
+  ],
+  "shunts": {
+   "count": 202,
+   "in_service": 202,
+   "mvar_now": 29166.10117445,
+   "capacitive_mvar": 41119.680066429995,
+   "inductive_mvar": -425.00000075
+  },
+  "size": {
+   "buses": 2751,
+   "branches": 5344,
+   "transformers": 1351,
+   "areas": 8,
+   "zones": 1,
+   "kv_levels": [
+    13.2,
+    13.8,
+    18.0,
+    20.0,
+    22.0,
+    24.0,
+    115.0,
+    161.0,
+    230.0,
+    500.0
+   ]
+  },
+  "contingencies": 2738,
+  "from_unsolved_case": false,
+  "opf_movable_headroom_mw": 17771.412059739996
+ },
+ "monitoring": {
+  "areas": [
+   {
+    "AreaNum": 1,
+    "min_kv": 0.0,
+    "max_kv": 9999.0
+   },
+   {
+    "AreaNum": 2,
+    "min_kv": 0.0,
+    "max_kv": 9999.0
+   },
+   {
+    "AreaNum": 3,
+    "min_kv": 0.0,
+    "max_kv": 9999.0
+   },
+   {
+    "AreaNum": 4,
+    "min_kv": 0.0,
+    "max_kv": 9999.0
+   },
+   {
+    "AreaNum": 5,
+    "min_kv": 0.0,
+    "max_kv": 9999.0
+   },
+   {
+    "AreaNum": 6,
+    "min_kv": 0.0,
+    "max_kv": 9999.0
+   },
+   {
+    "AreaNum": 7,
+    "min_kv": 0.0,
+    "max_kv": 9999.0
+   },
+   {
+    "AreaNum": 8,
+    "min_kv": 0.0,
+    "max_kv": 9999.0
+   }
+  ],
+  "areas_total": 8,
+  "zones": [
+   {
+    "ZoneNum": 1,
+    "min_kv": 0.0,
+    "max_kv": 9999.0
+   }
+  ],
+  "zones_total": 1,
+  "branches_will_monitor": 5344,
+  "buses_will_monitor": 2751,
+  "ignore_radial": "NO"
+ },
+ "timestep_coverage": {
+  "renewables": 400,
+  "with_pfw": 400,
+  "installed_mw": 74144.80011167,
+  "following_mw": 74144.80011167
+ },
+ "opf_areas": [
+  {
+   "AreaNum": 1,
+   "BGAGC": "Off AGC",
+   "SAName": "Texas",
+   "opf": true,
+   "via_super_area": true,
+   "agc_units": 116,
+   "with_curve": 112,
+   "cost_above_zero": 28,
+   "cost_models": {
+    "Cubic": 116
+   }
+  },
+  {
+   "AreaNum": 2,
+   "BGAGC": "Off AGC",
+   "SAName": "Texas",
+   "opf": true,
+   "via_super_area": true,
+   "agc_units": 86,
+   "with_curve": 85,
+   "cost_above_zero": 13,
+   "cost_models": {
+    "Cubic": 86
+   }
+  },
+  {
+   "AreaNum": 3,
+   "BGAGC": "Off AGC",
+   "SAName": "Texas",
+   "opf": true,
+   "via_super_area": true,
+   "agc_units": 76,
+   "with_curve": 75,
+   "cost_above_zero": 8,
+   "cost_models": {
+    "Cubic": 76
+   }
+  },
+  {
+   "AreaNum": 4,
+   "BGAGC": "Off AGC",
+   "SAName": "Texas",
+   "opf": true,
+   "via_super_area": true,
+   "agc_units": 122,
+   "with_curve": 120,
+   "cost_above_zero": 42,
+   "cost_models": {
+    "Cubic": 122
+   }
+  },
+  {
+   "AreaNum": 5,
+   "BGAGC": "Off AGC",
+   "SAName": "Texas",
+   "opf": true,
+   "via_super_area": true,
+   "agc_units": 62,
+   "with_curve": 62,
+   "cost_above_zero": 30,
+   "cost_models": {
+    "Cubic": 62
+   }
+  },
+  {
+   "AreaNum": 6,
+   "BGAGC": "Off AGC",
+   "SAName": "Texas",
+   "opf": true,
+   "via_super_area": true,
+   "agc_units": 88,
+   "with_curve": 88,
+   "cost_above_zero": 63,
+   "cost_models": {
+    "Cubic": 88
+   }
+  },
+  {
+   "AreaNum": 7,
+   "BGAGC": "Off AGC",
+   "SAName": "Texas",
+   "opf": true,
+   "via_super_area": true,
+   "agc_units": 146,
+   "with_curve": 138,
+   "cost_above_zero": 126,
+   "cost_models": {
+    "Cubic": 146
+   }
+  },
+  {
+   "AreaNum": 8,
+   "BGAGC": "Off AGC",
+   "SAName": "Texas",
+   "opf": true,
+   "via_super_area": true,
+   "agc_units": 40,
+   "with_curve": 40,
+   "cost_above_zero": 25,
+   "cost_models": {
+    "Cubic": 40
+   }
+  }
+ ],
+ "findings": [
+  {
+   "rule": "base.stale_ctg_results",
+   "severity": "FYI",
+   "triage": "Probably on purpose",
+   "what": "the case already holds 173 contingency violation rows from an earlier run",
+   "why": "they describe whatever the case was when that run happened, not this audit - do not read them",
+   "page": "methods/reading-violationctg.md",
+   "stops": [],
+   "scope": "",
+   "where": [],
+   "details": {
+    "rows": 173
+   },
+   "handoff": "",
+   "label": "FYI",
+   "count": 0
+  },
+  {
+   "rule": "mon.footprint",
+   "severity": "FYI",
+   "triage": "Probably on purpose",
+   "what": "an N-1 will check 8 of 8 areas, 5344 branches and 2751 buses",
+   "why": "a clean N-1 result covers only this footprint, not the whole system",
+   "page": "field export (schema-only)",
+   "stops": [],
+   "scope": "",
+   "where": [],
+   "details": {
+    "areas": [
+     {
+      "AreaNum": 1,
+      "min_kv": 0.0,
+      "max_kv": 9999.0
+     },
+     {
+      "AreaNum": 2,
+      "min_kv": 0.0,
+      "max_kv": 9999.0
+     },
+     {
+      "AreaNum": 3,
+      "min_kv": 0.0,
+      "max_kv": 9999.0
+     },
+     {
+      "AreaNum": 4,
+      "min_kv": 0.0,
+      "max_kv": 9999.0
+     },
+     {
+      "AreaNum": 5,
+      "min_kv": 0.0,
+      "max_kv": 9999.0
+     },
+     {
+      "AreaNum": 6,
+      "min_kv": 0.0,
+      "max_kv": 9999.0
+     },
+     {
+      "AreaNum": 7,
+      "min_kv": 0.0,
+      "max_kv": 9999.0
+     },
+     {
+      "AreaNum": 8,
+      "min_kv": 0.0,
+      "max_kv": 9999.0
+     }
+    ],
+    "areas_total": 8,
+    "zones": [
+     {
+      "ZoneNum": 1,
+      "min_kv": 0.0,
+      "max_kv": 9999.0
+     }
+    ],
+    "zones_total": 1,
+    "branches_will_monitor": 5344,
+    "buses_will_monitor": 2751,
+    "ignore_radial": "NO"
+   },
+   "handoff": "",
+   "label": "FYI",
+   "count": 0
+  },
+  {
+   "rule": "mon.rate_sets_populated",
+   "severity": "FYI",
+   "triage": "Probably on purpose",
+   "what": "rate sets with values: A (5344 branches), B (2782 branches), C (2782 branches)",
+   "why": "shows which rating letters a limit set could point at",
+   "page": "methods/reading-violationctg.md",
+   "stops": [],
+   "scope": "",
+   "where": [],
+   "details": {
+    "branches_per_letter": {
+     "A": 5344,
+     "B": 2782,
+     "C": 2782
+    },
+    "closed_branches": 5344,
+    "in_use": [
+     {
+      "LSName": "Default",
+      "rate_set": "normal",
+      "letter": "A"
+     },
+     {
+      "LSName": "Default",
+      "rate_set": "contingency",
+      "letter": "A"
+     }
+    ],
+    "amp_or_mva": {
+     "Default": "MVA"
+    }
+   },
+   "handoff": "",
+   "label": "FYI",
+   "count": 0
+  },
+  {
+   "rule": "ts.pww_footprint",
+   "severity": "FYI",
+   "triage": "Your call",
+   "what": "weather file not given, so I didn't check it covers these units",
+   "why": "send the .pww if you want its coverage checked",
+   "page": "concepts/pww-data.md",
+   "stops": [],
+   "scope": "",
+   "where": [],
+   "details": {},
+   "handoff": "",
+   "label": "FYI",
+   "count": 0
+  },
+  {
+   "rule": "opf.3",
+   "severity": "Worth a look",
+   "triage": "Your call",
+   "what": "16 of the 736 units the OPF could move carry no cost curve",
+   "why": "the OPF runs on the priced units; these ones have no price to be dispatched on",
+   "page": "concepts/opf-preconditions.md",
+   "stops": [],
+   "scope": "",
+   "where": [
+    {
+     "BusNum": 2019,
+     "GenID": "1",
+     "AreaNum": 2,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4153,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12574,
+     "GenID": "1",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 4.7866382
+    },
+    {
+     "BusNum": 12574,
+     "GenID": "2",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 4.88801637
+    },
+    {
+     "BusNum": 12761,
+     "GenID": "1",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 5.09761071
+    },
+    {
+     "BusNum": 12761,
+     "GenID": "2",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 5.01775691
+    },
+    {
+     "BusNum": 12761,
+     "GenID": "3",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 5.09819057
+    },
+    {
+     "BusNum": 12761,
+     "GenID": "4",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 5.03910509
+    },
+    {
+     "BusNum": 12761,
+     "GenID": "5",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 4.99844141
+    },
+    {
+     "BusNum": 12761,
+     "GenID": "6",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 5.01030847
+    },
+    {
+     "BusNum": 12821,
+     "GenID": "1",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13143,
+     "GenID": "1",
+     "AreaNum": 3,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13270,
+     "GenID": "3",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 4.70668383
+    },
+    {
+     "BusNum": 13270,
+     "GenID": "4",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 4.71969302
+    },
+    {
+     "BusNum": 13391,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13417,
+     "GenID": "1",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 0.0,
+     "GenMCost": 4.71421533
+    }
+   ],
+   "details": {
+    "units": 736,
+    "priced": 720
+   },
+   "handoff": "your own cost-data source; no script supplies cost curves, and a default one makes the dispatch meaningless",
+   "label": "Worth a look",
+   "count": 16
+  },
+  {
+   "rule": "opf.3",
+   "severity": "Worth a look",
+   "triage": "Probably on purpose",
+   "what": "95 thermal unit(s) the OPF could move have a cost curve that reads 0 at today's output",
+   "why": "the OPF will treat their next MW as free; check the curve if that is not intended",
+   "page": "concepts/opf-preconditions.md",
+   "stops": [],
+   "scope": "",
+   "where": [
+    {
+     "BusNum": 1033,
+     "GenID": "BA",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 1090,
+     "GenID": "2",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 2063,
+     "GenID": "1",
+     "AreaNum": 2,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 2063,
+     "GenID": "2",
+     "AreaNum": 2,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 3014,
+     "GenID": "1",
+     "AreaNum": 3,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 3106,
+     "GenID": "2",
+     "AreaNum": 3,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 3120,
+     "GenID": "1",
+     "AreaNum": 3,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4007,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4045,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4046,
+     "GenID": "2",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4047,
+     "GenID": "3",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4065,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4067,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4068,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4069,
+     "GenID": "3",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4090,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4100,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4100,
+     "GenID": "2",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4102,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 4111,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 5290,
+     "GenID": "1",
+     "AreaNum": 5,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 5290,
+     "GenID": "2",
+     "AreaNum": 5,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 6027,
+     "GenID": "1",
+     "AreaNum": 6,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 6082,
+     "GenID": "1",
+     "AreaNum": 6,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 6083,
+     "GenID": "2",
+     "AreaNum": 6,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 6116,
+     "GenID": "1",
+     "AreaNum": 6,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 6137,
+     "GenID": "1",
+     "AreaNum": 6,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 6137,
+     "GenID": "3",
+     "AreaNum": 6,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 6168,
+     "GenID": "1",
+     "AreaNum": 6,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 6213,
+     "GenID": "1",
+     "AreaNum": 6,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 6214,
+     "GenID": "2",
+     "AreaNum": 6,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 7086,
+     "GenID": "1",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 7312,
+     "GenID": "1",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 8099,
+     "GenID": "1",
+     "AreaNum": 8,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 8141,
+     "GenID": "1",
+     "AreaNum": 8,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12589,
+     "GenID": "1",
+     "AreaNum": 5,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12594,
+     "GenID": "BA",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12641,
+     "GenID": "1",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12658,
+     "GenID": "1",
+     "AreaNum": 3,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12662,
+     "GenID": "1",
+     "AreaNum": 3,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12666,
+     "GenID": "1",
+     "AreaNum": 3,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12680,
+     "GenID": "1",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12711,
+     "GenID": "1",
+     "AreaNum": 5,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12720,
+     "GenID": "1",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12759,
+     "GenID": "1",
+     "AreaNum": 8,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12782,
+     "GenID": "1",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12786,
+     "GenID": "1",
+     "AreaNum": 2,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12881,
+     "GenID": "1",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12944,
+     "GenID": "1",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12969,
+     "GenID": "1",
+     "AreaNum": 8,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 12993,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13028,
+     "GenID": "BA",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13086,
+     "GenID": "1",
+     "AreaNum": 2,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13088,
+     "GenID": "1",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13090,
+     "GenID": "1",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13094,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13128,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13182,
+     "GenID": "1",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13219,
+     "GenID": "1",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13221,
+     "GenID": "1",
+     "AreaNum": 3,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13223,
+     "GenID": "1",
+     "AreaNum": 3,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13225,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13227,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13229,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13231,
+     "GenID": "1",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13233,
+     "GenID": "1",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13298,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13303,
+     "GenID": "BA",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13305,
+     "GenID": "BA",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13307,
+     "GenID": "1",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13323,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13324,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13327,
+     "GenID": "NF",
+     "AreaNum": 6,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13332,
+     "GenID": "1",
+     "AreaNum": 6,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13336,
+     "GenID": "1",
+     "AreaNum": 3,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13338,
+     "GenID": "1",
+     "AreaNum": 3,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13340,
+     "GenID": "1",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13344,
+     "GenID": "1",
+     "AreaNum": 6,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13345,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13386,
+     "GenID": "1",
+     "AreaNum": 3,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13389,
+     "GenID": "BA",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13391,
+     "GenID": "2",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13393,
+     "GenID": "1",
+     "AreaNum": 8,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13393,
+     "GenID": "2",
+     "AreaNum": 8,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13397,
+     "GenID": "2",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13398,
+     "GenID": "1",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13403,
+     "GenID": "1",
+     "AreaNum": 3,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13407,
+     "GenID": "1",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13407,
+     "GenID": "2",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13408,
+     "GenID": "1",
+     "AreaNum": 7,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13412,
+     "GenID": "1",
+     "AreaNum": 2,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13415,
+     "GenID": "1",
+     "AreaNum": 1,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13425,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13427,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    },
+    {
+     "BusNum": 13428,
+     "GenID": "1",
+     "AreaNum": 4,
+     "GenCostModel": "Cubic",
+     "GenCostCurvePoints": 5.0,
+     "GenMCost": 0.0
+    }
+   ],
+   "details": {},
+   "handoff": "",
+   "label": "Worth a look",
+   "count": 95
+  }
+ ],
+ "rules_run": [
+  "base.ac_converges",
+  "base.dc_skeleton",
+  "base.gen_over_nameplate",
+  "base.regulates_nothing",
+  "base.ltc_middle_target",
+  "base.ltc_regulates_lv_side",
+  "base.floating_stub",
+  "base.stale_ctg_results",
+  "mon.nothing_monitored",
+  "mon.footprint",
+  "mon.rate_set_empty",
+  "mon.rate_sets_populated",
+  "mon.bus_limit_overrides",
+  "mon.no_contingencies",
+  "ts.pfw_missing",
+  "ts.latlon_missing",
+  "ts.pww_footprint",
+  "opf.conditions"
+ ],
+ "rules_skipped": []
+}

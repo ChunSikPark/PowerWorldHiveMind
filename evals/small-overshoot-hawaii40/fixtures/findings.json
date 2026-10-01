@@ -1,0 +1,298 @@
+{
+ "source": "snapshot",
+ "case": "Hawaii40_base.pwb",
+ "audited_at": "2026-09-30T22:43:00",
+ "profiles": [
+  "base"
+ ],
+ "weather_file": null,
+ "read_only": {
+  "sha256_before": null,
+  "sha256_after": null,
+  "unchanged": null
+ },
+ "variants_beside": [],
+ "solve": {
+  "converged": true,
+  "raised": null,
+  "max_mismatch_mva": 4e-08,
+  "tolerance_mva": 1e-05,
+  "tolerance_unread": false
+ },
+ "verdicts": {
+  "base": {
+   "verdict": "READY",
+   "reason": "",
+   "stopped_by": []
+  },
+  "n1": {
+   "verdict": "READY",
+   "reason": "monitoring only; the runner counts outage coverage",
+   "stopped_by": []
+  }
+ },
+ "case_summary": {
+  "load_mw": 1136.2900037400002,
+  "load_mvar": 0.0,
+  "generation_mw": 1166.2065451,
+  "generation_mvar": 9.342192950000001,
+  "losses_mw": 29.916541359999883,
+  "headroom_dispatchable_mw": 168.25520115999998,
+  "generation_includes_overshoot_mw": 3.0,
+  "mvar_range": [
+   -241.90000000999999,
+   403.29999742999996
+  ],
+  "fuel": [
+   {
+    "fuel": "BIT (Bituminous Coal)",
+    "units_online": 0,
+    "units_total": 1,
+    "installed_mw": 179.99999523,
+    "output_mw": 0.0,
+    "share_of_output": 0.0,
+    "headroom_mw": 0.0,
+    "weather_limited": false
+   },
+   {
+    "fuel": "DFO (Distillate Fuel Oil)",
+    "units_online": 18,
+    "units_total": 23,
+    "installed_mw": 1404.50001357,
+    "output_mw": 749.27581034,
+    "share_of_output": 0.6424898003601506,
+    "headroom_mw": 156.42420255999997,
+    "weather_limited": false
+   },
+   {
+    "fuel": "OBL (Other Biomass Liquids)",
+    "units_online": 12,
+    "units_total": 12,
+    "installed_mw": 146.39999795,
+    "output_mw": 134.56899935,
+    "share_of_output": 0.1153903653820267,
+    "headroom_mw": 11.830998600000003,
+    "weather_limited": false
+   },
+   {
+    "fuel": "SUN (Solar)",
+    "units_online": 6,
+    "units_total": 6,
+    "installed_mw": 167.40000248,
+    "output_mw": 155.76173515,
+    "share_of_output": 0.1335627344954094,
+    "headroom_mw": null,
+    "weather_limited": true
+   },
+   {
+    "fuel": "WND (Wind)",
+    "units_online": 3,
+    "units_total": 3,
+    "installed_mw": 126.60000026,
+    "output_mw": 126.60000026,
+    "share_of_output": 0.10855709976241325,
+    "headroom_mw": null,
+    "weather_limited": true
+   }
+  ],
+  "shunts": {
+   "count": 2,
+   "in_service": 2,
+   "mvar_now": 30.87009788,
+   "capacitive_mvar": 31.99999928,
+   "inductive_mvar": 0.0
+  },
+  "size": {
+   "buses": 37,
+   "branches": 89,
+   "transformers": 12,
+   "areas": 1,
+   "zones": 1,
+   "kv_levels": [
+    69.0,
+    138.0
+   ]
+  },
+  "contingencies": 89,
+  "from_unsolved_case": false
+ },
+ "monitoring": {
+  "areas": [
+   {
+    "AreaNum": 1,
+    "min_kv": 0.0,
+    "max_kv": 9999.0
+   }
+  ],
+  "areas_total": 1,
+  "zones": [
+   {
+    "ZoneNum": 1,
+    "min_kv": 0.0,
+    "max_kv": 9999.0
+   }
+  ],
+  "zones_total": 1,
+  "branches_will_monitor": 89,
+  "buses_will_monitor": 37,
+  "ignore_radial": "NO"
+ },
+ "timestep_coverage": null,
+ "opf_areas": null,
+ "findings": [
+  {
+   "rule": "base.gen_over_nameplate",
+   "severity": "Worth a look",
+   "triage": "Broken",
+   "what": "1 online unit(s) above their rating after the solve, 3.0 MW over in all",
+   "why": "the case runs; the overshoot is small enough not to move a finding - say the MW",
+   "page": "methods/applying-a-dispatch-to-a-case.md",
+   "stops": [],
+   "scope": "",
+   "where": [
+    {
+     "BusNum": 23,
+     "GenID": "1",
+     "GenMW": 80.80000567,
+     "GenMWMax": 77.80000567,
+     "over_mw": 3.0,
+     "slack": true
+    }
+   ],
+   "details": {
+    "over_mw": 3.0
+   },
+   "handoff": "",
+   "label": "Worth a look",
+   "count": 1
+  },
+  {
+   "rule": "base.regulates_nothing",
+   "severity": "Worth a look",
+   "triage": "Probably on purpose",
+   "what": "1 switched shunt(s) with a 0 Mvar range and no regulated bus",
+   "why": "a 0 Mvar shunt with no target is usually a placeholder, not a defect",
+   "page": "methods/ltc-regulation-checks.md",
+   "stops": [],
+   "scope": "",
+   "where": [
+    {
+     "device": "switched shunt",
+     "BusNum": 16,
+     "ShuntID": "P1",
+     "SSRegNum": 0,
+     "reason": "zero"
+    }
+   ],
+   "details": {},
+   "handoff": "",
+   "label": "Worth a look",
+   "count": 1
+  },
+  {
+   "rule": "base.stale_ctg_results",
+   "severity": "FYI",
+   "triage": "Probably on purpose",
+   "what": "the case already holds 14 contingency violation rows from an earlier run",
+   "why": "they describe whatever the case was when that run happened, not this audit - do not read them",
+   "page": "methods/reading-violationctg.md",
+   "stops": [],
+   "scope": "",
+   "where": [],
+   "details": {
+    "rows": 14
+   },
+   "handoff": "",
+   "label": "FYI",
+   "count": 0
+  },
+  {
+   "rule": "mon.footprint",
+   "severity": "FYI",
+   "triage": "Probably on purpose",
+   "what": "an N-1 will check 1 of 1 areas, 89 branches and 37 buses",
+   "why": "a clean N-1 result covers only this footprint, not the whole system",
+   "page": "field export (schema-only)",
+   "stops": [],
+   "scope": "",
+   "where": [],
+   "details": {
+    "areas": [
+     {
+      "AreaNum": 1,
+      "min_kv": 0.0,
+      "max_kv": 9999.0
+     }
+    ],
+    "areas_total": 1,
+    "zones": [
+     {
+      "ZoneNum": 1,
+      "min_kv": 0.0,
+      "max_kv": 9999.0
+     }
+    ],
+    "zones_total": 1,
+    "branches_will_monitor": 89,
+    "buses_will_monitor": 37,
+    "ignore_radial": "NO"
+   },
+   "handoff": "",
+   "label": "FYI",
+   "count": 0
+  },
+  {
+   "rule": "mon.rate_sets_populated",
+   "severity": "FYI",
+   "triage": "Probably on purpose",
+   "what": "rate sets with values: A (89 branches), B (89 branches), C (89 branches)",
+   "why": "shows which rating letters a limit set could point at",
+   "page": "methods/reading-violationctg.md",
+   "stops": [],
+   "scope": "",
+   "where": [],
+   "details": {
+    "branches_per_letter": {
+     "A": 89,
+     "B": 89,
+     "C": 89
+    },
+    "closed_branches": 89,
+    "in_use": [
+     {
+      "LSName": "Default",
+      "rate_set": "normal",
+      "letter": "A"
+     },
+     {
+      "LSName": "Default",
+      "rate_set": "contingency",
+      "letter": "A"
+     }
+    ],
+    "amp_or_mva": {
+     "Default": "MVA"
+    }
+   },
+   "handoff": "",
+   "label": "FYI",
+   "count": 0
+  }
+ ],
+ "rules_run": [
+  "base.ac_converges",
+  "base.dc_skeleton",
+  "base.gen_over_nameplate",
+  "base.regulates_nothing",
+  "base.ltc_middle_target",
+  "base.ltc_regulates_lv_side",
+  "base.floating_stub",
+  "base.stale_ctg_results",
+  "mon.nothing_monitored",
+  "mon.footprint",
+  "mon.rate_set_empty",
+  "mon.rate_sets_populated",
+  "mon.bus_limit_overrides"
+ ],
+ "rules_skipped": []
+}

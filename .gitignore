@@ -13,3 +13,6 @@ __pycache__/
 
 # schema-lookup engine: rebuilt from the field export on first use
 skills/*/engine/.cache/
+
+# claude plugin eval: per-run results
+evals/results/
