@@ -1,5 +1,7 @@
+import pytest
+
 from auditcase import case
-from findings import FYI, STOPS
+from findings import BROKEN, FYI, ON_PURPOSE, STOPS
 from rules_mon import (bus_limit_overrides, monitored_footprint, no_contingencies, nothing_monitored,
                        rate_set_empty, rate_sets_populated)
 
@@ -63,3 +65,48 @@ def test_own_limits_equal_to_the_group_band_are_not_reported(frames):
     b = frames["Bus"]
     b.loc[b.BusNum == 2, ["BusVoltLim", "BusVoltLimLow", "BusVoltLimHigh"]] = ["YES", 0.89999998, 1.10000002]
     assert bus_limit_overrides(case(frames)) == []
+
+
+def test_nothing_monitored_severity_triage(frames):
+    """mon.nothing_monitored must have severity=STOPS, triage=BROKEN, stops=n1 only."""
+    frames["Area"].BGReportLimits = "NO"
+    frames["Zone"].BGReportLimits = "NO"
+    [f] = nothing_monitored(case(frames))
+    assert f.severity == STOPS and f.triage == BROKEN and f.stops == ("n1",)
+    assert "N-1 and SCOPF only" in f.label
+
+
+def test_rate_set_empty_severity_triage(frames):
+    """mon.rate_set_empty must have severity=STOPS, triage=BROKEN, stops=n1 only."""
+    frames["LimitSet"].loc[0, "LSLineRateSet:1"] = "D"
+    [f] = rate_set_empty(case(frames))
+    assert f.severity == STOPS and f.triage == BROKEN and f.stops == ("n1",)
+    assert "N-1 and SCOPF only" in f.label
+
+
+def test_monitored_footprint_severity_triage(frames):
+    """mon.footprint must have severity=FYI, triage=ON_PURPOSE."""
+    [f] = monitored_footprint(case(frames, LMS_IgnoreRadial="NO"))
+    assert f.severity == FYI and f.triage == ON_PURPOSE and f.stops == ()
+
+
+def test_rate_sets_populated_severity_triage(frames):
+    """mon.rate_sets_populated must have severity=FYI, triage=ON_PURPOSE."""
+    [f] = rate_sets_populated(case(frames))
+    assert f.severity == FYI and f.triage == ON_PURPOSE and f.stops == ()
+
+
+def test_bus_limit_overrides_severity_triage(frames):
+    """mon.bus_limit_overrides must have severity=FYI, triage=ON_PURPOSE."""
+    b = frames["Bus"]
+    b.loc[b.BusNum == 2, ["BusVoltLim", "BusVoltLimLow", "BusVoltLimHigh"]] = ["YES", 0.95, 1.04]
+    [f] = bus_limit_overrides(case(frames))
+    assert f.severity == FYI and f.triage == ON_PURPOSE and f.stops == ()
+
+
+def test_no_contingencies_severity_triage(frames):
+    """mon.no_contingencies must have severity=STOPS, triage=BROKEN, stops=scopf only."""
+    frames["Contingency"] = None
+    [f] = no_contingencies(case(frames))
+    assert f.severity == STOPS and f.triage == BROKEN and f.stops == ("scopf",)
+    assert "SCOPF only" in f.label
