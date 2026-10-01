@@ -1,11 +1,13 @@
 """The case-auditor eval suite loads, its fixtures say where they came from and carry no local
 path, and its regex graders pass a good answer and fail bad ones. No model is called.
 
-What the regexes can and cannot do: they check format (a Verdict section, the three labels, no
-shorthand, no wall of prose), escalation (READY where the study runs, NOT READY where it does
-not) and fabrication (no default cost curves). A verbatim copy of the engine's findings.md passes
-most of them; only the llm grader judges whether the answer describes this case. So each bad
-answer below keeps the Verdict and the right verdicts, and breaks exactly one grader.
+What the regexes check: format (a Verdict section, the three labels, no shorthand, no wall of
+prose of twelve plain lines, no answer of 25 lines or more), escalation (READY where the study
+runs, NOT READY where it does not) and fabrication (no default cost curves). The 25-line cap is
+what stops a verbatim copy of the engine's findings.md; the stays-short grader alone does not,
+since that file is mostly tables and headings. Whether an answer describes this case is judged
+only by the llm grader. So each bad answer below keeps the Verdict and the right verdicts, and
+breaks exactly one grader.
 """
 import json
 import re
@@ -98,7 +100,7 @@ def graders(case):
 
 def regex_passes(g: dict, message: str) -> bool:
     flags = (re.I if "i" in g.get("flags", "") else 0) | (re.M if "m" in g.get("flags", "") else 0)
-    found = re.search(g["pattern"], message + "\n", flags) is not None
+    found = re.search(g["pattern"], message, flags) is not None
     return not found if g.get("match") == "not_contains" else found
 
 
@@ -158,3 +160,24 @@ def test_the_auditor_is_what_ran():
         [g] = [g for g in graders(case).values() if g["type"] == "tool_used"]
         assert g["tool"] == "Agent" and g["input_match"] == r'"subagent_type"\s*:\s*"[^"]*case-auditor"'
         assert re.search(g["input_match"], json.dumps({"subagent_type": "powerworld-hivemind:case-auditor"}))
+
+
+@pytest.mark.parametrize("case", SEEDED)
+def test_a_copied_findings_md_fails_a_regex_grader(case):
+    copy = (EVALS / case / "fixtures" / "findings.md").read_text(encoding="utf-8")
+    assert failing(case, copy)
+
+
+NL = chr(10)
+
+
+def test_a_twelve_line_prose_run_at_the_very_end_fails_stays_short():
+    assert failing("skeleton-hawaii40", GOOD["skeleton-hawaii40"] + NL + PROSE) == ["stays-short"]
+
+
+def test_twelve_numbered_steps_bullets_and_quotes_pass_stays_short():
+    blocks = [NL.join(f"{i}. Step {i} of the fix." for i in range(1, 13)),
+              NL.join(f"* item {i}" for i in range(12)),
+              NL.join(f"> quote {i}" for i in range(12))]
+    for block in blocks:
+        assert failing("skeleton-hawaii40", GOOD["skeleton-hawaii40"] + NL + block) == []
