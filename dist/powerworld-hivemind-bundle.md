@@ -7942,8 +7942,8 @@ not missing data. The case-auditor therefore counts a unit as priced when `GenCo
 None and `GenCostCurvePoints > 0`, says nothing about a zero-cost renewable, and flags a
 *thermal* unit whose curve reads 0 as worth a look.
 
-**Refined again 2026-10-01, measured on the public Texas2k case.** Units on a Cubic cost model
-read `GenCostCurvePoints = 0` with `GenMCost > 0`: a cubic model is evaluated from its
+**Refined again 2026-10-01, measured on the public Texas2k case.** Some units on a Cubic cost
+model read `GenCostCurvePoints = 0` with `GenMCost > 0` (others carry curve points): a cubic model is evaluated from its
 coefficients, not from curve points, so a zero point count there is not missing data. The
 auditor counts a unit as priced when `GenCostModel` is not None and it has curve points or a
 positive cost at today's output (`GenCostCurvePoints > 0` or `GenMCost > 0`). A unit with
@@ -8456,10 +8456,15 @@ This generalizes to any PowerWorld field that's live-derived from `GenMW` (or ot
 mutable state) rather than stored directly — check for this before trusting a
 "looks like a fixed property" field.
 
-**Two silent-zero traps:** `GenCostCurvePoints == 0` means no cost curve was ever fit
-(cost fields read `0`), and a handful of units can report `GenMCost == 0` even with
-curve points defined. Both mean "no real cost data," never "free" — guard explicitly
-(`GenCostCurvePoints > 0 AND GenMCost > 0`) before using cost data to rank or select
+**Two silent-zero traps, and neither field settles it alone.** `GenCostCurvePoints == 0`
+with `GenMCost == 0` means no cost curve was ever fit: no real cost data, never "free". But
+a unit with curve points can read `GenMCost == 0` because its curve is 0 at today's output
+(wind and solar: a price of zero, not missing data), and some Cubic units read
+`GenCostCurvePoints == 0` with `GenMCost > 0`, because a cubic model is evaluated from its
+coefficients. A unit has cost data when `GenCostModel` is not None and it has curve points
+or a cost above 0 at today's output (`GenCostCurvePoints > 0 OR GenMCost > 0`); see the
+dated notes (2026-09-30 and 2026-10-01) in [opf-preconditions](opf-preconditions.md).
+Guard explicitly on that before using cost data to rank or select
 generators, or a data gap silently becomes "dispatch this first."
 
 ### 3. Check `AreaNum`/`AreaName` before doing a spatial join
@@ -12428,7 +12433,7 @@ two-winding transformers.
 | area under OPF | `Area.BGAGC = "OPF"` (values: Off AGC, Part. AGC, ED, Area Slack, IG Slack, OPF) | V 2026-09-11 |
 | super area under OPF | `SuperArea.BGAGC` — value vocabulary not in the export | S |
 | movable gens | `Gen.GenAGCAble = "YES"`; writing `GenMW` turns it off, so set it after MW writes | V |
-| cost data | `Gen.GenCostModel` ≠ None with `GenCostCurvePoints > 0` and `GenMCost > 0` — **data, never fabricated** | V |
+| cost data | `Gen.GenCostModel` ≠ None with `GenCostCurvePoints > 0` or `GenMCost > 0` (a cost above 0 at today's output; see the 2026-10-01 note in `concepts/opf-preconditions.md`) — **data, never fabricated** | V |
 | run LP OPF | `InitializePrimalLP("", STOP); SolvePrimalLP("", STOP);` | V 2026-09-24 (AC, public 40-bus) |
 | DC OPF | DC mode first (`SolvePowerFlow(DC)`), then `SolvePrimalLP` | D |
 | LP iterations | `OPF_Options.OPF_MaxLPIterations`; `OPFValidSolutionOnMaxITR` accepts the answer at the cap | S |

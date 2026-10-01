@@ -126,10 +126,15 @@ This generalizes to any PowerWorld field that's live-derived from `GenMW` (or ot
 mutable state) rather than stored directly — check for this before trusting a
 "looks like a fixed property" field.
 
-**Two silent-zero traps:** `GenCostCurvePoints == 0` means no cost curve was ever fit
-(cost fields read `0`), and a handful of units can report `GenMCost == 0` even with
-curve points defined. Both mean "no real cost data," never "free" — guard explicitly
-(`GenCostCurvePoints > 0 AND GenMCost > 0`) before using cost data to rank or select
+**Two silent-zero traps, and neither field settles it alone.** `GenCostCurvePoints == 0`
+with `GenMCost == 0` means no cost curve was ever fit: no real cost data, never "free". But
+a unit with curve points can read `GenMCost == 0` because its curve is 0 at today's output
+(wind and solar: a price of zero, not missing data), and some Cubic units read
+`GenCostCurvePoints == 0` with `GenMCost > 0`, because a cubic model is evaluated from its
+coefficients. A unit has cost data when `GenCostModel` is not None and it has curve points
+or a cost above 0 at today's output (`GenCostCurvePoints > 0 OR GenMCost > 0`); see the
+dated notes (2026-09-30 and 2026-10-01) in [opf-preconditions](opf-preconditions.md).
+Guard explicitly on that before using cost data to rank or select
 generators, or a data gap silently becomes "dispatch this first."
 
 ### 3. Check `AreaNum`/`AreaName` before doing a spatial join

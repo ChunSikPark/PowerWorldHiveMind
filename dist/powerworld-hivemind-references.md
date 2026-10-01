@@ -3073,7 +3073,7 @@ two-winding transformers.
 | area under OPF | `Area.BGAGC = "OPF"` (values: Off AGC, Part. AGC, ED, Area Slack, IG Slack, OPF) | V 2026-09-11 |
 | super area under OPF | `SuperArea.BGAGC` — value vocabulary not in the export | S |
 | movable gens | `Gen.GenAGCAble = "YES"`; writing `GenMW` turns it off, so set it after MW writes | V |
-| cost data | `Gen.GenCostModel` ≠ None with `GenCostCurvePoints > 0` and `GenMCost > 0` — **data, never fabricated** | V |
+| cost data | `Gen.GenCostModel` ≠ None with `GenCostCurvePoints > 0` or `GenMCost > 0` (a cost above 0 at today's output; see the 2026-10-01 note in `concepts/opf-preconditions.md`) — **data, never fabricated** | V |
 | run LP OPF | `InitializePrimalLP("", STOP); SolvePrimalLP("", STOP);` | V 2026-09-24 (AC, public 40-bus) |
 | DC OPF | DC mode first (`SolvePowerFlow(DC)`), then `SolvePrimalLP` | D |
 | LP iterations | `OPF_Options.OPF_MaxLPIterations`; `OPFValidSolutionOnMaxITR` accepts the answer at the cap | S |
