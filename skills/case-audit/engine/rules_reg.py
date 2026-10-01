@@ -140,7 +140,7 @@ def ltc_regulates_lv_side(cd: CaseData) -> list[Finding]:
             at_limit = abs(r["LineTap"] - r["XFTapMax"]) < half or abs(r["LineTap"] - r["XFTapMin"]) < half
         else:
             at_limit = False                           # step unread: tap position unknown, claim nothing
-        pushing = bool(at_limit and r["XFRegError"] != 0)
+        pushing = bool(at_limit and pd.notna(r["XFRegError"]) and r["XFRegError"] != 0)
         where.append({**branch_keys(r), "XFRegBus": bus(reg), "hv_bus": bus(hv),
                       "hv_bus_name": b.at[hv, "BusName"], "hv_pu": v, "hv_band": [lo, hi],
                       "lv_pu": b.at[lv, "BusPUVolt"] if lv in b.index else None,

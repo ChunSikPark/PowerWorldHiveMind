@@ -76,7 +76,7 @@ def gen_over_nameplate(cd: CaseData) -> list[Finding]:
             what=f"{len(part)} online unit(s) above their rating after the solve, {total:,.1f} MW over in all",
             why=("an overshoot this large means the dispatch does not match the ratings (at the slack, it is "
                  "a shortfall the slack absorbed), so the flows are artifacts" if stop else
-                 "the case runs; the overshoot is small enough not to move a finding - say the MW"),
+                 "the case runs; the overshoot is small enough not to move a finding"),
             page="methods/applying-a-dispatch-to-a-case.md", stops=AC_STUDIES if stop else (),
             where=where, details={"over_mw": total}))
     return out

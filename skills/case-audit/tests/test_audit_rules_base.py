@@ -51,6 +51,7 @@ def test_small_overshoot_is_worth_a_look_with_its_mw(frames):
     frames["Gen"].loc[0, "GenMW"] = 403.0                   # 3 MW over a 400 MW unit: under max(4, 5)
     [f] = gen_over_nameplate(case(frames))
     assert f.severity == WORTH and f.where[0]["over_mw"] == 3.0 and f.where[0]["slack"]
+    assert "say the MW" not in f.why                         # an instruction to the agent, not why it matters
 
 
 def test_large_overshoot_stops_the_study(frames):

@@ -159,3 +159,12 @@ def test_parallel_step_ups_are_both_skipped(frames):
     _xf_to_7(frames, "2")
     [f] = ltc_regulates_lv_side(case(frames))
     assert [w["BusNum:1"] for w in f.where] == [4] and f.details["generator_step_ups_skipped"] == 2
+
+
+def test_an_unread_regulation_error_makes_no_pushing_claim(frames):
+    _hv_high(frames)
+    frames["Branch"].loc[XF, "XFRegError"] = np.nan             # NaN != 0 is True: it must not count as pushing
+    [f] = ltc_regulates_lv_side(case(frames))
+    w = f.where[0]
+    assert w["at_tap_limit"] and w["pushing_hv_away"] is False and f.details["pushing"] == 0
+    assert "actively pushing" not in f.what

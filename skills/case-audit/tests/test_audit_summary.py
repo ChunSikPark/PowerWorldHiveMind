@@ -65,3 +65,11 @@ def test_hawaii40_summary(hawaii):
     assert s["size"]["buses"] == 37 and s["size"]["branches"] == 89 and s["size"]["transformers"] == 12
     assert round(s["load_mw"]) == 1136 and round(s["losses_mw"]) == 18
     assert {r["fuel"] for r in s["fuel"]} >= {"SUN (Solar)", "WND (Wind)", "DFO (Distillate Fuel Oil)"}
+
+
+def test_the_overshoot_floor_is_the_rules_threshold(frames, monkeypatch):
+    import summary
+    frames["Gen"].loc[0, "GenMW"] = 400.05                   # 0.05 MW over: noise at the default floor
+    assert case_summary(case(frames))["generation_includes_overshoot_mw"] == 0
+    monkeypatch.setattr(summary, "GEN_OVER_MIN_MW", 0.01)
+    assert case_summary(case(frames))["generation_includes_overshoot_mw"] == pytest.approx(0.05)

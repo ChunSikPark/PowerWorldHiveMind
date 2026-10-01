@@ -4,7 +4,7 @@ from __future__ import annotations
 import pandas as pd
 
 from casedata import CaseData
-from thresholds import RENEWABLE_CODES
+from thresholds import GEN_OVER_MIN_MW, RENEWABLE_CODES
 
 
 def is_renewable(fuel: pd.Series) -> pd.Series:
@@ -55,7 +55,7 @@ def case_summary(cd: CaseData, opf: bool = False) -> dict:
         "generation_mw": gen_mw, "generation_mvar": float(on.GenMVR.sum()),
         "losses_mw": gen_mw - load_mw,
         "headroom_dispatchable_mw": float(dispatchable.headroom.sum()),
-        "generation_includes_overshoot_mw": float(over[over > 0.1].sum()),
+        "generation_includes_overshoot_mw": float(over[over > GEN_OVER_MIN_MW].sum()),
         "mvar_range": [float(on.GenMVRMin.sum()), float(on.GenMVRMax.sum())],
         "fuel": rows,
         "shunts": {"count": int(len(sh)), "in_service": int(len(shin)),
