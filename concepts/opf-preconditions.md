@@ -102,6 +102,13 @@ Per [powerworld-inertia-and-cost-data](powerworld-inertia-and-cost-data.md), the
 ever fit and the cost fields read `0` — which is *no data*, never *free*. A handful of
 units can also report `GenMCost == 0` with curve points defined.
 
+**Refined 2026-09-30, measured on a public synthetic 37-bus case.** Those units are the wind and
+solar: five curve points each, and a curve that is 0 at their output. The OPF solved with them in
+the movable set. `GenMCost` is the curve *at today's output*, so a zero there is a price of zero,
+not missing data. The case-auditor therefore counts a unit as priced when `GenCostModel` is not
+None and `GenCostCurvePoints > 0`, says nothing about a zero-cost renewable, and flags a
+*thermal* unit whose curve reads 0 as worth a look.
+
 Synthetic cases are the live hazard here. A generation pipeline may assign piecewise cost
 curves at build time, but whether they survived into the dated case you are holding is a
 question about that file, not about the pipeline — so measure it.
@@ -151,6 +158,25 @@ places, and applies them in this order of precedence:
 true during contingency analysis — anything the contingency record or `CTG_Options` carries
 overrides it. This is why esa pp llm backend's SCOPF sequence sets both
 `Sim_Solution_Options.DCApprox` *and* `CTG_Options.CTG_CalculationMethod`.
+
+### Super areas count, and a refusal through SimAuto does not raise
+
+Measured 2026-09-30 on two public synthetic cases, in memory, never saved:
+
+| as the case opened | OPF (`InitializePrimalLP`, `SolvePrimalLP`) |
+|---|---|
+| a super area on OPF, every member area (`Area.SAName`) `Off AGC` | **ran**: *Successful Solution* |
+| an area on OPF inside a super area that is `Off AGC` | **ran**: *Successful Solution* |
+| every area and super area switched to `Off AGC` | **refused** |
+
+So condition 1 is met by an area **or** a super area on OPF; a super area on OPF makes its member
+areas redispatchable, and one that is `Off AGC` does not override a member area set to OPF.
+`SuperArea.BGAGC` reads back the same strings as `Area.BGAGC` (`OPF`, `Off AGC`).
+
+The refusal did **not** raise through esapp: both calls returned, and the only sign was
+`OPFSolutionSummary.LPOPFSolutionStatus = "Error = No area/superarea constraints set"` with
+`LPOPFCostFunction:1 = 0`. Read the status after every solve; a script that trusts the absence
+of an exception reads a zero-cost "solution".
 
 ### Always give the solve a failure handler
 

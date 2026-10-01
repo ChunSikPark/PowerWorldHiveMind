@@ -103,7 +103,7 @@ Worth knowing these are not invented: all 1351 transformers in
 | Field | Value | Meaning |
 |---|---|---|
 | `LineXFMR` | `YES` | the actual type switch |
-| `XFAuto` | `NO` | not an autotransformer |
+| `XFAuto` | `NO` | automatic control off (the field takes `YES`, `NO` or `OPF`; it is not an autotransformer flag) |
 | `XFNominalKV` / `:1` | each end's `BusNomVolt` | |
 | `XFFixedTap` | `1.0` | **fixed tap** — no LTC control |
 | `XFTapPos` | `0.0` | |

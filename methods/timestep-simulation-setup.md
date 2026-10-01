@@ -9,7 +9,7 @@ tags: [powerworld, simauto, timestep, simulation, weather, renewables, pww]
 
 ## Abstract
 
-How to drive PowerWorld's TimeStep simulation — turning `.pww` weather files into hourly solar/wind generation CSVs. Covers the prerequisites a case must satisfy per renewable generator (`GenFuelType` WND/SUN, valid Lat/Lon, ISO in `CustomString:2`, a `TSPFWModelString` PFW model), the one-time ISO insertion step, and the `_simulation_worker` function sequence. This is Step 2 of the flagship trail; for the PWW weather files see [pww-data](../concepts/pww-data.md).
+How to drive PowerWorld's TimeStep simulation — turning `.pww` weather files into hourly solar/wind generation CSVs. Covers the prerequisites a case must satisfy per renewable generator (`GenFuelType` containing WND or SUN, valid Lat/Lon, a `TSPFWModelString` PFW model), one pipeline's optional ISO-labelling step, and the `_simulation_worker` function sequence. This is Step 2 of the flagship trail; for the PWW weather files see [pww-data](../concepts/pww-data.md).
 
 > 🔧 **Writing the backend code?** → **[time-step-simulation-backend](../references/time-step-simulation-backend.md)** has the full `_simulation_worker` call sequence, the required `TIMESTEPSaveSelectedModifyStart/Finish` wrapper, the `_GEN_PARAM` field list, and the key-field rule. That page is the *rebuild-the-code* reference; this page is the *write-it* guide.
 
@@ -17,7 +17,7 @@ How to drive PowerWorld's TimeStep simulation — turning `.pww` weather files i
 
 - **Up:** [Home](../index.md) · time step simulation
 - **Deeper (backend code):** [time-step-simulation-backend](../references/time-step-simulation-backend.md) — exact call sequence, field lists, gotchas (read this for the backend, not just running it)
-- **Across:** [timestep-simulation](../concepts/timestep-simulation.md) · pfw copperplate · [esapp](../concepts/esapp.md) · flagship step 2 — prev: [esapp-overview](esapp-overview.md) · next: [pww-data](../concepts/pww-data.md) · final: [how-to-analyze-results](how-to-analyze-results.md)
+- **Across:** [timestep-simulation](../concepts/timestep-simulation.md) · [grid-workshop-auto-pfw](../concepts/grid-workshop-auto-pfw.md) (attaching the PFW models) · [esapp](../concepts/esapp.md) · flagship step 2 — prev: [esapp-overview](esapp-overview.md) · next: [pww-data](../concepts/pww-data.md) · final: [how-to-analyze-results](how-to-analyze-results.md)
 
 ## Content
 
@@ -30,12 +30,20 @@ This is the how-to for **writing** a PowerWorld TimeStep simulation — code tha
 
 ## 0. Prerequisites
 
-The case must already have, on each renewable generator: a `GenFuelType` of `WND`
-or `SUN`, valid `Latitude`/`Longitude`, an ISO assigned in `CustomString:2`, and a
-PFW model string (`TSPFWModelString`). The ISO is filled in by the one-time
-case-prep step below.
+PowerWorld needs, on each renewable generator: a `GenFuelType` that contains `WND`
+or `SUN` (the case labels them `WND (Wind)`, `SUN (Solar)`), valid coordinates, and a
+PFW model string (`TSPFWModelString` longer than 2 characters). A unit with no PFW model
+runs and reads 0 MW for the whole run; attach models with
+[grid-workshop-auto-pfw](../concepts/grid-workshop-auto-pfw.md). Coordinates: on both public
+synthetic cases probed 2026-09-30 the unit's own `Gen.Latitude` read blank and the substation's
+`Gen.Latitude:1` / `Longitude:1` (the field export's "Substation Latitude") were set. That
+TimeStep then reads the substation pair is not verified in the kit.
 
-## 1. (One time) Insert ISO regions into the case
+## 1. (Optional, one pipeline's convention) Label units with an ISO region
+
+This is **not** a PowerWorld prerequisite. One time-step pipeline writes an ISO region into
+`CustomString:2`, a custom field, so its output CSVs can carry an ISO header row; TimeStep does
+not read it. Skip this section unless your post-processing needs the label.
 
 `PFW_Insertion/ISO_Insertion_code_shape_file.ipynb` does a geopandas spatial join
 of every generator's lat/long against ISO-region shapefiles (nearest-neighbor for
@@ -45,9 +53,9 @@ per case; skip it if the case already has ISO assignments.
 
 > **Resolved:** `PFW_Insertion` (`ISO_Insertion_code_shape_file.ipynb`) writes
 > **only `CustomString:2`** (the ISO region via geopandas spatial join). It does
-> **not** touch `TSPFWModelString`. PFW model strings are assumed already present in
-> the case — they are assigned by pfw copperplate as a separate one-time step
-> before this pipeline is run.
+> **not** touch `TSPFWModelString`. PFW model strings must already be in the case;
+> [grid-workshop-auto-pfw](../concepts/grid-workshop-auto-pfw.md) attaches them, and the
+> case-auditor's `timestep` profile counts which units still lack one.
 
 ## 2. What your code does (`_simulation_worker`)
 
