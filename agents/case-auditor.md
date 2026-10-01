@@ -70,7 +70,7 @@ The size in `base.gen_over_nameplate` (1 % or 5 MW) is a proposed default, not a
 | rule | what it checks | severity | triage | kit page |
 |---|---|---|---|---|
 | `mon.nothing_monitored` | every `Area.BGReportLimits` and `Zone.BGReportLimits` reads `NO`, or no branch and no bus reads *Will Monitor* (`Branch.LineMonEle:1`, `Bus.BusMonEle:1`) — an N-1 will report nothing | Stops the study — N-1 and SCOPF only | Broken | `methods/reading-violationctg.md` |
-| `mon.footprint` | the monitored footprint as the case holds it: areas and zones with `BGReportLimits = YES`, their kV windows (`BGReportLimMinKV` / `BGReportLimMaxKV`), element overrides (`LineMonEle`, `BusMonEle`), `Limit_Monitoring_Options.LMS_IgnoreRadial`, and the counts of branches and buses that *Will Monitor* — report it so nobody reads a clean result as system-wide | FYI | Probably on purpose — a restricted footprint is usually a planning choice | field export (schema-only) |
+| `mon.footprint` | the monitored footprint as the case holds it: areas and zones with `BGReportLimits = YES`, their kV windows (`BGReportLimMinKV` / `BGReportLimMaxKV`), `Limit_Monitoring_Options.LMS_IgnoreRadial`, and the counts of branches and buses that *Will Monitor*, which already reflect any element overrides — report it so nobody reads a clean result as system-wide | FYI | Probably on purpose — a restricted footprint is usually a planning choice | field export (schema-only) |
 | `mon.rate_set_empty` | the letter `LSLineRateSet` or `LSLineRateSet:1` points to carries no `LineAMVA:N` values | Stops the study — N-1 and SCOPF only | Broken | `methods/powerworld-limitset-setdata.md` |
 | `mon.rate_sets_populated` | which rate-set letters actually carry values; the `LSAmpMVA` split | FYI | Probably on purpose | `methods/reading-violationctg.md` |
 | `mon.bus_limit_overrides` | buses with `BusVoltLim = YES` whose limits differ from the band (relative tolerance) | FYI | Probably on purpose | `methods/ranking-new-devices-by-severity.md` |
@@ -104,12 +104,16 @@ reasons and are triaged differently.
 |---|---|---|---|---|---|
 | 1 | at least one **area or super area** under OPF control | `Area.BGAGC = "OPF"`; for a super area, `SuperArea.BGAGC` (AGC Status) | switch | Stops the study | **Your call**: which areas may the OPF redispatch? A study choice, not a broken case. Once chosen, the study-runner sets it. |
 | 2 | generators the OPF may move, inside those areas | `Gen.GenAGCAble = "YES"` | switch | Stops the study | **Your call**, same reasoning. If an OPF area has zero AGC-able units, say so — condition 1 alone does nothing. |
-| 3 | those generators carry real cost data | `GenCostModel` ≠ None and `GenCostCurvePoints > 0` (`GenMCost = 0` at today's output is a zero price, not missing data) | **data** | Stops the study when an OPF area has no priced unit; unpriced units beside priced ones are Worth a look | **Your call — data to source**, handed off to a cost-data source. Never switched on. |
+| 3 | those generators carry real cost data | `GenCostModel` ≠ None and either `GenCostCurvePoints > 0` or `GenMCost > 0` (a Cubic model reads 0 curve points; `GenMCost = 0` on a unit with curve points is a zero price, not missing data) | **data** | Stops the study when an OPF area has no priced unit; unpriced units beside priced ones are Worth a look | **Your call — data to source**, handed off to a cost-data source. Never switched on. |
+
+The engine reports a failed condition as `opf.1`, `opf.2` or `opf.3`, by its number.
 
 Report per OPF area (`concepts/powerworld-inertia-and-cost-data.md`): the number of AGC-able units,
-units with `GenCostCurvePoints > 0`, units with `GenMCost > 0`, and the count of each `GenCostModel`
+units with cost data (curve points or a cost above 0 at today's output), units with `GenMCost > 0`, and the count of each `GenCostModel`
 value. Facts to apply while reading them:
-- `GenCostCurvePoints = 0` means no curve was ever fit — **no data, not a free unit**.
+- `GenCostCurvePoints = 0` with `GenMCost = 0` means no curve was ever fit — **no data, not a free unit**.
+  A Cubic model is evaluated from its coefficients and reads `GenCostCurvePoints = 0` with
+  `GenMCost > 0`: that is cost data.
 - `GenMCost` is the cost curve **evaluated at the current `GenMW`**, not the unit's price; a unit can
   read `GenMCost = 0` with curve points defined.
 - `AGC_AGCStatus` is not a field; area AGC status is `Area.BGAGC`, which reads back values such as
@@ -123,7 +127,8 @@ Reporting rules:
   two public cases (2026-09-30): a super area on OPF meets condition 1 and makes its member areas
   (`Area.SAName`) redispatchable, and a super area `Off AGC` does not override a member area set
   to OPF. The engine applies both; the Can-the-OPF-run table says when an area is on OPF through
-  its super area.
+  its super area. A member area of an OPF super area with no movable or no priced unit of its own
+  is an FYI (`opf.2`, Probably on purpose): the rest of the super area covers it.
 - With no area on OPF, the engine also previews conditions 2 and 3 per area (`opf.preview`, Worth a
   look): what an OPF would find once you choose areas. It never changes a verdict. When no AGC-able
   unit has cost data, the preview carries the cost-data handoff.
@@ -253,7 +258,7 @@ Full findings: <path to findings.md>. Case checked: <path>.
 - Passing a case whose slack unit carries far past its rating.
 - Stopping a study because the slack sits a few MW over its rating. Below the size in `base.gen_over_nameplate`, the case runs: say the MW.
 - Clearing the OPF blocker by suggesting a default cost model. That makes OPF run and the answer meaningless.
-- Reading `GenMCost > 0` on a few units as "the case has cost data", or `GenCostCurvePoints = 0` as "free".
+- Reading a few priced units as "the case has cost data" for an area whose other units carry none, or a unit with no curve points and no cost as "free".
 - Calling `opf` READY because one condition holds. All three must hold for the same generators.
 - Recommending "set every area to OPF" to clear condition 1. Which areas the OPF may redispatch is the engineer's study choice.
 - Passing a case for N-1 or SCOPF with nothing monitored or a rate set that carries no ratings.
@@ -278,7 +283,7 @@ Full findings: <path to findings.md>. Case checked: <path>.
 ## Verdict
 - base: READY
 - timestep: READY — 115 of 120 renewables will follow the weather; 5 read 0 MW (380 of 21,000 MW installed, 1.8%)
-- opf: NOT READY — no cost data on the 45 units area 1's OPF could move; no area is set to redispatch either
+- opf: NOT READY — no area or super area is set to let the OPF redispatch it
 
 ## What's in the case
 | | MW | Mvar |
@@ -307,8 +312,8 @@ N-1 will check: areas 1–4, 69 kV+, 3,102 branches / 2,210 buses (the case's ow
 | what's wrong | where (keys) | why it matters | stops the study? | triage | rule | kit page |
 |---|---|---|---|---|---|---|
 | no PFW model | bus 2210 unit 1, bus 2214 unit 2, bus 2301 unit 1, bus 2388 unit W2, bus 2402 unit 1 | those 5 units read 0 MW the whole run | Worth a look | Broken | ts.pfw_missing | demos/timestep-and-pfw.md |
-| no cost data | area 1, 45 AGC-able units | OPF can't redispatch them | Stops the study | Your call | opf.3 | concepts/opf-preconditions.md |
-| no OPF area set | — | OPF has nothing to move | Stops the study | Your call | opf.1 | concepts/opf-preconditions.md |
+| no area or super area is set to let the OPF redispatch it | — | the OPF will not start: which areas it may move is your study choice | Stops the study | Your call | opf.1 | concepts/opf-preconditions.md |
+| preview for when areas are put on OPF: none of the 45 units area 1 could let the OPF move carries cost data | area 1, 45 AGC-able units, 0 with cost data | an OPF needs AGC-able units with real cost curves in each area it controls | Worth a look | Your call | opf.preview | concepts/opf-preconditions.md |
 
 ## What you need to get
 1. Cost curves for area 1's 45 units → your cost-data source → send the case back to check again

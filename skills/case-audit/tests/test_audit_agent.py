@@ -45,3 +45,24 @@ def test_the_brief_shows_the_engines_opf_table_header():
     src = (KIT / "skills" / "case-audit" / "engine" / "report.py").read_text(encoding="utf-8")
     header = re.search(r'"(\| area \| OPF may redispatch it[^"]*)"', src).group(1)
     assert "| with cost data |" in header and header in AGENT
+
+
+def test_the_worked_example_shows_what_the_engine_writes_with_no_opf_area_and_no_cost_data():
+    import report
+    from auditcase import case, toy
+    f = toy()
+    f["Area"]["BGAGC"] = "Off AGC"
+    f["Gen"]["GenCostModel"] = "None"
+    r = report.build(case(f), ["opf"])
+    example = AGENT.split("## Examples")[1].split("**Bad:**")[0]
+    assert f"- opf: NOT READY — {r['verdicts']['opf']['reason']}" in example
+    rows = {m[0]: m for m in re.findall(r"\| (Stops the study|Worth a look) \| (Your call) \| (opf\.\w+) \|", example)}
+    engine = {x["rule"]: x for x in r["findings"] if x["rule"].startswith("opf")}
+    assert {m[2] for m in rows.values()} == set(engine)
+    for sev, triage, rule in rows.values():
+        assert (sev, triage) == (engine[rule]["severity"], engine[rule]["triage"])
+
+
+def test_the_footprint_row_claims_only_what_the_engine_reports():
+    [row] = [l for l in AGENT.splitlines() if l.startswith("| `mon.footprint`")]
+    assert "element overrides (" not in row and "already reflect any element overrides" in row
