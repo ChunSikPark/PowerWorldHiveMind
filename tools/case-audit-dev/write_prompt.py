@@ -23,9 +23,10 @@ def write(case: Path) -> None:
         raise SystemExit(f"{case}: prompt.md has no frontmatter or no '{MARK}' line to split on")
     question = m.group(2).split(MARK)[0].strip()
     md = (case / "fixtures" / "findings.md").read_text(encoding="utf-8")
+    # LF on disk on every platform: the eval tool parses the frontmatter
     (case / "prompt.md").write_text(f"{m.group(1)}\n{question}\n\n{INTRO}\n\n````markdown\n{md}````\n",
-                                    encoding="utf-8")
-    (case / "case.yaml").write_text(f'schema_version: "1.1"\nname: {case.name}\n', encoding="utf-8")
+                                    encoding="utf-8", newline="\n")
+    (case / "case.yaml").write_text(f'schema_version: "1.1"\nname: {case.name}\n', encoding="utf-8", newline="\n")
     print(f"{case.name}: prompt carries findings.md ({len(md):,} characters)")
 
 
