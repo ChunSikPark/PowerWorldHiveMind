@@ -710,7 +710,7 @@ const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
-const DATA = fetch("data.json").then(r => r.json()).catch(() => null);
+const DATA = fetch("data.json", {cache: "no-cache"}).then(r => r.json()).catch(() => null);
 const SAMPLE = "Sample run with invented numbers, to show the shape of the answer.";
 
 /* ---------- the agent team: one scripted run per agent ---------- */
