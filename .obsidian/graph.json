@@ -1,6 +1,6 @@
 {
   "collapse-filter": true,
-  "search": "-path:skills -path:commands -path:dist -path:assets -file:index -file:README -file:AGENTS -file:CLAUDE -file:GEMINI -file:CHANGELOG -file:BENCHMARK -file:GETTING-STARTED",
+  "search": "-path:skills -path:commands -path:dist -path:assets -path:evals -file:index -file:README -file:AGENTS -file:CLAUDE -file:GEMINI -file:CHANGELOG -file:BENCHMARK -file:GETTING-STARTED",
   "showTags": false,
   "showAttachments": false,
   "hideUnresolved": true,
