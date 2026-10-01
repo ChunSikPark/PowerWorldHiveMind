@@ -3,6 +3,12 @@ import pandas as pd
 from auditcase import case
 from findings import FYI, ON_PURPOSE, STOPS, WORTH, YOUR_CALL
 from rules_opf import area_table, opf_conditions
+import report
+
+
+def _no_cost(g, rows=slice(None)):
+    """No cost data: no curve points and no cost at today's output."""
+    g.loc[rows, ["GenCostCurvePoints", "GenMCost"]] = [0, 0.0]
 
 
 def test_all_three_conditions_hold(frames):
@@ -20,7 +26,7 @@ def test_a_super_area_on_opf_counts_and_its_areas_are_checked(frames):
     frames["Area"].loc[0, ["BGAGC", "SAName"]] = ["Off AGC", "Texas"]
     frames["SuperArea"] = pd.DataFrame({"SAName": ["Texas"], "BGAGC": ["OPF"]})
     assert opf_conditions(case(frames)) == []
-    frames["Gen"].GenCostCurvePoints = 0
+    _no_cost(frames["Gen"])
     assert [f.rule for f in opf_conditions(case(frames))] == ["opf.3"]
 
 
@@ -39,7 +45,7 @@ def test_a_load_only_member_of_an_opf_super_area_is_fyi_not_a_stop(frames):
 
 def test_an_unpriced_super_area_stops_as_one_group(frames):
     _super_area_with_a_load_only_member(frames)
-    frames["Gen"].GenCostCurvePoints = 0
+    _no_cost(frames["Gen"])
     [f] = opf_conditions(case(frames))
     assert (f.rule, f.severity) == ("opf.3", STOPS) and f.where == [{"SAName": "S", "areas": [1, 2], "movable_units": 3}]
     assert "super area S" in f.what
@@ -60,7 +66,8 @@ def test_opf_area_with_no_agc_unit(frames):
 
 def test_one_unpriced_area_stops_even_when_another_is_priced(frames):
     frames["Area"].loc[1] = {**frames["Area"].iloc[0].to_dict(), "AreaNum": 2}
-    frames["Gen"].loc[0, ["AreaNum", "GenCostCurvePoints"]] = [2, 0]      # area 2's only unit: no curve
+    frames["Gen"].loc[0, "AreaNum"] = 2                                   # area 2's only unit: no cost data
+    _no_cost(frames["Gen"], 0)
     [f] = opf_conditions(case(frames))
     assert f.rule == "opf.3" and f.severity == STOPS and f.where == [{"AreaNum": 2, "movable_units": 1}]
     assert "cost-data source" in f.handoff
@@ -72,7 +79,7 @@ def test_cost_model_none_is_no_data(frames):
 
 
 def test_an_unpriced_unit_beside_priced_ones_is_worth_a_look(frames):
-    frames["Gen"].loc[0, "GenCostCurvePoints"] = 0
+    _no_cost(frames["Gen"], 0)
     [f] = opf_conditions(case(frames))
     assert (f.rule, f.severity, f.triage) == ("opf.3", WORTH, YOUR_CALL) and [w["GenID"] for w in f.where] == ["1"]
 
@@ -91,7 +98,7 @@ def test_a_thermal_unit_at_zero_cost_is_probably_on_purpose(frames):
 def test_area_table(frames):
     [a] = area_table(case(frames))
     assert a == {"AreaNum": 1, "BGAGC": "OPF", "SAName": "", "opf": True, "via_super_area": False,
-                 "agc_units": 3, "with_curve": 3, "cost_above_zero": 3, "cost_models": {"Cubic": 3}}
+                 "agc_units": 3, "with_cost_data": 3, "cost_above_zero": 3, "cost_models": {"Cubic": 3}}
 
 
 def _area_on_opf_inside_an_opf_super_area(frames):
@@ -109,7 +116,8 @@ def test_an_opf_area_inside_an_opf_super_area_is_pooled_with_its_members(frames)
 
 def test_an_unpriced_unit_in_a_pooled_member_does_not_stop_the_super_area(frames):
     _area_on_opf_inside_an_opf_super_area(frames)
-    frames["Gen"].loc[3] = {**frames["Gen"].iloc[0].to_dict(), "AreaNum": 2, "GenID": "9", "GenCostCurvePoints": 0}
+    frames["Gen"].loc[3] = {**frames["Gen"].iloc[0].to_dict(), "AreaNum": 2, "GenID": "9", "GenCostCurvePoints": 0,
+                        "GenMCost": 0.0}
     found = opf_conditions(case(frames))
     assert found and all(f.severity != STOPS for f in found)
 
@@ -117,11 +125,33 @@ def test_an_unpriced_unit_in_a_pooled_member_does_not_stop_the_super_area(frames
 def test_no_opf_area_still_previews_conditions_2_and_3(frames):
     frames["Area"].loc[0, "BGAGC"] = "Off AGC"
     frames["Gen"].GenAGCAble = "NO"
-    frames["Gen"].GenCostCurvePoints = 0
+    _no_cost(frames["Gen"])
     found = opf_conditions(case(frames))
     assert [f.rule for f in found] == ["opf.1", "opf.preview"]
     stop, prev = found
     assert stop.severity == STOPS and prev.severity == WORTH and prev.triage == YOUR_CALL and prev.stops == ()
     assert "cost-data source" in prev.handoff and "preview" in prev.what
     assert prev.details["agc_off_everywhere"] and "dispatch" in prev.why
-    assert prev.where == [{"AreaNum": 1, "agc_units": 0, "with_curve": 0}]
+    assert prev.where == [{"AreaNum": 1, "agc_units": 0, "with_cost_data": 0}]
+
+
+def test_a_cubic_unit_with_no_curve_points_but_a_cost_is_priced(frames):
+    # measured 2026-10-01 on the public Texas2k case: Cubic units read GenCostCurvePoints = 0 with
+    # GenMCost > 0; a cubic model is evaluated from its coefficients, not from curve points
+    frames["Gen"].loc[0, "GenCostCurvePoints"] = 0
+    assert opf_conditions(case(frames)) == []
+
+
+def test_an_area_of_only_cubic_units_with_no_curve_points_is_ready(frames):
+    frames["Gen"].GenCostCurvePoints = 0                          # GenMCost stays above 0
+    r = report.build(case(frames), ["opf"])
+    assert r["verdicts"]["opf"]["verdict"] == "READY"
+    assert not [f for f in r["findings"] if f["rule"] == "opf.3"]
+    assert "no cost curve" not in report.render_md(r)
+    assert r["opf_areas"][0]["with_cost_data"] == 3
+
+
+def test_a_cubic_unit_with_no_points_and_no_cost_is_still_unpriced(frames):
+    _no_cost(frames["Gen"], 0)
+    [f] = opf_conditions(case(frames))
+    assert (f.rule, f.severity) == ("opf.3", WORTH)

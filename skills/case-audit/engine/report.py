@@ -107,12 +107,12 @@ def render_md(r: dict) -> str:
         L.append(f"| {f['what']} | {where} | {f['why']} | {f['label']} | {f['triage']} | {f['rule']} | {f['page'] or '—'} |")
     if r["opf_areas"] is not None:
         L += ["", "## Can the OPF run?",
-              "| area | OPF may redispatch it | units the OPF may move | with a cost curve | with a cost above 0 at today's output | cost model types |",
+              "| area | OPF may redispatch it | units the OPF may move | with cost data | with a cost above 0 at today's output | cost model types |",
               "|---|---|---|---|---|---|"]
         for a in r["opf_areas"]:
             models = ", ".join(f"{k} {v}" for k, v in a["cost_models"].items()) or "—"
             how = f"yes (super area {a['SAName']} on OPF)" if a["via_super_area"] else f"{'yes' if a['opf'] else 'no'} ({a['BGAGC']})"
-            L.append(f"| {a['AreaNum']} | {how} | {a['agc_units']} | {a['with_curve']} | {a['cost_above_zero']} | {models} |")
+            L.append(f"| {a['AreaNum']} | {how} | {a['agc_units']} | {a['with_cost_data']} | {a['cost_above_zero']} | {models} |")
     handoffs = [f for f in r["findings"] if f["handoff"]]
     if handoffs:
         L += ["", "## What you need to get"]

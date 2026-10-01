@@ -232,7 +232,7 @@ N-1 will check: <areas>, <kV range>, <n> branches / <n> buses (the case's own se
 | what's wrong | where (keys) | why it matters | stops the study? | Broken / Probably on purpose / Your call | rule | kit page |
 
 ## Can the OPF run?   (only if you asked)
-| area | OPF may redispatch it | units the OPF may move | with a cost curve | with a cost above 0 at today's output | cost model types |
+| area | OPF may redispatch it | units the OPF may move | with cost data | with a cost above 0 at today's output | cost model types |
 
 ## What you need to get
 1. <what is missing> → <where to get it> → then send me the returned case to check again

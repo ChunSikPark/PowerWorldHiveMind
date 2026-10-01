@@ -39,3 +39,9 @@ def test_the_brief_states_the_engines_numbers_and_verdict_lines():
     assert "zero-length" not in row
     assert "- scopf: READY | NOT READY" in AGENT and "the engine always writes it" in AGENT
     assert "If findings.json says source is snapshot, the case was not opened" in AGENT
+
+
+def test_the_brief_shows_the_engines_opf_table_header():
+    src = (KIT / "skills" / "case-audit" / "engine" / "report.py").read_text(encoding="utf-8")
+    header = re.search(r'"(\| area \| OPF may redispatch it[^"]*)"', src).group(1)
+    assert "| with cost data |" in header and header in AGENT

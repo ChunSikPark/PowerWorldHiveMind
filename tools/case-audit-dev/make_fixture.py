@@ -8,7 +8,8 @@ Keeps only the case file's name (no local folders). Seeds, each a defect written
   --skeleton             every closed line gets R = 1e-7 and B = 0 (a DC-only skeleton)
   --overshoot MW         the slack bus's first unit runs MW above its rating
   --placeholder-shunt    add a 0 Mvar switched shunt with no regulated bus
-  --no-cost              every unit loses its cost curve (GenCostCurvePoints = 0)
+  --no-cost              every unit loses its cost data: GenCostModel = None, no curve points, GenMCost 0
+                         (as measured on a synthetic case that carries none)
 Run it only on snapshots of public synthetic cases. A seeded fixture is replayed with replay.py,
 whose output says it was replayed.
 """
@@ -56,7 +57,8 @@ def main(argv=None):
                "SSStatus": "Closed", "SSRegNum": 0.0, "SSAMVR": 0.0, "SSNMVR": 0.0, "SSMaxMVR": 0.0, "SSMinMVR": 0.0}
         f["Shunt"].loc[len(f["Shunt"])] = row
     if a.no_cost:
-        f["Gen"]["GenCostCurvePoints"] = 0.0
+        f["Gen"]["GenCostModel"] = "None"
+        f["Gen"][["GenCostCurvePoints", "GenMCost"]] = 0.0
     cd.to_json(a.dst)
     print(f"{a.dst}: case {cd.scalars['case_path']}, {len(cd.get('Bus'))} buses")
 

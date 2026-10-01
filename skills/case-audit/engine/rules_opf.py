@@ -21,9 +21,12 @@ def _units(cd: CaseData) -> pd.DataFrame:
     g = g[g.GenStatus == "Closed"].copy()
     g["agc"] = g.GenAGCAble == "YES"
     g["renewable"] = is_renewable(g.GenFuelType)
-    # priced = a cost model and a fitted curve. GenMCost is the curve at today's output, so a
-    # zero there is a price of zero (wind, solar), not missing data.
-    g["priced"] = (g.GenCostModel.str.upper() != "NONE") & (g.GenCostModel != "") & (g.GenCostCurvePoints > 0)
+    # priced = a cost model plus either curve points or a cost above 0 at today's output. A Cubic
+    # model is evaluated from its coefficients and reads 0 curve points (measured on Texas2k), so
+    # GenMCost > 0 is cost data too; a zero GenMCost on a unit with points is a price of zero
+    # (wind, solar), not missing data.
+    has_model = (g.GenCostModel.str.upper() != "NONE") & (g.GenCostModel != "")
+    g["priced"] = has_model & ((g.GenCostCurvePoints > 0) | (g.GenMCost > 0))
     return g
 
 
@@ -35,7 +38,7 @@ def area_table(cd: CaseData) -> list[dict]:
         u = g[(g.AreaNum == a.AreaNum) & g.agc]
         rows.append({"AreaNum": bus(a.AreaNum), "BGAGC": a.BGAGC, "SAName": a.SAName,
                      "opf": a.AreaNum in on_opf, "via_super_area": a.BGAGC.upper() != "OPF" and a.SAName in sa_on,
-                     "agc_units": int(len(u)), "with_curve": int(u.priced.sum()),
+                     "agc_units": int(len(u)), "with_cost_data": int(u.priced.sum()),
                      "cost_above_zero": int((u.GenMCost > 0).sum()),
                      "cost_models": {str(k): int(v) for k, v in u.GenCostModel.value_counts().items()}})
     return rows
@@ -76,7 +79,7 @@ def opf_conditions(cd: CaseData) -> list[Finding]:
             why="the OPF will not start: which areas it may move is your study choice",
             page=PAGE, stops=OPF)
         # conditions 2 and 3 are checked separately: cost data is the long-lead item, so show it now
-        rows = [{"AreaNum": r["AreaNum"], "agc_units": r["agc_units"], "with_curve": r["with_curve"]}
+        rows = [{"AreaNum": r["AreaNum"], "agc_units": r["agc_units"], "with_cost_data": r["with_cost_data"]}
                 for r in area_table(cd)]
         none_priced = not (g.agc & g.priced).any()
         preview = Finding(

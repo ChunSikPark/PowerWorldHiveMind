@@ -109,6 +109,13 @@ not missing data. The case-auditor therefore counts a unit as priced when `GenCo
 None and `GenCostCurvePoints > 0`, says nothing about a zero-cost renewable, and flags a
 *thermal* unit whose curve reads 0 as worth a look.
 
+**Refined again 2026-10-01, measured on the public Texas2k case.** Units on a Cubic cost model
+read `GenCostCurvePoints = 0` with `GenMCost > 0`: a cubic model is evaluated from its
+coefficients, not from curve points, so a zero point count there is not missing data. The
+auditor counts a unit as priced when `GenCostModel` is not None and it has curve points or a
+positive cost at today's output (`GenCostCurvePoints > 0` or `GenMCost > 0`). A unit with
+neither still counts as carrying no cost data.
+
 Synthetic cases are the live hazard here. A generation pipeline may assign piecewise cost
 curves at build time, but whether they survived into the dated case you are holding is a
 question about that file, not about the pipeline — so measure it.
