@@ -104,7 +104,7 @@ reasons and are triaged differently.
 |---|---|---|---|---|---|
 | 1 | at least one **area or super area** under OPF control | `Area.BGAGC = "OPF"`; for a super area, `SuperArea.BGAGC` (AGC Status) | switch | Stops the study | **Your call**: which areas may the OPF redispatch? A study choice, not a broken case. Once chosen, the study-runner sets it. |
 | 2 | generators the OPF may move, inside those areas | `Gen.GenAGCAble = "YES"` | switch | Stops the study | **Your call**, same reasoning. If an OPF area has zero AGC-able units, say so — condition 1 alone does nothing. |
-| 3 | those generators carry real cost data | `GenCostModel` ≠ None and either `GenCostCurvePoints > 0` or `GenMCost > 0` (a Cubic model reads 0 curve points; `GenMCost = 0` on a unit with curve points is a zero price, not missing data) | **data** | Stops the study when an OPF area has no priced unit; unpriced units beside priced ones are Worth a look | **Your call — data to source**, handed off to a cost-data source. Never switched on. |
+| 3 | those generators carry real cost data | `GenCostModel` ≠ None and either `GenCostCurvePoints > 0` or `GenMCost > 0` (some Cubic units read 0 curve points; `GenMCost = 0` on a unit with curve points is a zero price, not missing data) | **data** | Stops the study when an OPF area has no priced unit; unpriced units beside priced ones are Worth a look | **Your call — data to source**, handed off to a cost-data source. Never switched on. |
 
 The engine reports a failed condition as `opf.1`, `opf.2` or `opf.3`, by its number.
 
@@ -112,8 +112,8 @@ Report per OPF area (`concepts/powerworld-inertia-and-cost-data.md`): the number
 units with cost data (curve points or a cost above 0 at today's output), units with `GenMCost > 0`, and the count of each `GenCostModel`
 value. Facts to apply while reading them:
 - `GenCostCurvePoints = 0` with `GenMCost = 0` means no curve was ever fit — **no data, not a free unit**.
-  A Cubic model is evaluated from its coefficients and reads `GenCostCurvePoints = 0` with
-  `GenMCost > 0`: that is cost data.
+  Some Cubic units read `GenCostCurvePoints = 0` with `GenMCost > 0` (a cubic model is evaluated
+  from its coefficients): that is cost data.
 - `GenMCost` is the cost curve **evaluated at the current `GenMW`**, not the unit's price; a unit can
   read `GenMCost = 0` with curve points defined.
 - `AGC_AGCStatus` is not a field; area AGC status is `Area.BGAGC`, which reads back values such as
