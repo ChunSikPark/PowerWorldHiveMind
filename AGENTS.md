@@ -138,6 +138,7 @@ Say what you tested, what you rejected, and what you did **not** save.
 | To fix violations, not just report them | [demos/violation-remediation.md](demos/violation-remediation.md) |
 | To see violations or islanding on a map | [methods/violation-network-map.md](methods/violation-network-map.md), built by the `violation-map` skill |
 | Which object, field or command to use, and what the kit says about it | `python "$KIT/skills/schema-lookup/engine/lookup.py"`, see [skills/schema-lookup/SKILL.md](skills/schema-lookup/SKILL.md) |
+| Whether a case is sane and ready for a study, with a case summary | `python "$KIT/skills/case-audit/engine/audit.py"`, see [skills/case-audit/SKILL.md](skills/case-audit/SKILL.md) |
 | A worked example of any of this | [demos/start-here.md](demos/start-here.md) |
 | **Anything to fail, at any point** | [methods/handling-errors.md](methods/handling-errors.md) |
 | Anything at all, first | [methods/preflight-powerworld.md](methods/preflight-powerworld.md) |

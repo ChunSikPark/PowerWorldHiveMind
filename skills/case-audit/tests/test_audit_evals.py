@@ -159,7 +159,11 @@ def test_the_auditor_is_what_ran():
     for case in CASES:
         [g] = [g for g in graders(case).values() if g["type"] == "tool_used"]
         assert g["tool"] == "Agent" and g["input_match"] == r'"subagent_type"\s*:\s*"[^"]*case-auditor"'
-        assert re.search(g["input_match"], json.dumps({"subagent_type": "powerworld-hivemind:case-auditor"}))
+        pattern = g["input_match"]
+        assert re.search(pattern, json.dumps({"subagent_type": "powerworld-hivemind:case-auditor"}))
+        # a general-purpose dispatch that only mentions the auditor must not pass
+        assert not re.search(pattern, json.dumps({"subagent_type": "general-purpose",
+                                                  "prompt": "act like the case-auditor"}))
 
 
 @pytest.mark.parametrize("case", SEEDED)

@@ -83,8 +83,8 @@ Full list in [CHANGELOG.md](CHANGELOG.md).
 <details>
 <summary>Which instruction file each agent loads</summary>
 
-On the plugin route, Claude Code loads the four skills under `skills/`, the
-`schema-librarian` agent, and the two commands. It does not load `CLAUDE.md` or `AGENTS.md`
+On the plugin route, Claude Code loads the five skills under `skills/`, the
+`schema-librarian` and `case-auditor` agents, and the two commands. It does not load `CLAUDE.md` or `AGENTS.md`
 from a plugin; `skills/powerworld/SKILL.md` carries the rules and points at the pages.
 
 On the manual route:

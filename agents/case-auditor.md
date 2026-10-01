@@ -42,7 +42,7 @@ Most PowerWorld failures are silent. A case that converges can be a DC-only skel
 ## Audit protocol
 
 1) Take from the request the case path, the studies and, for `timestep`, the `.pww` weather file. Map the studies to profiles: `base` always; `timestep` for weather, TimeStep or PFW; `opf` for OPF or SCOPF; `base` plus the monitoring rules, with an `n1` verdict line, for N-1; all profiles for "scan the whole case". "Give me a summary" or "what's in this case" is **summary mode**: run `base` only: a one-line verdict, then the summary (see *Output format*). If the study is ambiguous, audit all profiles rather than ask. You cannot ask mid-run — a subagent returns, it does not converse — so a missing weather file is a finding (`ts.pww_footprint`), not a question.
-2) Run the audit engine exactly as `${CLAUDE_PLUGIN_ROOT}/skills/case-audit/SKILL.md` specifies (outside a plugin install, use the directory holding `AGENTS.md` in place of that placeholder). It solves N-0 (AC) in memory and writes `findings.json` and `findings.md`, including the `case_summary` block.
+2) Run the audit engine exactly as `${CLAUDE_PLUGIN_ROOT}/skills/case-audit/SKILL.md` specifies (outside a plugin install, use the directory holding `AGENTS.md` in place of that placeholder). It solves N-0 (AC) in memory and writes `findings.json` and `findings.md`, including the `case_summary` block. If findings.json says source is snapshot, the case was not opened: say so in the first line and give no read-only claim.
 3) If the AC solve does not converge, stop there: NOT READY for every profile, with the mismatch summary the engine gives. Nothing downstream is trustworthy on an unsolved case.
 4) Triage each finding using the rules and the guide below. Your judgment is the triage — not re-running checks.
 5) For each blocker that needs outside data, write the handoff.
@@ -55,15 +55,15 @@ Most PowerWorld failures are silent. A case that converges can be a DC-only skel
 | rule | what it checks | severity | triage | kit page |
 |---|---|---|---|---|
 | `base.ac_converges` | the AC power flow solves | Stops the study | Broken | `methods/handling-errors.md` |
-| `base.dc_skeleton` | median X/R of closed non-transformer lines > 1000, or far more lines with `LineC = 0` than zero-length branches — a DC-only skeleton | Stops the study — `base` and every AC study; a DC-only study can still run | Broken | `concepts/case-impedance-completeness.md` |
+| `base.dc_skeleton` | median X/R of closed non-transformer lines > 1000, or at least 90 % of them with R ≤ 1e-6 and `LineC = 0` — a DC-only skeleton; from 5 % it is a partial one | Stops the study — `base` and every AC study; a DC-only study can still run. A partial skeleton: Worth a look, with the lines | Broken | `concepts/case-impedance-completeness.md` |
 | `base.gen_over_nameplate` | an in-service unit with `GenMW > GenMWMax + 0.1` after the solve (the slack absorbed a shortfall). Sized by how far over: more than max(1 % of `GenMWMax`, 5 MW) → the flows are artifacts; less → the case runs, say the MW | over the size: Stops the study; under it: Worth a look | Broken | `methods/applying-a-dispatch-to-a-case.md` |
-| `base.regulates_nothing` | a switched shunt or LTC whose regulated bus does not exist or is out of service | Worth a look | Broken | written in Plan 2 |
-| `base.ltc_middle_target` | an LTC with `XFRegTargetType = Middle` on a case studied for voltage: it drives to the band's midpoint, not into the band | Worth a look | Broken | written in Plan 2 |
-| `base.ltc_regulates_lv_side` | an LTC regulating its low-voltage side while its high-voltage side is out of band | Worth a look | Your call | written in Plan 2 |
-| `base.floating_stub` | a lightly loaded EHV dead end whose open end rises on its own line charging | Worth a look | Your call | written in Plan 2 |
+| `base.regulates_nothing` | a switched shunt or LTC whose regulated bus does not exist or is out of service | Worth a look | Broken | `methods/ltc-regulation-checks.md` |
+| `base.ltc_middle_target` | an LTC with `XFRegTargetType = Middle` on a case studied for voltage: it drives to the band's midpoint, not into the band | Worth a look | Broken | `methods/ltc-regulation-checks.md` |
+| `base.ltc_regulates_lv_side` | an LTC regulating its low-voltage side while its high-voltage side is out of band | Worth a look | Your call | `methods/ltc-regulation-checks.md` |
+| `base.floating_stub` | a lightly loaded EHV dead end whose open end rises on its own line charging | Worth a look | Your call | `concepts/unloaded-ehv-stub-overvoltage.md` |
 | `base.stale_ctg_results` | the case already holds `ViolationCTG` rows from an earlier run | FYI | Probably on purpose — do not read them | `methods/reading-violationctg.md` |
 
-The size in `base.gen_over_nameplate` (1 % or 5 MW) is a starting value, to be measured in Plan 2: the smallest overshoot that moves line flows enough to change a finding.
+The size in `base.gen_over_nameplate` (1 % or 5 MW) is a proposed default, not a measurement: neither public case has a unit over its rating. Three-winding transformers are not checked by the LTC rules in this version; say so if the case has any.
 
 ### monitoring (reported with `base`; SCOPF and any N-1 depend on it)
 
@@ -74,6 +74,7 @@ The size in `base.gen_over_nameplate` (1 % or 5 MW) is a starting value, to be m
 | `mon.rate_set_empty` | the letter `LSLineRateSet` or `LSLineRateSet:1` points to carries no `LineAMVA:N` values | Stops the study — N-1 and SCOPF only | Broken | `methods/powerworld-limitset-setdata.md` |
 | `mon.rate_sets_populated` | which rate-set letters actually carry values; the `LSAmpMVA` split | FYI | Probably on purpose | `methods/reading-violationctg.md` |
 | `mon.bus_limit_overrides` | buses with `BusVoltLim = YES` whose limits differ from the band (relative tolerance) | FYI | Probably on purpose | `methods/ranking-new-devices-by-severity.md` |
+| `mon.no_contingencies` | the case holds no contingency records (checked with `opf`) | Stops the study — SCOPF only | Broken | `methods/new-device-contingency-aux.md` |
 
 Severity is always one of the three labels. When a finding stops only some studies, the label says which ("Stops the study — N-1 and SCOPF only"), and the verdict line of each study it stops reads NOT READY.
 
@@ -85,7 +86,7 @@ Severity is always one of the three labels. When a finding stops only some studi
 | rule | what it checks | severity | triage |
 |---|---|---|---|
 | `ts.pfw_missing` | a renewable with no PFW model: TimeStep runs and outputs 0 MW for it | Worth a look | Broken |
-| `ts.latlon_missing` | a renewable at Lat/Lon 0,0 or blank: its weather is looked up at the wrong place | Worth a look | Broken |
+| `ts.latlon_missing` | a renewable with no usable coordinates on its bus or its substation (0,0 or blank): its weather is looked up at the wrong place | Worth a look | Broken |
 | `ts.pww_footprint` | the `.pww` weather file given with the request: its station footprint covers the units. A mismatch runs with no warning. No file given → FYI: "weather file not given, so I didn't check it covers these units; send it if you want that checked" | uncovered units: Worth a look; no file: FYI | Your call |
 
 **Describe what will happen; don't gatekeep.** TimeStep runs with any number of PFW models, even one. None of these three rules stops the study; they change what the result covers. Report them together, as the case's situation:
@@ -103,7 +104,7 @@ reasons and are triaged differently.
 |---|---|---|---|---|---|
 | 1 | at least one **area or super area** under OPF control | `Area.BGAGC = "OPF"`; for a super area, `SuperArea.BGAGC` (AGC Status) | switch | Stops the study | **Your call**: which areas may the OPF redispatch? A study choice, not a broken case. Once chosen, the study-runner sets it. |
 | 2 | generators the OPF may move, inside those areas | `Gen.GenAGCAble = "YES"` | switch | Stops the study | **Your call**, same reasoning. If an OPF area has zero AGC-able units, say so — condition 1 alone does nothing. |
-| 3 | those generators carry real cost data | `GenCostModel` ≠ None, `GenCostCurvePoints > 0`, `GenMCost > 0` | **data** | Stops the study | **Your call — data to source**, handed off to a cost-data source. Never switched on. |
+| 3 | those generators carry real cost data | `GenCostModel` ≠ None and `GenCostCurvePoints > 0` (`GenMCost = 0` at today's output is a zero price, not missing data) | **data** | Stops the study when an OPF area has no priced unit; unpriced units beside priced ones are Worth a look | **Your call — data to source**, handed off to a cost-data source. Never switched on. |
 
 Report per OPF area (`concepts/powerworld-inertia-and-cost-data.md`): the number of AGC-able units,
 units with `GenCostCurvePoints > 0`, units with `GenMCost > 0`, and the count of each `GenCostModel`
@@ -118,10 +119,14 @@ value. Facts to apply while reading them:
 Reporting rules:
 - READY for `opf` only when all three hold for the **same** set of generators. An area on OPF whose
   AGC-able units have no cost data is NOT READY.
-- The Area path is verified on a live case (2026-09-11). The **super area path is schema-only** in
-  the kit: its value vocabulary is undocumented. If the case uses super areas, report which super
-  areas exist, what their `BGAGC` reads, and mark the finding *Your call* rather than guessing
-  whether it satisfies condition 1.
+- The Area path is verified on a live case (2026-09-11), and the super area path was measured on
+  two public cases (2026-09-30): a super area on OPF meets condition 1 and makes its member areas
+  (`Area.SAName`) redispatchable, and a super area `Off AGC` does not override a member area set
+  to OPF. The engine applies both; the Can-the-OPF-run table says when an area is on OPF through
+  its super area.
+- With no area on OPF, the engine also previews conditions 2 and 3 per area (`opf.preview`, Worth a
+  look): what an OPF would find once you choose areas. It never changes a verdict. When no AGC-able
+  unit has cost data, the preview carries the cost-data handoff.
 - If AGC is off on every unit right after a dispatch was applied, say so: writing `GenMW` turns
   `GenAGCAble` off, so the dispatch step is the likely cause, not the case's design.
 - SCOPF needs the same three conditions **plus** the monitoring rules above and a contingency set;
@@ -139,7 +144,7 @@ The engine writes these as facts, not findings. You present them; you do not rec
 - **Mvar range:** the sum of `GenMVRMin` to `GenMVRMax` over online units.
 - **Shunts:** count and in service; Mvar injected now (`SSAMVR`); capacitive capacity (sum of `SSMaxMVR`) and inductive capacity (sum of `SSMinMVR`).
 - **Size:** buses, branches, transformers, areas, zones and kV levels.
-- **Units the OPF may move** (only with the `opf` profile): headroom on `GenAGCAble = YES` units in the OPF areas.
+- **Units the OPF may move** (only with the `opf` profile): headroom on dispatchable `GenAGCAble = YES` units in the OPF areas (wind and solar left out).
 
 If the slack unit is over its max (`base.gen_over_nameplate`), say so next to the generation total. That total includes the overshoot.
 
@@ -161,7 +166,7 @@ can be *Broken* (an LTC target type).
 
 Name the tool and what it needs, not just "a tool".
 
-- **Missing PFW models** → the `Auto_PFW` folder of the research group's `OverbyeResearchGroup/Grid-Workshop` repository. `PFW_EIA.py` gives each wind unit a wind class (1–4) taken from `CustomInteger:1` or `GenUnitType` (W1–W4) — the class that EIA-860-built cases carry — and every solar unit a basic solar PV model. It saves a copy as `<case>_PFW.pwb` and leaves the original alone. Tell the engineer two things:
+- **Missing PFW models** → the `Auto_PFW` folder of the research group's `OverbyeResearchGroup/Grid-Workshop` repository (`concepts/grid-workshop-auto-pfw.md`). `PFW_EIA.py` gives each wind unit a wind class (1–4) taken from `CustomInteger:1` or `GenUnitType` (W1–W4) — the class that EIA-860-built cases carry — and every solar unit a basic solar PV model. It saves a copy as `<case>_PFW.pwb` and leaves the original alone. Tell the engineer two things:
   - A wind unit with no class in either field is **skipped with no warning**. Many synthetic cases carry no class, so say how many of the missing units have one before they run it.
   - Send back the `_PFW` copy, not the original, and you will count coverage again on it.
 - **Missing cost curves** → the engineer's own cost-data source. No script supplies them.
@@ -201,7 +206,8 @@ In **summary mode** ("give me a summary"), the verdict is one line: the base ver
 - base: READY | NOT READY — <one short reason if NOT READY>
 - timestep: READY | NOT READY — <one short reason>   (only if you asked)
 - opf: READY | NOT READY — <one short reason>        (only if you asked)
-- n1: READY | NOT READY — <one short reason>         (only if you asked about N-1 or SCOPF; monitoring only, the runner counts outage coverage)
+- scopf: READY | NOT READY — <one short reason>      (only if you asked about SCOPF; the engine adds it to opf: it needs everything opf and n1 need, plus contingency records)
+- n1: READY | NOT READY — <one short reason>         (the engine always writes it; show it only if you asked about N-1 or SCOPF; monitoring only, the runner counts outage coverage)
 
 ## What's in the case
 | | MW | Mvar |

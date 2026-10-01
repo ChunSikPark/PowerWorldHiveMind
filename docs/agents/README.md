@@ -8,7 +8,6 @@ of running an engine.
 
 | draft | role | depends on | ships in |
 |---|---|---|---|
-| [case-auditor.md](case-auditor.md) | "is this case sane, and can it run study X?" | `skills/case-audit/` engine | Plan 2 |
 | [study-runner.md](study-runner.md) | translate preferences into settings, run studies exactly, summarise | `skills/study-runner/` engine | Plan 3 |
 | [network-visualizer.md](network-visualizer.md) | map the network around a site, measure the engineer's design and its own challengers on identical settings, compare side by side | the `violation-map` engine (extended), the study-runner engine | Plan 4 |
 | [run-supervisor.md](run-supervisor.md) | follow a long run through its heartbeat, alarm to the phone, put each round's decision to the engineer | the study-runner engine's `heartbeat.json` | Plan 5 — ships as a **skill** the main session runs, not an agent |
@@ -17,7 +16,8 @@ of running an engine.
 The network-visualizer replaced a planned fix-reviewer on 2026-09-28: its full-N-1, same-settings
 check now happens inside every design comparison.
 
-Live already: [`agents/schema-librarian.md`](../../agents/schema-librarian.md) (Plan 1).
+Live already: [`agents/schema-librarian.md`](../../agents/schema-librarian.md) (Plan 1) and
+[`agents/case-auditor.md`](../../agents/case-auditor.md) (Plan 2).
 
 **Rule for each plan:** its last task moves the draft into `agents/` — only after the engine's
 tests pass — and re-checks discovery with `claude --plugin-dir <kit> plugin details powerworld-hivemind`.

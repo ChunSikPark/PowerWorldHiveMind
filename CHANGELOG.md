@@ -1,5 +1,33 @@
 # Changelog
 
+## Unreleased
+
+- **The case-auditor is live: a fifth skill, `case-audit`, and the `case-auditor` agent.** Checks a
+  case read-only and says whether it is READY for a base power flow, an N-1 (its monitoring), a
+  time step, an OPF and a SCOPF, with the case summary the agent presents (load, generation,
+  headroom by fuel type, shunts, size). Eighteen checks as small pure functions over what one
+  esapp read returns, each tested on hand-built cases with no PowerWorld; one AC solve in memory,
+  no retry; the case file's sha256 before and after in `findings.json`; and a test that fails the
+  build if the engine names a write or uses PowerWorld outside an allowlist. Findings go
+  to `./case-audit/<case>/`, which ignores itself in git.
+- Two rule pages: `methods/ltc-regulation-checks.md` and
+  `concepts/unloaded-ehv-stub-overvoltage.md`, with what a live probe of two public cases found
+  (a regulated bus of 0 cannot be written through SimAuto; `BusVoltLimLow/High` read the limit
+  group's band; generator coordinates live on the substation). A third,
+  `concepts/grid-workshop-auto-pfw.md`, is the handoff for missing PFW models.
+- `concepts/opf-preconditions.md`: measured on two public cases, a super area on OPF meets the
+  area condition and makes its member areas redispatchable; a refused OPF does not raise through
+  esapp (read `LPOPFSolutionStatus`); a zero marginal cost on wind and solar is a price, not
+  missing data.
+- Fixed: `methods/timestep-simulation-setup.md` listed an ISO label in `CustomString:2` as a
+  TimeStep prerequisite (it is one pipeline's convention) and pointed at a page that does not
+  exist; `methods/converting-lines-to-transformers.md` glossed `XFAuto = NO` as "not an
+  autotransformer" (it is the automatic-control switch).
+- An eval suite for the case-auditor under `evals/` (`claude plugin eval`): two cases on live
+  audits of the public Hawaii40 and Texas2k cases, six on seeded copies of Hawaii40 that test its
+  judgment. Developer tools (the probe, snapshots, replays, fixtures) are in `tools/case-audit-dev/`,
+  outside `skills/`.
+
 ## 0.4.0 — 2026-09-30
 
 - **An agent team, designed and drafted.** `docs/superpowers/specs/2026-09-28-power-system-agents-design.md`

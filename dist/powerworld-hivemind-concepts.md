@@ -1322,6 +1322,91 @@ so rather than improvising.
 
 ---
 
+# ==== grid-workshop-auto-pfw.md ====
+
+---
+type: tool
+domain: weather
+aliases: [grid-workshop-auto-pfw, auto-pfw, pfw-insertion-script, grid-workshop-pfw, pfw_eia,
+  PFW_EIA.py, attach-pfw-models, missing-pfw-models]
+tags: [pfw, weather, renewables, wind, solar, timestep, aux, powerworld, tool]
+---
+
+# Tool: Grid-Workshop `Auto_PFW` — attaching PFW weather models to renewables
+
+## Abstract
+
+The research group's `OverbyeResearchGroup/Grid-Workshop` repository has an `Auto_PFW` folder
+that attaches PFW (power-flow weather) models to a case's wind and solar units, so TimeStep can
+turn weather into MW. It is where the kit's case-auditor sends you when renewables lack a PFW
+model. Read this before running it: it **silently skips wind units it cannot classify**, so
+always re-count PFW coverage on the copy it saves.
+
+## Connections
+
+- **Up:** [Home](../index.md)
+- **Across:** [timestep-simulation-setup](../methods/timestep-simulation-setup.md) (the per-unit
+  prerequisites a PFW model is one of) · [timestep-and-pfw](../demos/timestep-and-pfw.md) (the
+  coverage count that decides whether a case can run a time step) ·
+  [timestep-workflow](timestep-workflow.md) (the TimeStep chain that consumes PFW models)
+- **Checked by:** the case-auditor's `ts.pfw_missing` rule, which names this tool as the handoff
+  and counts how many of the missing wind units carry a class it can use
+
+## Content
+
+### What it does
+
+Two scripts, both driving PowerWorld through SimAuto with the older `esa` package (not `esapp`):
+
+| script | how it chooses the model | prompts |
+|---|---|---|
+| `PFW_EIA.py` | Wind: `GenMWMax_WindClass1` … `4` from `CustomInteger:1` (1–4) **or** `GenUnitType` (W1–W4). Solar: every unit gets `GenMWMax_SolarPVBasic2`. | none |
+| `Automation_integrating_PFW_into_PowerWorld.py` | One user-chosen class applied to every wind unit (WindBasic, WindGeneral, WindClass1–4) and/or every solar unit (SolarPVBasic1/2). | wind / solar / both, then the class |
+
+The sequence is the same in both:
+
+1. Open the case, export the generator table (`PW.csv`) with `GenFuelType`, `GenMWMax`,
+   `CustomInteger:1`, `GenUnitType`.
+2. Select units by fuel type: `WND (Wind)` and `SUN (Solar)`.
+3. Write one AUX record per unit attaching the chosen `GenMWMax_*` model object.
+4. `LoadAux` the file and save a **copy** as `<case>_PFW.pwb`; the original is not modified.
+
+A PFW model is a per-generator object record ("this unit converts weather to MW with the
+WindClass2 curve"). TimeStep reads it together with a `.pww` weather file; without it a unit
+produces nothing, and TimeStep still reports success.
+
+### Failure modes
+
+- **Silent skip.** In `PFW_EIA.py`, a wind unit with neither `CustomInteger:1` in 1–4 nor
+  `GenUnitType` W1–W4 gets **no record and no warning**. Cases built from EIA-860 carry the class;
+  many synthetic cases do not, and then most wind units are skipped. On both public synthetic
+  cases probed 2026-09-30, `CustomInteger:1` read blank on every unit.
+- **Record shape.** `WindClass1` records carry 10 values for 9 listed fields (an extra value
+  before the hub height); classes 2–4 carry 9. Check the PowerWorld message log after the AUX loads.
+- **Interactive script input.** The solar answer is lower-cased and then compared with a
+  mixed-case name, so only the answer `1` selects SolarPVBasic1; answering `quit` at a class prompt
+  raises an `AttributeError`; the WindGeneral field list spells `DefaultWindMSS`.
+
+### Verifying the result
+
+Count, on the saved `_PFW` copy, the renewable units whose PFW model string is empty
+(`TSPFWModelString` two characters or fewer). The count should be zero; anything else is the
+silent skip above. Also confirm valid coordinates on those units, since this tool sets only the
+PFW model. Running the case-auditor with the `timestep` profile on the copy does both counts.
+
+### When to use which
+
+- The case carries a wind class per unit (EIA-derived): `PFW_EIA.py` is sufficient.
+- It does not: give the units a class first (from EIA-860 plant data, or your own judgment), or
+  accept that unclassified wind units get no model. The interactive script applies one class to
+  every unit, which runs but flattens the fleet into one turbine type.
+
+Established 2026-09-28 from the repository's scripts and README; not re-run on a case for this
+page.
+
+
+---
+
 # ==== lodf.md ====
 
 ---
@@ -1711,6 +1796,13 @@ Per [powerworld-inertia-and-cost-data](powerworld-inertia-and-cost-data.md), the
 ever fit and the cost fields read `0` — which is *no data*, never *free*. A handful of
 units can also report `GenMCost == 0` with curve points defined.
 
+**Refined 2026-09-30, measured on a public synthetic 37-bus case.** Those units are the wind and
+solar: five curve points each, and a curve that is 0 at their output. The OPF solved with them in
+the movable set. `GenMCost` is the curve *at today's output*, so a zero there is a price of zero,
+not missing data. The case-auditor therefore counts a unit as priced when `GenCostModel` is not
+None and `GenCostCurvePoints > 0`, says nothing about a zero-cost renewable, and flags a
+*thermal* unit whose curve reads 0 as worth a look.
+
 Synthetic cases are the live hazard here. A generation pipeline may assign piecewise cost
 curves at build time, but whether they survived into the dated case you are holding is a
 question about that file, not about the pipeline — so measure it.
@@ -1760,6 +1852,25 @@ places, and applies them in this order of precedence:
 true during contingency analysis — anything the contingency record or `CTG_Options` carries
 overrides it. This is why esa pp llm backend's SCOPF sequence sets both
 `Sim_Solution_Options.DCApprox` *and* `CTG_Options.CTG_CalculationMethod`.
+
+### Super areas count, and a refusal through SimAuto does not raise
+
+Measured 2026-09-30 on two public synthetic cases, in memory, never saved:
+
+| as the case opened | OPF (`InitializePrimalLP`, `SolvePrimalLP`) |
+|---|---|
+| a super area on OPF, every member area (`Area.SAName`) `Off AGC` | **ran**: *Successful Solution* |
+| an area on OPF inside a super area that is `Off AGC` | **ran**: *Successful Solution* |
+| every area and super area switched to `Off AGC` | **refused** |
+
+So condition 1 is met by an area **or** a super area on OPF; a super area on OPF makes its member
+areas redispatchable, and one that is `Off AGC` does not override a member area set to OPF.
+`SuperArea.BGAGC` reads back the same strings as `Area.BGAGC` (`OPF`, `Off AGC`).
+
+The refusal did **not** raise through esapp: both calls returned, and the only sign was
+`OPFSolutionSummary.LPOPFSolutionStatus = "Error = No area/superarea constraints set"` with
+`LPOPFCostFunction:1 = 0`. Read the status after every solve; a script that trusts the absence
+of an exception reads a zero-cost "solution".
 
 ### Always give the solve a failure handler
 
@@ -2796,6 +2907,152 @@ rerunning it.
 
 The workflow is generator-level. Aggregating to area or substation is a post-processing
 step on the exported CSVs, not something to ask PowerWorld for during the run.
+
+
+---
+
+# ==== unloaded-ehv-stub-overvoltage.md ====
+
+---
+type: concept
+domain: cross-cutting
+aliases: [unloaded-ehv-stub-overvoltage, floating-stub, ehv-stub-overvoltage, ferranti-rise,
+  dead-end-ehv-overvoltage, line-charging-overvoltage, radial-ehv-line, open-end-rise]
+tags: [powerworld, voltage, overvoltage, reactive-power, line-charging, topology, radial,
+  islanding, case-quality, n-0]
+---
+
+# An unloaded EHV stub runs high, and only closing it fixes both of its problems
+
+## Abstract
+
+An extra-high-voltage (EHV) line that runs out to a dead end and carries almost no MW behaves like
+an open-ended capacitor. Its own charging lifts the far end above the near end (the Ferranti
+rise). If nothing at the far end can absorb Mvar, for example because the only unit there is
+modelled with zero reactive range, the far end runs high in exactly the light-load dispatches
+where the unit is off. The same topology also islands on the loss of its one link. Measured
+2026-09-28 on a regional planning model: a tie closing the stub into a substation that still had
+absorbing room fixed both problems. A reactor fixed only the voltage. A long tie to a substation
+whose reactor was already at full output fixed neither.
+
+## Connections
+
+- **Up:** [Home](../index.md)
+- **Across:** [ltc-regulation-checks](../methods/ltc-regulation-checks.md) (the other intact-case
+  overvoltage, which an LTC can reach) ·
+  [violation-network-map](../methods/violation-network-map.md) (the radial-ties page finds the
+  bridges and radial trees this shape sits on, and the voltage page shows the reactive balance
+  around it) · [case-impedance-completeness](case-impedance-completeness.md) (a case with
+  `LineC = 0` has no charging, so this rise cannot appear there; check that first) ·
+  [adding-devices-esapp](../methods/adding-devices-esapp.md) (placing the reactor or tie once
+  chosen)
+- **Checked by:** the case-auditor's `base.floating_stub` rule
+
+## Content
+
+### The shape
+
+One or two EHV substations hang off the meshed grid on a single line a few tens of miles long.
+The only device at the far end is a solar or storage plant modelled with zero reactive range
+(`GenMVRMax = GenMVRMin = 0`). When that plant is off (winter peak, spring minimum, a light-load
+night) the line carries almost no MW. Its charging, `LineC` in per unit on the system base,
+split half to each end, has nowhere to go, so the far end rises above the near end.
+
+Measured 2026-09-28 on a regional planning model, intact case, five dispatches:
+
+| dispatch | far-end voltage |
+|---|---|
+| plant off, line nearly unloaded | **1.06 – 1.08 pu** |
+| plant running, current through the line | 1.02 – 1.03 pu |
+
+The loss of either link islands the plant. An outage that islands a bus often solves with no
+violations reported, because the stranded buses are dropped rather than flagged. So the
+islanding half of this problem needs its own screen.
+
+### Why the obvious levers do not reach it
+
+- **Generator setpoints.** Walking every unit within six hops down by up to 0.05 pu cleared small
+  overshoots elsewhere but left the stub above 1.05. Every unit near it was already pinned at
+  its absorbing limit (`GenMVR = GenMVRMin`). The one unit with room was injecting: it
+  regulated a 138 kV bus that sat below its setpoint while the 345 kV side floated high. A
+  setpoint on a pinned unit moves nothing.
+- **Shunt deadbands.** Lowering the switched-shunt bands (`SSVHigh`, `SSVLow`) by 0.02 pu across
+  the area changed nothing measurable. The nearby reactors were already at full absorption
+  (`SSNMVR = SSMinMVR`), and the capacitors nearby were holding up load taps.
+- **A long tie to the biggest reactive substation.** A tie several tens of miles long to a
+  substation with a large reactor did not clear it. The new line's own charging cancelled the benefit, and that
+  reactor was already at full output. **Capability is not room.** Rank landing points by what
+  they can still absorb, not by what they own.
+- **A 138 kV tie** from the stub made it worse, by up to 0.005 pu. It adds a path and nothing
+  that absorbs, and it relieves none of the 345 kV charging.
+
+### What fixed it
+
+An **EHV tie a few tens of miles long from the dead end into a nearby substation whose unit still
+had absorbing room** brought the stub to 1.03–1.05 pu in all five dispatches and removed both
+islanding outages. It works because it turns the stub into a loop through a substation that can
+take the stub's surplus Mvar. A tie landing on the middle of the stub fixed the voltage but left
+the far end on one line.
+
+For comparison:
+
+| design | voltage | islanding |
+|---|---|---|
+| EHV tie from the far end to a substation with room | fixed | fixed |
+| a reactor of order 100 Mvar at the stub | fixed except one dispatch, barely over | not fixed |
+| a two-way bank of similar size at the stub | same as the reactor while out of band; idle once back in | not fixed |
+| long tie to a substation whose reactor was pinned | not fixed | not fixed |
+| 138 kV tie | worse | not measured |
+
+Neither the reactor nor the bank is wrong. The tie is the only single device that answers both
+problems.
+
+### The same physics at regional scale
+
+Many short EHV ties in one region raise it even when no single tie does. Measured on the same
+model with discrete controls frozen: closing on the order of ten radial trees in one light-load region
+pushed tens more buses over 1.05 in one dispatch. Removing any one of those ties moved
+the worst bus by under 0.001 pu. The rise is the sum of their charging. Check a batch of ties
+as a set, in the lightest dispatch, not one at a time. Where a region already runs near the
+limit, site absorbing capacity along with the ties.
+
+### What the auditor can and cannot tell from one case
+
+The shape is structural: a radial EHV line whose far side has no absorbing room. The rise is
+dispatch-dependent. A case solved with the far-end plant running can sit comfortably in band,
+yet the same case at light load sits above it. So a clean voltage on this shape in the case
+you have does not mean the shape is safe. Check the lightest dispatch you study. Whether to
+close the stub, add a reactor or accept it is a planning choice the case cannot make for you.
+
+### How the case-auditor finds it
+
+The `case-audit` engine's `base.floating_stub` rule (`skills/case-audit/engine/rules_stub.py`)
+works on the solved case, read-only:
+
+1. **Structure.** Over the connected buses and closed branches (parallel circuits are separate
+   edges, so a double circuit is never a bridge), find the bridges. The meshed core is the largest
+   2-edge-connected piece; each bridge's far side is the part away from it. A candidate is a bridge
+   that is a line, with both terminals at EHV, whose far side is small. Along one radial chain only
+   the bridge nearest the core is reported.
+2. **Lightly loaded.** The bridge's `LineMaxPercent` is low, or, on an unrated bridge
+   (`LineAMVA = 0`), its `|LineMW|` is.
+3. **Rising.** The highest far-side EHV bus sits above the bridge's core-side end, and there is
+   line charging to rise on (`LineC` summed over the far side and the bridge is above 0; a case
+   with `LineC = 0` everywhere is a DC skeleton, which `base.dc_skeleton` reports instead).
+
+Each finding carries the bridge's keys, the near and far voltages, whether the far end is above
+its own high limit, the bridge's MW and loading, the far-side bus count, the charging in Mvar
+(`sum(LineC) × Sim_Solution_Options.SBase`; `SBase` read 100 on both public cases probed
+2026-09-30, and the engine reads it from each case rather than assuming it), the **absorbing
+room** left on the far side (`GenMVR − GenMVRMin` over closed units plus `SSNMVR − SSMinMVR` over
+closed shunts - room, not capability), and the far-side units with zero reactive range.
+
+Numbers with no source, each a proposed default in `skills/case-audit/engine/thresholds.py`:
+EHV means 300 kV and above (catches 345, 500 and 765, excludes 230); a far side of at most 50
+buses; lightly loaded means under 10 % of rating, or under 10 MW when unrated; a rise of at least
+0.005 pu. The rise is dispatch-dependent, so a stub that is in band on this dispatch is not
+reported; a structure-only warning for it is not built. On Texas2k (182 buses at 500 kV) the rule
+found none.
 
 
 ---
