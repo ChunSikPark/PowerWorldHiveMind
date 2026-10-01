@@ -7942,6 +7942,13 @@ not missing data. The case-auditor therefore counts a unit as priced when `GenCo
 None and `GenCostCurvePoints > 0`, says nothing about a zero-cost renewable, and flags a
 *thermal* unit whose curve reads 0 as worth a look.
 
+**Refined again 2026-10-01, measured on the public Texas2k case.** Units on a Cubic cost model
+read `GenCostCurvePoints = 0` with `GenMCost > 0`: a cubic model is evaluated from its
+coefficients, not from curve points, so a zero point count there is not missing data. The
+auditor counts a unit as priced when `GenCostModel` is not None and it has curve points or a
+positive cost at today's output (`GenCostCurvePoints > 0` or `GenMCost > 0`). A unit with
+neither still counts as carrying no cost data.
+
 Synthetic cases are the live hazard here. A generation pipeline may assign piecewise cost
 curves at build time, but whether they survived into the dated case you are holding is a
 question about that file, not about the pipeline — so measure it.
@@ -8876,6 +8883,16 @@ ERA5 also emits a human-readable `.parquet` alongside the PWW.
 
 1. **Structural + positional round-trip** (offline): parse header, assert KEY2=8066, VERSION=2, ≥1 meta string, valid_count block length == VARCOUNT, data size == COUNT × VARCOUNT × LOC. Then pick a few stations and confirm decoded bytes match the source grid cell at that (lat, lon).
 2. **PowerWorld load test:** `TimeStepLoadPWW(file, "Weather Only")` via ESA/SimAuto — exit 0 = file loads cleanly. Pass absolute paths (PowerWorld resolves relative paths against its own working dir). Script: `DrBailey_WRF_pww/pww_powerworld_smoketest.py`.
+
+## Does the file cover the units? (the case auditor's footprint check)
+
+A renewable whose nearest station in the file is far away still runs: it takes that station's
+weather, and the time step gives no warning. The case auditor (`ts.pww_footprint`) reads only the
+file's header station list and flags every located renewable whose nearest station is more than
+**25 miles** away. That number has no source: it is a proposed default in
+`skills/case-audit/engine/thresholds.py` (`PWW_MAX_STATION_MILES`), chosen because a 0.25-degree
+grid puts every point inside its footprint within about 12 miles of a station, so 25 miles leaves
+margin and still catches a unit outside the grid.
 
 ## Related
 
