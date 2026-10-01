@@ -1,7 +1,7 @@
 # Case audit
 
 Case checked: `Texas2k_series25_case1_summerpeak_PFW.pwb`  
-Audited: 2026-09-30T22:43:34  
+Audited: 2026-09-30T23:23:12  
 Case file unchanged by the audit: yes
 
 ## Verdict
@@ -49,23 +49,23 @@ Headroom on dispatchable units the OPF may move: 17,771 MW.
 | an N-1 will check 8 of 8 areas, 5344 branches and 2751 buses | — | a clean N-1 result covers only this footprint, not the whole system | FYI | Probably on purpose | mon.footprint | field export (schema-only) |
 | rate sets with values: A (5344 branches), B (2782 branches), C (2782 branches) | — | shows which rating letters a limit set could point at | FYI | Probably on purpose | mon.rate_sets_populated | methods/reading-violationctg.md |
 | weather file not given, so I didn't check it covers these units | — | send the .pww if you want its coverage checked | FYI | Your call | ts.pww_footprint | concepts/pww-data.md |
-| 16 of the 736 units the OPF could move carry no cost curve | 16 object(s), listed below | the OPF runs on the priced units; these ones have no price to be dispatched on | Worth a look | Your call | opf.3 | concepts/opf-preconditions.md |
+| 5 of the 736 units the OPF could move carry no cost curve | 5 object(s), listed below | the OPF runs on the priced units; these ones have no price to be dispatched on | Worth a look | Your call | opf.3 | concepts/opf-preconditions.md |
 | 95 thermal unit(s) the OPF could move have a cost curve that reads 0 at today's output | 95 object(s), listed below | the OPF will treat their next MW as free; check the curve if that is not intended | Worth a look | Probably on purpose | opf.3 | concepts/opf-preconditions.md |
 
 ## Can the OPF run?
-| area | OPF may redispatch it | units the OPF may move | with a cost curve | with a cost above 0 at today's output | cost model types |
+| area | OPF may redispatch it | units the OPF may move | with cost data | with a cost above 0 at today's output | cost model types |
 |---|---|---|---|---|---|
-| 1 | yes (super area Texas on OPF) | 116 | 112 | 28 | Cubic 116 |
+| 1 | yes (super area Texas on OPF) | 116 | 115 | 28 | Cubic 116 |
 | 2 | yes (super area Texas on OPF) | 86 | 85 | 13 | Cubic 86 |
 | 3 | yes (super area Texas on OPF) | 76 | 75 | 8 | Cubic 76 |
 | 4 | yes (super area Texas on OPF) | 122 | 120 | 42 | Cubic 122 |
 | 5 | yes (super area Texas on OPF) | 62 | 62 | 30 | Cubic 62 |
 | 6 | yes (super area Texas on OPF) | 88 | 88 | 63 | Cubic 88 |
-| 7 | yes (super area Texas on OPF) | 146 | 138 | 126 | Cubic 146 |
+| 7 | yes (super area Texas on OPF) | 146 | 146 | 126 | Cubic 146 |
 | 8 | yes (super area Texas on OPF) | 40 | 40 | 25 | Cubic 40 |
 
 ## What you need to get
-1. 16 of the 736 units the OPF could move carry no cost curve → your own cost-data source; no script supplies cost curves, and a default one makes the dispatch meaningless → then send the returned case to be checked again
+1. 5 of the 736 units the OPF could move carry no cost curve → your own cost-data source; no script supplies cost curves, and a default one makes the dispatch meaningless → then send the returned case to be checked again
 
 ## Every object, per finding
 
@@ -74,20 +74,9 @@ Headroom on dispatchable units the OPF may move: 17,771 MW.
 ```json
 {"BusNum": 2019, "GenID": "1", "AreaNum": 2, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 0.0}
 {"BusNum": 4153, "GenID": "1", "AreaNum": 4, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 0.0}
-{"BusNum": 12574, "GenID": "1", "AreaNum": 7, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 4.7866382}
-{"BusNum": 12574, "GenID": "2", "AreaNum": 7, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 4.88801637}
-{"BusNum": 12761, "GenID": "1", "AreaNum": 7, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 5.09761071}
-{"BusNum": 12761, "GenID": "2", "AreaNum": 7, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 5.01775691}
-{"BusNum": 12761, "GenID": "3", "AreaNum": 7, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 5.09819057}
-{"BusNum": 12761, "GenID": "4", "AreaNum": 7, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 5.03910509}
-{"BusNum": 12761, "GenID": "5", "AreaNum": 7, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 4.99844141}
-{"BusNum": 12761, "GenID": "6", "AreaNum": 7, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 5.01030847}
 {"BusNum": 12821, "GenID": "1", "AreaNum": 1, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 0.0}
 {"BusNum": 13143, "GenID": "1", "AreaNum": 3, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 0.0}
-{"BusNum": 13270, "GenID": "3", "AreaNum": 1, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 4.70668383}
-{"BusNum": 13270, "GenID": "4", "AreaNum": 1, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 4.71969302}
 {"BusNum": 13391, "GenID": "1", "AreaNum": 4, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 0.0}
-{"BusNum": 13417, "GenID": "1", "AreaNum": 1, "GenCostModel": "Cubic", "GenCostCurvePoints": 0.0, "GenMCost": 4.71421533}
 ```
 
 ### opf.3 — Worth a look — Probably on purpose

@@ -3,7 +3,7 @@ Replayed from a stored snapshot; no case was opened.
 # Case audit
 
 Case checked: `Hawaii40_base.pwb`  
-Audited: 2026-09-30T22:42:56  
+Audited: 2026-09-30T23:23:37  
 Case file unchanged by the audit: not checked (no hash of the file before and after)
 
 ## Verdict

@@ -3,7 +3,7 @@ Replayed from a stored snapshot; no case was opened.
 # Case audit
 
 Case checked: `Hawaii40_base.pwb`  
-Audited: 2026-09-30T22:43:00  
+Audited: 2026-09-30T23:23:44  
 Case file unchanged by the audit: not checked (no hash of the file before and after)
 
 ## Verdict
@@ -40,7 +40,7 @@ N-1 will check: areas 1 (of 1), all kV, 89 branches / 37 buses (the case's own s
 ## Findings
 | what's wrong | where (keys) | why it matters | stops the study? | Broken / Probably on purpose / Your call | rule | kit page |
 |---|---|---|---|---|---|---|
-| 1 online unit(s) above their rating after the solve, 3.0 MW over in all | 1 object(s), listed below | the case runs; the overshoot is small enough not to move a finding - say the MW | Worth a look | Broken | base.gen_over_nameplate | methods/applying-a-dispatch-to-a-case.md |
+| 1 online unit(s) above their rating after the solve, 3.0 MW over in all | 1 object(s), listed below | the case runs; the overshoot is small enough not to move a finding | Worth a look | Broken | base.gen_over_nameplate | methods/applying-a-dispatch-to-a-case.md |
 | 1 switched shunt(s) with a 0 Mvar range and no regulated bus | 1 object(s), listed below | a 0 Mvar shunt with no target is usually a placeholder, not a defect | Worth a look | Probably on purpose | base.regulates_nothing | methods/ltc-regulation-checks.md |
 | the case already holds 14 contingency violation rows from an earlier run | — | they describe whatever the case was when that run happened, not this audit - do not read them | FYI | Probably on purpose | base.stale_ctg_results | methods/reading-violationctg.md |
 | an N-1 will check 1 of 1 areas, 89 branches and 37 buses | — | a clean N-1 result covers only this footprint, not the whole system | FYI | Probably on purpose | mon.footprint | field export (schema-only) |

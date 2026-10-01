@@ -1,7 +1,7 @@
 {
  "source": "snapshot",
  "case": "Hawaii40_base.pwb",
- "audited_at": "2026-09-30T22:43:02",
+ "audited_at": "2026-09-30T23:23:48",
  "profiles": [
   "base",
   "opf"
@@ -162,10 +162,10 @@
    "opf": true,
    "via_super_area": false,
    "agc_units": 39,
-   "with_curve": 0,
-   "cost_above_zero": 30,
+   "with_cost_data": 0,
+   "cost_above_zero": 0,
    "cost_models": {
-    "Cubic": 39
+    "None": 39
    }
   }
  ],

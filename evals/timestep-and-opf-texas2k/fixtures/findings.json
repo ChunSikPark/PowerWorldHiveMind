@@ -1,7 +1,7 @@
 {
  "source": "case",
  "case": "Texas2k_series25_case1_summerpeak_PFW.pwb",
- "audited_at": "2026-09-30T22:43:34",
+ "audited_at": "2026-09-30T23:23:12",
  "profiles": [
   "base",
   "timestep",
@@ -262,7 +262,7 @@
    "opf": true,
    "via_super_area": true,
    "agc_units": 116,
-   "with_curve": 112,
+   "with_cost_data": 115,
    "cost_above_zero": 28,
    "cost_models": {
     "Cubic": 116
@@ -275,7 +275,7 @@
    "opf": true,
    "via_super_area": true,
    "agc_units": 86,
-   "with_curve": 85,
+   "with_cost_data": 85,
    "cost_above_zero": 13,
    "cost_models": {
     "Cubic": 86
@@ -288,7 +288,7 @@
    "opf": true,
    "via_super_area": true,
    "agc_units": 76,
-   "with_curve": 75,
+   "with_cost_data": 75,
    "cost_above_zero": 8,
    "cost_models": {
     "Cubic": 76
@@ -301,7 +301,7 @@
    "opf": true,
    "via_super_area": true,
    "agc_units": 122,
-   "with_curve": 120,
+   "with_cost_data": 120,
    "cost_above_zero": 42,
    "cost_models": {
     "Cubic": 122
@@ -314,7 +314,7 @@
    "opf": true,
    "via_super_area": true,
    "agc_units": 62,
-   "with_curve": 62,
+   "with_cost_data": 62,
    "cost_above_zero": 30,
    "cost_models": {
     "Cubic": 62
@@ -327,7 +327,7 @@
    "opf": true,
    "via_super_area": true,
    "agc_units": 88,
-   "with_curve": 88,
+   "with_cost_data": 88,
    "cost_above_zero": 63,
    "cost_models": {
     "Cubic": 88
@@ -340,7 +340,7 @@
    "opf": true,
    "via_super_area": true,
    "agc_units": 146,
-   "with_curve": 138,
+   "with_cost_data": 146,
    "cost_above_zero": 126,
    "cost_models": {
     "Cubic": 146
@@ -353,7 +353,7 @@
    "opf": true,
    "via_super_area": true,
    "agc_units": 40,
-   "with_curve": 40,
+   "with_cost_data": 40,
    "cost_above_zero": 25,
    "cost_models": {
     "Cubic": 40
@@ -504,7 +504,7 @@
    "rule": "opf.3",
    "severity": "Worth a look",
    "triage": "Your call",
-   "what": "16 of the 736 units the OPF could move carry no cost curve",
+   "what": "5 of the 736 units the OPF could move carry no cost curve",
    "why": "the OPF runs on the priced units; these ones have no price to be dispatched on",
    "page": "concepts/opf-preconditions.md",
    "stops": [],
@@ -527,70 +527,6 @@
      "GenMCost": 0.0
     },
     {
-     "BusNum": 12574,
-     "GenID": "1",
-     "AreaNum": 7,
-     "GenCostModel": "Cubic",
-     "GenCostCurvePoints": 0.0,
-     "GenMCost": 4.7866382
-    },
-    {
-     "BusNum": 12574,
-     "GenID": "2",
-     "AreaNum": 7,
-     "GenCostModel": "Cubic",
-     "GenCostCurvePoints": 0.0,
-     "GenMCost": 4.88801637
-    },
-    {
-     "BusNum": 12761,
-     "GenID": "1",
-     "AreaNum": 7,
-     "GenCostModel": "Cubic",
-     "GenCostCurvePoints": 0.0,
-     "GenMCost": 5.09761071
-    },
-    {
-     "BusNum": 12761,
-     "GenID": "2",
-     "AreaNum": 7,
-     "GenCostModel": "Cubic",
-     "GenCostCurvePoints": 0.0,
-     "GenMCost": 5.01775691
-    },
-    {
-     "BusNum": 12761,
-     "GenID": "3",
-     "AreaNum": 7,
-     "GenCostModel": "Cubic",
-     "GenCostCurvePoints": 0.0,
-     "GenMCost": 5.09819057
-    },
-    {
-     "BusNum": 12761,
-     "GenID": "4",
-     "AreaNum": 7,
-     "GenCostModel": "Cubic",
-     "GenCostCurvePoints": 0.0,
-     "GenMCost": 5.03910509
-    },
-    {
-     "BusNum": 12761,
-     "GenID": "5",
-     "AreaNum": 7,
-     "GenCostModel": "Cubic",
-     "GenCostCurvePoints": 0.0,
-     "GenMCost": 4.99844141
-    },
-    {
-     "BusNum": 12761,
-     "GenID": "6",
-     "AreaNum": 7,
-     "GenCostModel": "Cubic",
-     "GenCostCurvePoints": 0.0,
-     "GenMCost": 5.01030847
-    },
-    {
      "BusNum": 12821,
      "GenID": "1",
      "AreaNum": 1,
@@ -607,45 +543,21 @@
      "GenMCost": 0.0
     },
     {
-     "BusNum": 13270,
-     "GenID": "3",
-     "AreaNum": 1,
-     "GenCostModel": "Cubic",
-     "GenCostCurvePoints": 0.0,
-     "GenMCost": 4.70668383
-    },
-    {
-     "BusNum": 13270,
-     "GenID": "4",
-     "AreaNum": 1,
-     "GenCostModel": "Cubic",
-     "GenCostCurvePoints": 0.0,
-     "GenMCost": 4.71969302
-    },
-    {
      "BusNum": 13391,
      "GenID": "1",
      "AreaNum": 4,
      "GenCostModel": "Cubic",
      "GenCostCurvePoints": 0.0,
      "GenMCost": 0.0
-    },
-    {
-     "BusNum": 13417,
-     "GenID": "1",
-     "AreaNum": 1,
-     "GenCostModel": "Cubic",
-     "GenCostCurvePoints": 0.0,
-     "GenMCost": 4.71421533
     }
    ],
    "details": {
     "units": 736,
-    "priced": 720
+    "priced": 731
    },
    "handoff": "your own cost-data source; no script supplies cost curves, and a default one makes the dispatch meaningless",
    "label": "Worth a look",
-   "count": 16
+   "count": 5
   },
   {
    "rule": "opf.3",

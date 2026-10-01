@@ -3,7 +3,7 @@ Replayed from a stored snapshot; no case was opened.
 # Case audit
 
 Case checked: `Hawaii40_base.pwb`  
-Audited: 2026-09-30T22:43:02  
+Audited: 2026-09-30T23:23:48  
 Case file unchanged by the audit: not checked (no hash of the file before and after)
 
 ## Verdict
@@ -47,9 +47,9 @@ Headroom on dispatchable units the OPF may move: 177 MW.
 | no cost data on any unit the OPF could move in area 1 | 1 object(s), listed below | an OPF needs real cost curves there; switching a cost model on without them gives a meaningless dispatch | Stops the study | Your call | opf.3 | concepts/opf-preconditions.md |
 
 ## Can the OPF run?
-| area | OPF may redispatch it | units the OPF may move | with a cost curve | with a cost above 0 at today's output | cost model types |
+| area | OPF may redispatch it | units the OPF may move | with cost data | with a cost above 0 at today's output | cost model types |
 |---|---|---|---|---|---|
-| 1 | yes (OPF) | 39 | 0 | 30 | Cubic 39 |
+| 1 | yes (OPF) | 39 | 0 | 0 | None 39 |
 
 ## What you need to get
 1. no cost data on any unit the OPF could move in area 1 → your own cost-data source; no script supplies cost curves, and a default one makes the dispatch meaningless → then send the returned case to be checked again
