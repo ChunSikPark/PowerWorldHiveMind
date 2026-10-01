@@ -18,7 +18,7 @@ DC_SKELETON_PARTIAL_SHARE = 0.05 # proposed default: a partial skeleton (at leas
 # base.gen_over_nameplate  (spec section 4 and the case-auditor brief set these; neither is a source)
 GEN_OVER_MIN_MW = 0.1            # proposed default: below this an overshoot is solver noise
 GEN_OVER_STOP_MW = 5.0           # proposed default: not measured - neither public case has a unit
-GEN_OVER_STOP_SHARE = 0.01       # over its max. Stops past max(1 % of GenMWMax, 5 MW)
+GEN_OVER_STOP_SHARE = 0.01       # proposed default: the 1 % share of GenMWMax past which an overshoot stops the study
 
 # LTC rules  (methods/ltc-regulation-checks.md)
 LTC_BAND_CAN_ACT_PU = 0.2        # proposed default: bands measured to act are 0.02-0.065 pu wide; a
@@ -26,8 +26,8 @@ LTC_BAND_CAN_ACT_PU = 0.2        # proposed default: bands measured to act are 0
 KV_SAME_REL = 0.01               # proposed default: terminals within 1 % nominal kV have no LV side
 BAND_TOL_PU = 1e-4               # proposed default: BusVoltLimLow/High read back single-precision
                                  # (0.89999998 for 0.9, probed 2026-09-30)
-FALLBACK_BAND = (0.94, 1.05)     # the study criterion of the kit's measured runs, not a PowerWorld
-                                 # default; used only where a bus's limits read 0 or blank
+FALLBACK_BAND = (0.94, 1.05)     # proposed default: the study criterion of the kit's measured runs, not a PowerWorld
+                                 # default; used only when a bus reports no limit
 
 # base.floating_stub  (concepts/unloaded-ehv-stub-overvoltage.md)
 EHV_KV = 300.0                   # proposed default: catches 345, 500 and 765 kV, excludes 230
