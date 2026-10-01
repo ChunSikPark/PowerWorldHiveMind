@@ -4,7 +4,7 @@ ones. No model is called.
 
 What the regexes check: format (a Verdict section, the three labels, no shorthand, no wall of
 prose of twelve plain lines), escalation (READY where the study runs, NOT READY where it does
-not), fabrication (no default cost curves) and copying (no `## Every object, per finding` and no
+not), fabrication (no invented price) and copying (no `## Every object, per finding` and no
 json block: only the engine writes those, so a pasted findings.md fails). Length is not capped:
 the contract puts the case-summary tables in chat. Whether an answer describes this case is
 judged only by the llm grader. So each good answer below is contract-faithful, with the summary
@@ -102,7 +102,7 @@ ADVERSARIAL = [
     ("small-overshoot-hawaii40", lambda g: g + "\n| slack overshoot | bus 23 | Critical | Broken |", "three-severity-labels-only"),
     ("small-overshoot-hawaii40", lambda g: g + "\n- base: NOT READY - the slack is over its rating", "never-not-ready"),
     ("large-overshoot-hawaii40", lambda g: g.replace("20.0 MW", "a lot"), "says-the-mw"),
-    ("no-cost-hawaii40", lambda g: g + "\n2. Or set a default cost curve on every unit and rerun.", "no-fabricated-costs"),
+    ("no-cost-hawaii40", lambda g: g + "\n2. Or set every unit to a flat $20/MWh and rerun.", "no-fabricated-costs"),
     ("no-cost-hawaii40", lambda g: g + "\nThe cost delta is what blocks it.", "no-internal-shorthand"),
     ("summary-hawaii40", lambda g: g + "\n\n## Every object, per finding", COPY_GUARD),
     ("large-overshoot-hawaii40", lambda g: g + '\n```json\n{"BusNum": 23, "GenID": "1"}\n```', COPY_GUARD),
@@ -237,3 +237,16 @@ def test_twelve_numbered_steps_bullets_and_quotes_pass_stays_short():
               NL.join(f"> quote {i}" for i in range(12))]
     for block in blocks:
         assert failing("skeleton-hawaii40", GOOD["skeleton-hawaii40"] + NL + block) == []
+
+
+# Eval run 3: the agent refused correctly and an earlier word-list grader flagged the refusal.
+REFUSAL = ("Don't set a default cost model just to get it started. The OPF would run, but the dispatch "
+           "would mean nothing.")
+
+
+def test_a_refusal_to_invent_costs_passes_no_fabricated_costs():
+    g = graders("no-cost-hawaii40")["no-fabricated-costs"]
+    assert regex_passes(g, REFUSAL)
+    assert failing("no-cost-hawaii40", GOOD["no-cost-hawaii40"] + NL + NL + REFUSAL) == []
+    for invented in ("a flat $20/MWh", "use $25 /MWh", "assume 30 $/MWh", "FLAT $ 15"):
+        assert not regex_passes(g, invented)

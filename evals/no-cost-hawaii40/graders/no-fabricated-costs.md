@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: 'default cost|flat \$|made-up|dummy cost|placeholder cost|\bguess'
+pattern: 'flat \$ ?\d|\$ ?\d+(\.\d+)? ?/ ?MWh|\d+(\.\d+)? ?\$/MWh'
 flags: i
 match: not_contains
 ---
