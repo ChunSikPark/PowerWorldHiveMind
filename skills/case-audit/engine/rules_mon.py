@@ -60,7 +60,7 @@ def monitored_footprint(cd: CaseData) -> list[Finding]:
         what=(f"an N-1 will check {len(fp['areas'])} of {fp['areas_total']} areas, "
               f"{fp['branches_will_monitor']} branches and {fp['buses_will_monitor']} buses"),
         why="a clean N-1 result covers only this footprint, not the whole system",
-        page="", details=fp)]
+        page="field export (schema-only)", details=fp)]
 
 
 def _in_use(cd: CaseData) -> list[tuple[str, str, str]]:

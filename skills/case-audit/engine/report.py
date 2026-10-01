@@ -26,11 +26,11 @@ def build(cd: CaseData, profiles: list[str], pww: str | None = None, source: str
     before, after = cd.scalars.get("sha256_before"), cd.scalars.get("sha256_after")
     return clean({
         "source": source,
-        "case": cd.scalars.get("case_path"),
+        "case": Path(p).name if (p := cd.scalars.get("case_path")) else None,  # basename only: no local paths in the files
         "audited_at": datetime.now().isoformat(timespec="seconds"),
         "profiles": ["base", *profiles],
-        "weather_file": pww,
-        "read_only": ({"sha256_before": before, "sha256_after": after, "unchanged": before == after} if live
+        "weather_file": Path(pww).name if pww else None,
+        "read_only": ({"sha256_before": before, "sha256_after": after, "unchanged": before == after if (before is not None and after is not None) else None} if live
                       else {"sha256_before": None, "sha256_after": None, "unchanged": None}),
         "variants_beside": cd.scalars.get("variants_beside", []),
         "solve": {"converged": cd.solve.converged, "raised": cd.solve.raised,
@@ -63,7 +63,7 @@ def render_md(r: dict) -> str:
     s, L = r["case_summary"], []
     if r["source"] == "snapshot":
         L += [REPLAYED, ""]
-    unchanged = {True: "yes", False: "NO", None: "not checked (no case was opened)"}[r["read_only"]["unchanged"]]
+    unchanged = {True: "yes", False: "NO", None: "not checked (no hash of the file before and after)"}[r["read_only"]["unchanged"]]
     L += ["# Case audit", "", f"Case checked: `{r['case']}`  ", f"Audited: {r['audited_at']}  ",
           f"Case file unchanged by the audit: {unchanged}"]
     if r["variants_beside"]:

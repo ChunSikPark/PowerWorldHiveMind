@@ -2,6 +2,8 @@
 what the run will cover (demos/timestep-and-pfw.md, methods/timestep-simulation-setup.md)."""
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -109,7 +111,7 @@ def pww_footprint(cd: CaseData, pww: str | None) -> list[Finding]:
         return [Finding(
             "ts.pww_footprint", FYI, YOUR_CALL,
             what="couldn't read the weather file, so its coverage was not checked",
-            why=str(e), page="concepts/pww-data.md")]
+            why=(e.strerror or type(e).__name__) + f": {Path(pww).name}" if isinstance(e, OSError) else str(e), page="concepts/pww-data.md")]
     r = renewables(cd).dropna(subset=["lat", "lon"])
     st = np.array(hdr["stations"], dtype=float).reshape(-1, 2)
     if r.empty or not len(st):
@@ -119,7 +121,7 @@ def pww_footprint(cd: CaseData, pww: str | None) -> list[Finding]:
                                   for i in range(0, len(r), 256)])
     r = r.assign(nearest_mi=nearest)
     out = r[r.nearest_mi > PWW_MAX_STATION_MILES]
-    info = {"file": str(pww), "stations": int(len(st)), "start": hdr["start"], "end": hdr["end"],
+    info = {"file": Path(pww).name, "stations": int(len(st)), "start": hdr["start"], "end": hdr["end"],
             "steps": hdr["steps"], "sample_seconds": hdr["sample_seconds"], "located_units": int(len(r))}
     if out.empty:
         return [Finding("ts.pww_footprint", FYI, YOUR_CALL,

@@ -123,3 +123,70 @@ def test_json_never_carries_nan(frames, tmp_path):
     data = json.loads(text, parse_constant=refuse)          # strict: NaN / Infinity raise
     assert "NaN" not in text and "Infinity" not in text
     assert data["solve"]["tolerance_mva"] is None
+
+
+import re
+import struct
+
+LEAK = re.compile(r"[A-Za-z]:[\/]|/(Users|home)/")
+
+
+def _strings(o):
+    if isinstance(o, str):
+        yield o
+    elif isinstance(o, dict):
+        for k, v in o.items():
+            yield str(k)
+            yield from _strings(v)
+    elif isinstance(o, list):
+        for v in o:
+            yield from _strings(v)
+
+
+def _no_paths(r, tmp_path, dirs):
+    j, m = report.write(r, tmp_path / "out")
+    md = m.read_text(encoding="utf-8")
+    strings = list(_strings(json.loads(j.read_text(encoding="utf-8")))) + [md]
+    for s in strings:
+        assert not LEAK.search(s), s[:200]
+        assert not any(d in s for d in dirs), s[:200]
+
+
+def _pww(path):
+    # smallest valid header: keys, version, date range, lat/lon box, zero stations
+    path.write_bytes(struct.pack("<hhhddddd", 2001, 8065, 1, 0.0, 1.0, 0.0, 1.0, 0.0) + b"\0" * 64)
+
+
+def test_findings_carry_basenames_only_unreadable_weather_file(frames, tmp_path):
+    d = tmp_path / "secret_dir"
+    d.mkdir()
+    cd = case(frames, case_path=str(d / "my_case.pwb"))
+    r = report.build(cd, ["timestep"], pww=str(d / "missing.pww"))
+    assert r["case"] == "my_case.pwb" and r["weather_file"] == "missing.pww"
+    _no_paths(r, tmp_path, [str(d), "secret_dir"])
+
+
+def test_findings_carry_basenames_only_readable_weather_file(frames, tmp_path):
+    d = tmp_path / "secret_dir"
+    d.mkdir()
+    _pww(d / "wx.pww")
+    r = report.build(case(frames, case_path=str(d / "my_case.pwb")), ["timestep"], pww=str(d / "wx.pww"))
+    f = next(x for x in r["findings"] if x["rule"] == "ts.pww_footprint")
+    assert f["details"].get("file") == "wx.pww"
+    _no_paths(r, tmp_path, [str(d), "secret_dir"])
+
+
+def test_unchanged_is_unknown_without_both_hashes(frames):
+    for scalars in ({}, {"sha256_before": "a"}, {"sha256_after": "a"}):
+        r = report.build(case(frames, **scalars), ["base"])
+        assert r["read_only"]["unchanged"] is None
+        md = report.render_md(r)
+        assert "unchanged by the audit: yes" not in md and "not checked" in md
+    r = report.build(case(frames, sha256_before="a", sha256_after="a"), ["base"])
+    assert r["read_only"]["unchanged"] is True
+
+
+def test_footprint_names_its_source(frames):
+    r = report.build(case(frames), ["base"])
+    f = next(x for x in r["findings"] if x["rule"] == "mon.footprint")
+    assert f["page"] == "field export (schema-only)"
