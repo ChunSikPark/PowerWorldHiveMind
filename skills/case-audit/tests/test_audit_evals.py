@@ -25,6 +25,7 @@ PROMPT_KEYS = {"schema_version", "name", "description", "tags", "plugins", "runs
                "max_turns", "timeout_seconds", "allowed_tools", "append_system_prompt", "env"}
 LOCAL = re.compile(r"[A-Za-z]:[\\/]|/(Users|home)/")
 REPLAY = "Replayed from a stored snapshot; no case was opened."
+INTRO = "PowerWorld isn't on this machine, but I already ran the case audit on it. Here is its findings.md:"
 
 GOOD = {
     "summary-hawaii40": """## Verdict
@@ -123,12 +124,23 @@ def strings(o):
 def test_case_loads(case):
     d = EVALS / case
     p = front(d / "prompt.md")
-    assert set(p["keys"]) <= PROMPT_KEYS and "fixtures folder" in p["body"]
+    assert set(p["keys"]) <= PROMPT_KEYS and "fixtures folder" not in p["body"]
     assert ": " not in p["keys"]["description"]                        # a bare YAML scalar cannot hold ": "
     assert p["keys"]["allowed_tools"] == "[Read, Glob, Grep, Agent]"
-    assert "add_dirs: [fixtures]" in (d / "case.yaml").read_text(encoding="utf-8")
+    # add_dirs is not exposed to the agent on native Windows: the findings travel in the prompt
+    assert (d / "case.yaml").read_text(encoding="utf-8").split() == ["schema_version:", '"1.1"', "name:", case]
     assert {"regex", "tool_used", "llm"} <= {g["type"] for g in graders(case).values()}
     assert ("says-no-case-was-opened" in graders(case)) == (case in SEEDED)
+
+
+@pytest.mark.parametrize("case", CASES)
+def test_the_prompt_carries_its_fixture_findings_verbatim(case):
+    body = front(EVALS / case / "prompt.md")["body"]
+    md = (EVALS / case / "fixtures" / "findings.md").read_text(encoding="utf-8")
+    question, _, rest = body.partition(INTRO)
+    assert question.strip() and NL not in question.strip()          # the engineer's question, then the audit
+    assert rest == NL + NL + "````markdown" + NL + md + "````"
+    assert not LOCAL.search(body)
 
 
 @pytest.mark.parametrize("case", CASES)

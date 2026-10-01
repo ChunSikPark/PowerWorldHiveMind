@@ -7,4 +7,63 @@ timeout_seconds: 600
 allowed_tools: [Read, Glob, Grep, Agent]
 ---
 
-Scan Hawaii40_base.pwb for me - anything wrong with it? PowerWorld isn't on this machine, but I already ran the case audit on it: the output is findings.md and findings.json in the fixtures folder you can read.
+Scan Hawaii40_base.pwb for me - anything wrong with it?
+
+PowerWorld isn't on this machine, but I already ran the case audit on it. Here is its findings.md:
+
+````markdown
+Replayed from a stored snapshot; no case was opened.
+
+# Case audit
+
+Case checked: `Hawaii40_base.pwb`  
+Audited: 2026-09-30T23:23:46  
+Case file unchanged by the audit: not checked (no hash of the file before and after)
+
+## Verdict
+- base: NOT READY — 1 online unit(s) above their rating after the solve, 20.0 MW over in all
+- n1: NOT READY — 1 online unit(s) above their rating after the solve, 20.0 MW over in all
+
+## What's in the case
+| | MW | Mvar |
+|---|---|---|
+| Load | 1,136 | 0 |
+| Generation (online) | 1,183 | 9 |
+| Losses | 47 | |
+| Headroom on online units (dispatchable) | 168 | |
+| Online Mvar range | | -242 to 403 |
+
+Generation includes 20.0 MW above unit ratings.
+
+| fuel (as the case labels it) | units online / total | installed MW | output MW | share of output | headroom MW |
+|---|---|---|---|---|---|
+| BIT (Bituminous Coal) | 0/1 | 180 | 0 | 0% | 0 |
+| DFO (Distillate Fuel Oil) | 18/23 | 1,405 | 766 | 65% | 156 |
+| OBL (Other Biomass Liquids) | 12/12 | 146 | 135 | 11% | 12 |
+| SUN (Solar) | 6/6 | 167 | 156 | 13% | 0 (weather-limited) |
+| WND (Wind) | 3/3 | 127 | 127 | 11% | 0 (weather-limited) |
+
+| shunts | in service | Mvar now | capacitive capacity | inductive capacity |
+|---|---|---|---|---|
+| 1 | 1 | 31 | 32 | 0 |
+
+Size: 37 buses, 89 branches (12 transformers), 1 areas, 1 zones; kV levels 69, 138.
+
+N-1 will check: areas 1 (of 1), all kV, 89 branches / 37 buses (the case's own setup).
+
+## Findings
+| what's wrong | where (keys) | why it matters | stops the study? | Broken / Probably on purpose / Your call | rule | kit page |
+|---|---|---|---|---|---|---|
+| 1 online unit(s) above their rating after the solve, 20.0 MW over in all | 1 object(s), listed below | an overshoot this large means the dispatch does not match the ratings (at the slack, it is a shortfall the slack absorbed), so the flows are artifacts | Stops the study | Broken | base.gen_over_nameplate | methods/applying-a-dispatch-to-a-case.md |
+| the case already holds 14 contingency violation rows from an earlier run | — | they describe whatever the case was when that run happened, not this audit - do not read them | FYI | Probably on purpose | base.stale_ctg_results | methods/reading-violationctg.md |
+| an N-1 will check 1 of 1 areas, 89 branches and 37 buses | — | a clean N-1 result covers only this footprint, not the whole system | FYI | Probably on purpose | mon.footprint | field export (schema-only) |
+| rate sets with values: A (89 branches), B (89 branches), C (89 branches) | — | shows which rating letters a limit set could point at | FYI | Probably on purpose | mon.rate_sets_populated | methods/reading-violationctg.md |
+
+## Every object, per finding
+
+### base.gen_over_nameplate — Stops the study — Broken
+
+```json
+{"BusNum": 23, "GenID": "1", "GenMW": 97.80000567, "GenMWMax": 77.80000567, "over_mw": 20.0, "slack": true}
+```
+````
