@@ -8,6 +8,11 @@ already run, then `fixtures/findings.md` verbatim in a fence. `fixtures/findings
 `findings.json` stay the source of truth: `tools/case-audit-dev/write_prompt.py` writes the
 prompt from them, and the suite fails if a prompt no longer embeds its fixture word for word.
 
+The prompt's frontmatter also carries `append_system_prompt`, written by the same tool: eval run 2
+showed the main session answering every case itself and never dispatching case-auditor, so it is
+told to hand the request and the audit to case-auditor verbatim and relay the reply verbatim. The
+engineer's question itself stays plain.
+
 To regenerate a case, write its fixtures (`replay.py` for a seeded case; a live audit, then
 `scrub_findings.py`, for a live one), then run `write_prompt.py evals/<case>`.
 
