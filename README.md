@@ -57,12 +57,15 @@ folder, and read PowerWorld's own message log for each one:
 
 ## What's new in 0.4
 
-- **An agent team** that audits a case, runs studies with your settings, compares designs on
-  a map, and watches long runs. Each role is written up in [docs/agents](docs/agents/README.md),
-  and the site lets you [watch each one handle a request](https://chunsikpark.github.io/PowerWorldHiveMind/#agents).
-- **Answers as pages:** [Design Compare](docs/agents/pages/design-compare.html) for designs,
-  [Run Watch](docs/agents/pages/run-watch.html) for long runs, and a swimlane picture of every
-  plan before you approve it.
+- **An agent team** of six roles. Two are live: `schema-librarian` answers which object, field
+  or SCRIPT command to use, and `case-auditor` audits a case. Four are planned and not built
+  yet: running studies with your settings, comparing designs on a map, watching long runs, and
+  drawing each plan before you approve it. Each role is written up in
+  [docs/agents](docs/agents/README.md), and the site lets you
+  [watch each one handle a request](https://chunsikpark.github.io/PowerWorldHiveMind/#agents).
+- **Answers as pages**, the formats the planned roles will answer with: sample
+  [Design Compare](docs/agents/pages/design-compare.html) and
+  [Run Watch](docs/agents/pages/run-watch.html) pages, plus a swimlane picture of each plan.
 - **Study references:** every study option object and SCRIPT command in Simulator 25, and
   which settings are traps.
 
